@@ -636,10 +636,18 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 			continue
 		}
 
-		channel <- storetypes.SearchResult{
+		result := storetypes.SearchResult{
 			KubeconfigPath: kubeconfigPath,
 			Error:          nil,
 		}
+
+		if clusterName, ok := shoot.Labels[gardenerstore.LabelKeyClusterName]; ok && clusterName != "" {
+			result.Tags = map[string]string{
+				gardenerstore.LabelKeyClusterName: clusterName,
+			}
+		}
+
+		channel <- result
 	}
 
 	// the reason why the paths for managed seeds are populated here in the end (even though they are available before),

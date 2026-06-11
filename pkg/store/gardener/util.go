@@ -37,6 +37,10 @@ type GardenerResource string
 const (
 	GardenerResourceShoot GardenerResource = "Shoot"
 	GardenerResourceSeed  GardenerResource = "Seed"
+
+	// LabelKeyClusterName is the Shoot label whose value is used as an alias for the cluster context.
+	// Example: gardener.clusters.openmcp.cloud/cluster-name: my-alias
+	LabelKeyClusterName = "gardener.clusters.openmcp.cloud/cluster-name"
 )
 
 // GetStoreConfig unmarshalls to the Gardener store config from the configuration
