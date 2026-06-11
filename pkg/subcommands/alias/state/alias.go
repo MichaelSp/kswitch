@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -111,7 +111,7 @@ func (a *Alias) WriteAllAliases() error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	output, err := yaml.Marshal(a.Content)
 	if err != nil {

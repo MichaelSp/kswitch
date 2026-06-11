@@ -21,9 +21,9 @@ import (
 	"os/exec"
 	"time"
 
-	switchconfig "github.com/danielfoehrkn/kswitch/pkg/config"
-	"github.com/danielfoehrkn/kswitch/pkg/state"
-	"github.com/danielfoehrkn/kswitch/types"
+	switchconfig "github.com/MichaelSp/kswitch/pkg/config"
+	"github.com/MichaelSp/kswitch/pkg/state"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/sirupsen/logrus"
 )

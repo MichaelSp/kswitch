@@ -17,10 +17,10 @@ package store
 import (
 	"sync"
 
-	"github.com/danielfoehrkn/kswitch/pkg/store/doks"
-	gardenclient "github.com/danielfoehrkn/kswitch/pkg/store/gardener/copied_gardenctlv2"
-	"github.com/danielfoehrkn/kswitch/pkg/store/plugins"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/store/doks"
+	gardenclient "github.com/MichaelSp/kswitch/pkg/store/gardener/copied_gardenctlv2"
+	"github.com/MichaelSp/kswitch/pkg/store/plugins"
+	"github.com/MichaelSp/kswitch/types"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"

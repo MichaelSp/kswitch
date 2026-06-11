@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	historyutil "github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"

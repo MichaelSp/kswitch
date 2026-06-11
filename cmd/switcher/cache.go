@@ -14,6 +14,6 @@
 package switcher
 
 import (
-	_ "github.com/danielfoehrkn/kswitch/pkg/cache/file"
-	_ "github.com/danielfoehrkn/kswitch/pkg/cache/memory"
+	_ "github.com/MichaelSp/kswitch/pkg/cache/file"
+	_ "github.com/MichaelSp/kswitch/pkg/cache/memory"
 )

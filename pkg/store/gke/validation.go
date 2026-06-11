@@ -17,7 +17,7 @@ package gke
 import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // ValidateGKEStoreConfiguration validates the store configuration for GKE

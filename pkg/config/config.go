@@ -20,8 +20,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/danielfoehrkn/kswitch/pkg/config/migration"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/config/migration"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // LoadConfigFromFile takes a filename and de-serializes the contents into a Configuration object.
@@ -65,7 +65,7 @@ func MigrateConfig(old types.ConfigOld, filename string) (*types.Config, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate SwitchConfig file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	output, err := yaml.Marshal(old)
 	if err != nil {
@@ -83,7 +83,7 @@ func MigrateConfig(old types.ConfigOld, filename string) (*types.Config, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate SwitchConfig file: %w", err)
 	}
-	defer fileNew.Close()
+	defer func() { _ = fileNew.Close() }()
 
 	output, err = yaml.Marshal(new)
 	if err != nil {

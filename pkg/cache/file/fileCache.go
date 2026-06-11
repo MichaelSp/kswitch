@@ -21,11 +21,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/danielfoehrkn/kswitch/pkg/cache"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/pkg/util"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/cache"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/util"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
