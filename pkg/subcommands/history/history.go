@@ -21,11 +21,11 @@ import (
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
-	setcontext "github.com/danielfoehrkn/kswitch/pkg/subcommands/set-context"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
+	setcontext "github.com/MichaelSp/kswitch/pkg/subcommands/set-context"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 var logger = logrus.New()

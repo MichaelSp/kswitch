@@ -14,7 +14,7 @@
 package switcher
 
 import (
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/history"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/history"
 	"github.com/spf13/cobra"
 )
 

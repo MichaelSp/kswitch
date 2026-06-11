@@ -14,7 +14,7 @@
 package switcher
 
 import (
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/ns"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/ns"
 	"github.com/spf13/cobra"
 )
 

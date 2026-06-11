@@ -22,10 +22,10 @@ import (
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	list_contexts "github.com/danielfoehrkn/kswitch/pkg/subcommands/list-contexts"
-	setcontext "github.com/danielfoehrkn/kswitch/pkg/subcommands/set-context"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	list_contexts "github.com/MichaelSp/kswitch/pkg/subcommands/list-contexts"
+	setcontext "github.com/MichaelSp/kswitch/pkg/subcommands/set-context"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 func ExecuteCommand(pattern string, command []string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, showDebugLogs bool) error {

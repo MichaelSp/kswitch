@@ -10,7 +10,7 @@ Instead, use the sourced shell function as described in [source the shell functi
 
 Install the `switcher` binary with `homebrew`.
 ```
-brew install danielfoehrkn/switch/switch
+brew install MichaelSp/switch/switch
 ```
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
@@ -47,7 +47,7 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 ### Option 3 - From source
 
 ```
-go get github.com/danielfoehrkn/kswitch
+go get github.com/MichaelSp/kswitch
 ```
 
 From the repository root run `make build-switcher`.
