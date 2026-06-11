@@ -45,7 +45,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: latest
-          args: --timeout=10m --modules-download-mode=vendor
+          args: --timeout=10m --modules-download-mode=mod
 
       - name: Test
         run: go test ./...
