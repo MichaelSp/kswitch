@@ -41,11 +41,11 @@ func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 
 	ovhApplicationKey := ovhStoreConfig.OVHApplicationKey
 	if len(ovhApplicationKey) == 0 {
-		return nil, fmt.Errorf("When using the OVH kubeconfig store, the application key for OVH has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the OVH kubeconfig store, the application key for OVH has to be provided via a SwitchConfig file")
 	}
 	ovhApplicationSecret := ovhStoreConfig.OVHApplicationSecret
 	if len(ovhApplicationSecret) == 0 {
-		return nil, fmt.Errorf("When using the OVH kubeconfig store, the application secret for OVH has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the OVH kubeconfig store, the application secret for OVH has to be provided via a SwitchConfig file")
 	}
 	ovhConsumerKey := ovhStoreConfig.OVHConsumerKey
 	if len(ovhConsumerKey) == 0 {

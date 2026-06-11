@@ -115,7 +115,7 @@ func (s *AzureStore) StartSearch(channel chan storetypes.SearchResult) {
 
 			for pager.NextPage(ctx) {
 				s.Logger.Debugf("next page found for resource group %q", resourceGroup)
-				s.returnSearchResultsForClusters(channel, pager.PageResponse().ManagedClusterListResult.Value)
+				s.returnSearchResultsForClusters(channel, pager.PageResponse().Value)
 			}
 
 			if pager.Err() != nil {
@@ -136,7 +136,7 @@ func (s *AzureStore) StartSearch(channel chan storetypes.SearchResult) {
 
 	for pager.NextPage(ctx) {
 		s.Logger.Debugf("next page found")
-		s.returnSearchResultsForClusters(channel, pager.PageResponse().ManagedClusterListResult.Value)
+		s.returnSearchResultsForClusters(channel, pager.PageResponse().Value)
 	}
 	s.Logger.Debugf("Search done for AKS")
 }
@@ -153,7 +153,7 @@ func handleAzureError(channel chan storetypes.SearchResult, err error) {
 
 	if err != nil {
 		channel <- storetypes.SearchResult{
-			Error: fmt.Errorf("Failed to list AKS clusters: %w", err),
+			Error: fmt.Errorf("failed to list AKS clusters: %w", err),
 		}
 		return
 	}
@@ -161,27 +161,17 @@ func handleAzureError(channel chan storetypes.SearchResult, err error) {
 
 func (s *AzureStore) returnSearchResultsForClusters(channel chan storetypes.SearchResult, managedClusters []*armcontainerservice.ManagedCluster) {
 	for _, cluster := range managedClusters {
+		if cluster.Name == nil || cluster.ID == nil {
+			continue
+		}
 		s.Logger.Debugf("Found cluster with name %q and id %q", *cluster.Name, *cluster.ID)
-		if cluster.Name == nil {
-			continue
-		}
-
-		if cluster.Resource.Name == nil {
-			s.Logger.Debugf("Resource name for cluster %q not set", *cluster.Resource.Name)
-			continue
-		}
-
-		if cluster.ID == nil {
-			// this should not happen
-			continue
-		}
 
 		// This is a hack: parse the resource group from the ID
 		// there is unfortunately currently no easy way to get the resource group of an AKS cluster as the go-sdk does not expose that field :/
 		//  - /subscriptions/<subscription-id>/resourcegroups/kswitch/providers/Microsoft.ContainerService/managedClusters/kswitch_test
 		split := strings.Split(*cluster.ID, "/")
 		if len(split) <= 4 {
-			s.Logger.Debugf("Unable to obtain resource group for cluster %q from cluster ID  %q", *cluster.Resource.Name, *cluster.ID)
+			s.Logger.Debugf("Unable to obtain resource group for cluster %q from cluster ID  %q", *cluster.Name, *cluster.ID)
 			continue
 		}
 

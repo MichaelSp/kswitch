@@ -111,7 +111,7 @@ func (a *Alias) WriteAllAliases() error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	output, err := yaml.Marshal(a.Content)
 	if err != nil {

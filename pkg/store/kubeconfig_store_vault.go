@@ -21,13 +21,11 @@ import (
 	"log"
 	"os"
 	"path"
-	paths "path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/vault/api"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -148,18 +146,18 @@ func (s *VaultStore) GetLogger() *logrus.Entry {
 // and calls the `visit` functor for each of the directory and leaf paths.
 // Note: for kv-v2, a "metadata" path is expected and "metadata" paths will be
 // returned in the visit functor.
-func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Context, client *api.Client, path string, visit func(path string, directory bool) error) {
+func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Context, client *vaultapi.Client, secretPath string, visit func(path string, directory bool) error) {
 	defer wg.Done()
 
-	resp, err := client.Logical().ListWithContext(ctx, path)
+	resp, err := client.Logical().ListWithContext(ctx, secretPath)
 	if err != nil {
-		s.Logger.Errorf("could not list %q path: %s", path, err)
+		s.Logger.Errorf("could not list %q path: %s", secretPath, err)
 		return
 	}
 
 	if resp == nil || resp.Data == nil {
 		// Check if we're already at a leaf
-		if err := visit(shimKVv2Metadata(path), false); err != nil {
+		if err := visit(shimKVv2Metadata(secretPath), false); err != nil {
 			return
 		}
 		return
@@ -167,13 +165,13 @@ func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Cont
 
 	keysRaw, ok := resp.Data["keys"]
 	if !ok {
-		s.Logger.Errorf("unexpected list response at %q", path)
+		s.Logger.Errorf("unexpected list response at %q", secretPath)
 		return
 	}
 
 	keysRawSlice, ok := keysRaw.([]interface{})
 	if !ok {
-		s.Logger.Errorf("unexpected list response type %T at %q", keysRaw, path)
+		s.Logger.Errorf("unexpected list response type %T at %q", keysRaw, secretPath)
 		return
 	}
 
@@ -182,7 +180,7 @@ func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Cont
 	for _, keyRaw := range keysRawSlice {
 		key, ok := keyRaw.(string)
 		if !ok {
-			s.Logger.Errorf("unexpected key type %T at %q", keyRaw, path)
+			s.Logger.Errorf("unexpected key type %T at %q", keyRaw, secretPath)
 			return
 		}
 		keys = append(keys, key)
@@ -193,7 +191,7 @@ func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Cont
 
 	for _, key := range keys {
 		// the keys are relative to the current path: combine them
-		child := paths.Join(path, key)
+		child := path.Join(secretPath, key)
 
 		if strings.HasSuffix(key, "/") {
 			// visit the directory
@@ -309,7 +307,7 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 		}
 	} else {
 		if secret.Data["data"] == nil {
-			return nil, fmt.Errorf("cannot read kubeconfig from %q. Secret is empty.", secretsPath)
+			return nil, fmt.Errorf("cannot read kubeconfig from %q: secret is empty", secretsPath)
 		}
 		value, ok := secret.Data["data"].(map[string]interface{})[s.VaultKeyKubeconfig]
 		if ok {
@@ -381,8 +379,8 @@ func shimKvV2ListPath(rawPath, mountPath string) string {
 		return rawPath
 	}
 
-	switch {
-	case rawPath == mountPath:
+	switch rawPath {
+	case mountPath:
 		return path.Join(mountPath, "metadata")
 	default:
 		rawPath = strings.TrimPrefix(rawPath, mountPath)
@@ -392,5 +390,5 @@ func shimKvV2ListPath(rawPath, mountPath string) string {
 
 // shimKVv2Metadata removes metadata/ from the path
 func shimKVv2Metadata(path string) string {
-	return strings.Replace(path, "metadata/", "", -1)
+	return strings.ReplaceAll(path, "metadata/", "")
 }
