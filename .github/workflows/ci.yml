@@ -23,9 +23,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
-        go-version: '^1.21.0'
+        go-version-file: go.mod
+        cache: true
     - name: Run make check
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
