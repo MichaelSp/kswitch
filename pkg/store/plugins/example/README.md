@@ -13,5 +13,5 @@ go build .
 ### Run
 
 ```bash
-kubeswitch --config-path switch-config.yaml
+kswitch --config-path switch-config.yaml
 ```

@@ -1,6 +1,6 @@
 # Azure store
 
-Kubeswitch can discover AKS clusters from Azure.
+Kswitch can discover AKS clusters from Azure.
 
 ## Credentials
 
@@ -15,7 +15,7 @@ Please also note, that you can set a custom path for the Azure CLI via the envir
 Please make sure the `az` tool is installed and on your `PATH` if you are 
 not setting credentials via environment variables.
 
-Next, create the Azure store configuration in the `kubeswitch` configuration file.
+Next, create the Azure store configuration in the `kswitch` configuration file.
 
 Search over all AKS clusters for a subscription:
 ```
@@ -42,7 +42,7 @@ kubeconfigStores:
     config:
       subscriptionID: 21eb4f4d-xyz-xzxz-xzz
       resourceGroups:
-        - kubeswitch
+        - kswitch
 ```
 
 ## Multiple subscriptions
@@ -59,11 +59,11 @@ In General:
 - `az_<resource-group>-<cluster-name>/<cluster-name>`
 
 Example:
-- `az_kubeswitch-kubeswitch_test/kubeswitch_test`
+- `az_kswitch-kswitch_test/kswitch_test`
 
 In this example:
-- Resource group name: kubeswitch
-- AKS Cluster name: kubeswitch_test
+- Resource group name: kswitch
+- AKS Cluster name: kswitch_test
 
 However, remember that you can always define an `alias` for each context to define a name that you can better remember or query .
 

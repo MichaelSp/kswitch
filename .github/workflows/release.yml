@@ -5,7 +5,7 @@ on:
     types:
       - published
 jobs:
-  update_kubeswitch_in_homebrew_tap:
+  update_kswitch_in_homebrew_tap:
     environment: Release
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +61,7 @@ jobs:
           release-tag: ${{ steps.build_binary_files.outputs.latest_release_filtered_tag }}
       - name: Send update with latest versions to danielfoehrkn/homebrew-switch
         env:
-          ACCESS_TOKEN: ${{ secrets.KUBESWITCH_ACCESS_TOKEN }}
+          ACCESS_TOKEN: ${{ secrets.KSWITCH_ACCESS_TOKEN }}
         run: |
           mac_sha256sum=$(sha256sum hack/switch/switcher_darwin_amd64 | awk '{print $1}')
           mac_arm_sha256sum=$(sha256sum hack/switch/switcher_darwin_arm64 | awk '{print $1}')

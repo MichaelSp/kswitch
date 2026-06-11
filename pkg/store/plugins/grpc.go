@@ -1,4 +1,4 @@
-// Copyright 2024 The Kubeswitch authors
+// Copyright 2024 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	kubeconfigstorev1 "github.com/danielfoehrkn/kubeswitch/pkg/store/plugins/kubeconfigstore/v1"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
+	kubeconfigstorev1 "github.com/danielfoehrkn/kswitch/pkg/store/plugins/kubeconfigstore/v1"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
 )
 
 type GRPCClient struct {

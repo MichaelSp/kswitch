@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import (
 	"os/exec"
 	"time"
 
-	switchconfig "github.com/danielfoehrkn/kubeswitch/pkg/config"
-	"github.com/danielfoehrkn/kubeswitch/pkg/state"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	switchconfig "github.com/danielfoehrkn/kswitch/pkg/config"
+	"github.com/danielfoehrkn/kswitch/pkg/state"
+	"github.com/danielfoehrkn/kswitch/types"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/sirupsen/logrus"
 )

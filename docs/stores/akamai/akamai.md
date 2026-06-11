@@ -8,7 +8,7 @@ The required permissions for this plugin to work are the following:
 
 ## Configuration
 
-The Akamai store configuration is defined in the `kubeswitch` configuration file.
+The Akamai store configuration is defined in the `kswitch` configuration file.
 An example configuration is shown below:
 
 ```yaml

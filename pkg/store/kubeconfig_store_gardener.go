@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	gardenclient "github.com/danielfoehrkn/kubeswitch/pkg/store/gardener/copied_gardenctlv2"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
+	gardenclient "github.com/danielfoehrkn/kswitch/pkg/store/gardener/copied_gardenctlv2"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
 	"github.com/disiqueira/gotree"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
@@ -37,10 +37,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gardenerstore "github.com/danielfoehrkn/kubeswitch/pkg/store/gardener"
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/alias/state"
-	"github.com/danielfoehrkn/kubeswitch/pkg/util"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	gardenerstore "github.com/danielfoehrkn/kswitch/pkg/store/gardener"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/state"
+	"github.com/danielfoehrkn/kswitch/pkg/util"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 const (
@@ -56,7 +56,7 @@ const (
 
 // GardenloginConfig represents the config for the Gardenlogin-exec-provider that is
 // required to work with the kubeconfig files obtained from the GardenConfig cluster
-// If missing, this configuration is generated based on the Kubeswitch config
+// If missing, this configuration is generated based on the Kswitch config
 type GardenloginConfig struct {
 	// Gardens is a list of known GardenConfig clusters
 	Gardens []GardenConfig `yaml:"gardens"`
@@ -129,7 +129,7 @@ func (s *GardenerStore) InitializeGardenerStore() error {
 			return err
 		}
 
-		// the default configuration does not exist. Write based on the Kubeswitch configuration file
+		// the default configuration does not exist. Write based on the Kswitch configuration file
 		if err := writeGardenloginConfig(gardenloginConfigPath, &GardenloginConfig{Gardens: []GardenConfig{
 			{
 				Identity:   s.LandscapeIdentity,

@@ -1,4 +1,4 @@
-#Copyright 2021 The Kubeswitch authors
+#Copyright 2021 The Kswitch authors
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # as needed. If the required tool (version) is not built/installed yet, make will make sure to build/install it.
 # The *_VERSION variables in this file contain the "default" values, but can be overwritten in the top level make file.
 
-ifeq ($(strip $(shell go list -m)),github.com/danielfoehrkn/kubeswitch)
+ifeq ($(strip $(shell go list -m)),github.com/danielfoehrkn/kswitch)
 TOOLS_PKG_PATH             := ./hack/tools
 endif
 

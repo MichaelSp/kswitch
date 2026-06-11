@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@ import (
 	"sync"
 	"time"
 
-	historyutil "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/history/util"
+	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/index"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	aliasutil "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/alias/util"
-	"github.com/danielfoehrkn/kubeswitch/pkg/util"
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg/index"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	aliasutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/util"
+	"github.com/danielfoehrkn/kswitch/pkg/util"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 var (
@@ -157,7 +157,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		return nil, nil, err
 	}
 
-	if err := kubeconfig.SetKubeswitchContext(contextForHistory); err != nil {
+	if err := kubeconfig.SetKswitchContext(contextForHistory); err != nil {
 		return nil, nil, err
 	}
 

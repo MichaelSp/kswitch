@@ -4,7 +4,7 @@ To use the Cluster API (capi) store a kubeconfig file should be created for the 
 
 ## Configuration
 
-The Cluster API store configuration is defined in the `kubeswitch` configuration file.
+The Cluster API store configuration is defined in the `kswitch` configuration file.
 
 ```yaml
 kind: SwitchConfig

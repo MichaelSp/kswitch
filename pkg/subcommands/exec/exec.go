@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import (
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	list_contexts "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/list-contexts"
-	setcontext "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/set-context"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	list_contexts "github.com/danielfoehrkn/kswitch/pkg/subcommands/list-contexts"
+	setcontext "github.com/danielfoehrkn/kswitch/pkg/subcommands/set-context"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func ExecuteCommand(pattern string, command []string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, showDebugLogs bool) error {

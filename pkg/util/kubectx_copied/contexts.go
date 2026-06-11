@@ -71,17 +71,17 @@ func (k *Kubeconfig) GetContextNames() ([]string, error) {
 	return contextNames, nil
 }
 
-// GetKubeswitchContext returns the "kubeswitch-context" value in given
+// GetKswitchContext returns the "kswitch-context" value in given
 // kubeconfig object Node, or returns "" if not found.
-func (k *Kubeconfig) GetKubeswitchContext() string {
-	v := valueOf(k.rootNode, "kubeswitch-context")
+func (k *Kubeconfig) GetKswitchContext() string {
+	v := valueOf(k.rootNode, "kswitch-context")
 	if v == nil {
 		return ""
 	}
 	return v.Value
 }
 
-// IsGardenerKubeconfig returns if this kubeconfig is a kubeconfig created by a kubeswitch Gardener Store
+// IsGardenerKubeconfig returns if this kubeconfig is a kubeconfig created by a kswitch Gardener Store
 // i.e needs to contain meta information added previously by the gardener store
 func (k *Kubeconfig) IsGardenerKubeconfig() bool {
 	v := valueOf(k.rootNode, "gardener-landscape-identity")

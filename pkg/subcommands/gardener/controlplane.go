@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/store"
-	gardenerstore "github.com/danielfoehrkn/kubeswitch/pkg/store/gardener"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	historyutil "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/history/util"
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg/store"
+	gardenerstore "github.com/danielfoehrkn/kswitch/pkg/store/gardener"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 const (
@@ -46,7 +46,7 @@ func SwitchToControlplane(stores []storetypes.KubeconfigStore, kubeconfigPathFro
 	}
 
 	if !kubeconfig.IsGardenerKubeconfig() {
-		return nil, fmt.Errorf("the currently used kubeconfig is not a Gardener kubeconfig. Cannot switch to controlplane. Please make sure you have previously used kubeswitch and the Gardener kuebconfig store to obtain the Shoot kubeconfig")
+		return nil, fmt.Errorf("the currently used kubeconfig is not a Gardener kubeconfig. Cannot switch to controlplane. Please make sure you have previously used kswitch and the Gardener kuebconfig store to obtain the Shoot kubeconfig")
 	}
 
 	clusterType := kubeconfig.GetGardenerClusterType()

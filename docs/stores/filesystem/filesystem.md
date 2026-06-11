@@ -2,7 +2,7 @@
 
 Search for kubeconfig files on the local filesystem.
 
-The filesystem store is the default store for `kubeswitch`.
+The filesystem store is the default store for `kswitch`.
 That means the CLI flag `--store`  defaults to `filesystem`.
 Therefore, you can search through a specific directory on the local filesystem for 
 kubeconfig files by only specifying the flag  --kubeconfig-path.
@@ -35,7 +35,7 @@ switch --kubeconfig-path ~/.kube/my-path/my-kubeconfig-file.yaml
 
 ### Search multiple directories on the local filesystem
 
-`kubeswitch` can search over **multiple** directories and combine the search results.
+`kswitch` can search over **multiple** directories and combine the search results.
 The `path` field accepts both directories and filepaths.
 
 ```yaml

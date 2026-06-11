@@ -15,13 +15,13 @@ echo 'source <(switch completion zsh)' >> ~/.zshrc
 ```
 ### Fish
 ```sh
-echo 'kubeswitch completion fish | source' >> ~/.config/fish/config.fish
+echo 'kswitch completion fish | source' >> ~/.config/fish/config.fish
 ```
 
 ### Powershell
 ```powershell
-echo 'kubeswitch completion powershell' >> $PROFILE
+echo 'kswitch completion powershell' >> $PROFILE
 echo 'Register-ArgumentCompleter -CommandName ''switcher_windows_amd64'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
-echo 'Register-ArgumentCompleter -CommandName ''kubeswitch'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
+echo 'Register-ArgumentCompleter -CommandName ''kswitch'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
 . $PROFILE
 ```

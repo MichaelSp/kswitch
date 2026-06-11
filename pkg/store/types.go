@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package store
 import (
 	"sync"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/store/doks"
-	gardenclient "github.com/danielfoehrkn/kubeswitch/pkg/store/gardener/copied_gardenctlv2"
-	"github.com/danielfoehrkn/kubeswitch/pkg/store/plugins"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg/store/doks"
+	gardenclient "github.com/danielfoehrkn/kswitch/pkg/store/gardener/copied_gardenctlv2"
+	"github.com/danielfoehrkn/kswitch/pkg/store/plugins"
+	"github.com/danielfoehrkn/kswitch/types"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"

@@ -1,16 +1,16 @@
 # EKS store
 
-Kubeswitch can discover EKS clusters from AWS.
+Kswitch can discover EKS clusters from AWS.
 
-At the moment, Kubeswitch works only with [named profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html), make sure it is working before setting up the store.
-A good test is to follow the "[Create kubeconfig automatically](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html#create-kubeconfig-automatically)" documentation as Kubeswitch will output the same configuration (with some exceptions pending implementation).
+At the moment, Kswitch works only with [named profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html), make sure it is working before setting up the store.
+A good test is to follow the "[Create kubeconfig automatically](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html#create-kubeconfig-automatically)" documentation as Kswitch will output the same configuration (with some exceptions pending implementation).
 
 ## Setup
 
 Please make sure the `aws` cli is intalled and on your `PATH` in a version providing the [`aws eks get-token`](https://docs.aws.amazon.com/cli/latest/reference/eks/get-token.html) command (requires version 1.16.156 or later of the AWS CLI).
 This is because the generated kubeconfigs use the AWS CLI as a credential helper.
 
-Next, create the EKS store configuration in the `kubeswitch` configuration file.
+Next, create the EKS store configuration in the `kswitch` configuration file.
 
 Search over all EKS clusters for a config profile and region:
 
@@ -50,13 +50,13 @@ In General:
 
 Example:
 
-- `eks_prod1--eu-west-1--kubeswitch_test/kubeswitch_test`
+- `eks_prod1--eu-west-1--kswitch_test/kswitch_test`
 
 In this example:
 
 - Configuration Profile: prod1
 - Region: eu-west-1
-- EKS Cluster name: kubeswitch_test
+- EKS Cluster name: kswitch_test
 
 However, remember that you can always define an `alias` for each context to define a name that you can better remember or query.
 

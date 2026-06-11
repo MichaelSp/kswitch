@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,19 +22,19 @@ import (
 	"github.com/bombsimon/logrusr/v4"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg"
+	"github.com/danielfoehrkn/kswitch/pkg"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/cache"
-	"github.com/danielfoehrkn/kubeswitch/pkg/util"
+	"github.com/danielfoehrkn/kswitch/pkg/cache"
+	"github.com/danielfoehrkn/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/utils/ptr"
 
-	switchconfig "github.com/danielfoehrkn/kubeswitch/pkg/config"
-	"github.com/danielfoehrkn/kubeswitch/pkg/config/validation"
-	"github.com/danielfoehrkn/kubeswitch/pkg/store"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	switchconfig "github.com/danielfoehrkn/kswitch/pkg/config"
+	"github.com/danielfoehrkn/kswitch/pkg/config/validation"
+	"github.com/danielfoehrkn/kswitch/pkg/store"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 const (
@@ -191,7 +191,7 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 	}
 
 	if len(config.KubeconfigStores) == 0 {
-		return nil, nil, fmt.Errorf("you need to point kubeswitch to a kubeconfig file. This can be done by setting the environment variable KUBECONFIG, setting the flag --kubeconfig-path, having a default kubeconfig file at ~/.kube/config or providing a switch configuration file")
+		return nil, nil, fmt.Errorf("you need to point kswitch to a kubeconfig file. This can be done by setting the environment variable KUBECONFIG, setting the flag --kubeconfig-path, having a default kubeconfig file at ~/.kube/config or providing a switch configuration file")
 	}
 
 	var (
@@ -400,7 +400,7 @@ func getStoreFromFlagAndEnv(config *types.Config) *types.KubeconfigStore {
 
 	for _, path := range pathsFromEnv {
 		if !isDuplicatePath(config.KubeconfigStores, path) && !strings.HasSuffix(path, ".tmp") && path != "" {
-			// the KUBECONFIG env sets a unique, non kubeswitch set, env variable to a kubeconfig.
+			// the KUBECONFIG env sets a unique, non kswitch set, env variable to a kubeconfig.
 			paths = append(paths, util.ExpandEnv(path))
 			logrus.Debugf("Adding kubeconfig path from KUBECONFIG env %s", kubeconfigPathFromEnv)
 		}

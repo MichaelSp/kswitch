@@ -1,6 +1,6 @@
 # Configure Kubeconfig stores
 
-`kubeswitch` can recursively search over multiple directories, files and Kubeconfig stores.
+`kswitch` can recursively search over multiple directories, files and Kubeconfig stores.
 If you neither provide a flag or a `SwitchConfig` file, it will default to the file `~/.kube/config`.
 
 The `SwitchConfig` file is expected to be in the default location
@@ -17,8 +17,8 @@ Please check the documentation for each kubeconfig store on how to use it
 Please note that, to search over **multiple** directories and kubeconfig stores,
 you need to use the `SwitchConfig` file.
 
-Also, if you do not have a default `~/.kube/config` file, kubeswitch will fail
-with `Error: you need to point kubeswitch to a kubeconfig file`, so you need
+Also, if you do not have a default `~/.kube/config` file, kswitch will fail
+with `Error: you need to point kswitch to a kubeconfig file`, so you need
 to specify in the `SwitchConfig` file where to look.
 
 ## General Store configuration
@@ -60,7 +60,7 @@ kubeconfigStores:
 
 ### Disable kubeconfig previews
 
-Per default, kubeswitch shows a sanitized preview of the kubeconfig from the store.
+Per default, kswitch shows a sanitized preview of the kubeconfig from the store.
 This can however sometimes lead to high request rates & API throttling.
 You can disable previews via the command line flag `--show-preview false` or the `SwitchConfig` file.
 
@@ -131,7 +131,7 @@ kubeconfigStores:
 
 ### Combined search over multiple stores with index
 
-Only relevant if `kubeswitch` shall use an [index](search_index.md) for multiple kubeconfig stores of the
+Only relevant if `kswitch` shall use an [index](search_index.md) for multiple kubeconfig stores of the
 **same kind** that each use an index  (e.g., three filesystem stores that use an index).
 
 This is useful when
@@ -179,5 +179,5 @@ it is recommended to put all the Kubeconfig files into a single directory contai
 This is because the default `~/.kube` directory contains a bunch of other files
 that have to be filtered out and thus slowing down the search.
 
-To do this, create a `kubeswitch` alias via `--Kubeconfig-path` pointing
+To do this, create a `kswitch` alias via `--Kubeconfig-path` pointing
 to this directory or setup the kubeconfig path in the `SwitchConfig`.

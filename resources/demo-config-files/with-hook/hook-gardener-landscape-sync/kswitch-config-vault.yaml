@@ -2,7 +2,7 @@ kind: SwitchConfig
 hooks:
   - name: sync-dev-landscape
     type: Executable
-    path: /Users/<your-user>/go/src/github.com/danielfoehrkn/kubeswitch/hack/hooks/hook-gardener-landscape-sync
+    path: /Users/<your-user>/go/src/github.com/danielfoehrkn/kswitch/hack/hooks/hook-gardener-landscape-sync
     arguments:
       - "sync"
       - "--garden-kubeconfig-path"

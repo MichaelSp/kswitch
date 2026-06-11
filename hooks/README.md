@@ -1,6 +1,6 @@
 # Hooks
 
-By providing a configuration file, the `kubeswitch` tool can call arbitrary hooks (an executable or inline shell command).
+By providing a configuration file, the `kswitch` tool can call arbitrary hooks (an executable or inline shell command).
 
 ```
 switch hooks help
@@ -16,7 +16,7 @@ can be called directly via `$ switch hooks --hook-name=<name>`.
 
 The default location for the config file is at `~/.kube/switch-config.yaml` or can be set with `--hook-config-path`.
  
-You can find several demo configuration files [here](https://github.com/danielfoehrkn/kubeswitch/tree/master/resources/demo-config-files).
+You can find several demo configuration files [here](https://github.com/danielfoehrkn/kswitch/tree/master/resources/demo-config-files).
 
 ### See configured Hooks
 
@@ -42,7 +42,7 @@ $ switch hooks ls
 Hooks can call an arbitrary executable and pass arguments.
 
 Below is the configuration to use with [Gardener](https://github.com/gardener/gardener) installations.
-The Hook [`gardener-landscape-sync`](https://github.com/danielfoehrkn/kubeswitch/tree/master/hooks/gardener-landscape-sync) downloads the 
+The Hook [`gardener-landscape-sync`](https://github.com/danielfoehrkn/kswitch/tree/master/hooks/gardener-landscape-sync) downloads the 
 kubeconfig files for all available Kubernetes clusters to the local filesystem.
 The hook is executed every 6 hours.
 Not specifying an execution interval means that the hook shall only be run on demand via `switch hooks --hook-name <name>`.
@@ -52,7 +52,7 @@ kind: SwitchConfig
 hooks:
   - name: sync-dev-landscape
     type: Executable
-    path: /Users/<your-user>/go/src/github.com/danielfoehrkn/kubeswitch/hack/hooks/hook-gardener-landscape-sync
+    path: /Users/<your-user>/go/src/github.com/danielfoehrkn/kswitch/hack/hooks/hook-gardener-landscape-sync
     arguments:
       - "sync"
       - "--garden-kubeconfig-path"
@@ -79,7 +79,7 @@ hooks:
     execution:
       interval: 6h
     arguments:
-      - "/Users/<your-user>/go/src/github.com/danielfoehrkn/kubeswitch/hack/switch/switcher clean && echo ' Garbage collection complete.'"
+      - "/Users/<your-user>/go/src/github.com/danielfoehrkn/kswitch/hack/switch/switcher clean && echo ' Garbage collection complete.'"
 ```
 
 ### Hook State

@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -108,14 +108,14 @@ func (k *Kubeconfig) SetContext(currentContext, originalContextBeforeAlias strin
 	return nil
 }
 
-func (k *Kubeconfig) SetKubeswitchContext(context string) error {
-	if err := k.ModifyKubeswitchContext(context); err != nil {
+func (k *Kubeconfig) SetKswitchContext(context string) error {
+	if err := k.ModifyKswitchContext(context); err != nil {
 		return fmt.Errorf("failed to set switch context on selected kubeconfig: %v", err)
 	}
 	return nil
 }
 
-// SetGardenerStoreMetaInformation is a function to add meta information to kubeconfig which is required for subsequent runs of kubeswitch
+// SetGardenerStoreMetaInformation is a function to add meta information to kubeconfig which is required for subsequent runs of kswitch
 // Only relevant to the Gardener store
 func (k *Kubeconfig) SetGardenerStoreMetaInformation(landscapeIdentity, clusterType, project, name string) error {
 	if err := k.ModifyGardenerLandscapeIdentity(landscapeIdentity); err != nil {

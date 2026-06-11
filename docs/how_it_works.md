@@ -1,8 +1,8 @@
 # How it works
 
-`Kubeswitch` consists of two components:
+`Kswitch` consists of two components:
 
-`switch.sh` - contains the shell function `switch()` which is the entry point to Kubeswitch.
+`switch.sh` - contains the shell function `switch()` which is the entry point to Kswitch.
 `switcher`  - a go binary which is executed by the switch shell function and handles context selection and manipulation of the selected Kubeconfig file.
 
 For a proper installation

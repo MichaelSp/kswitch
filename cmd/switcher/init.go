@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ function switch(){
 }`
 
 	fishScript string = `
-function kubeswitch
+function kswitch
 #  if the executable path is not set, the switcher binary has to be on the path
 # this is the case when installing it via homebrew
   set -f DEFAULT_EXECUTABLE_PATH 'switcher'
@@ -107,7 +107,7 @@ function kubeswitch
 	  case --executable-path
 		set -f EXECUTABLE_PATH $i
 	  case completion
-		set -a opts $i --cmd kubeswitch
+		set -a opts $i --cmd kswitch
 	  case '*'
 		set -a opts $i
 	end
@@ -178,7 +178,7 @@ function has_prefix {
 	}
 }
 
-function kubeswitch {
+function kswitch {
 
 	#You need to have switcher_windows_amd64.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
 	$EXECUTABLE_PATH = "switcher_windows_amd64.exe"

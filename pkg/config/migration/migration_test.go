@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package migration_test
 import (
 	"time"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/config/migration"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg/config/migration"
+	"github.com/danielfoehrkn/kswitch/types"
 	"k8s.io/utils/ptr"
 
 	. "github.com/onsi/ginkgo"
