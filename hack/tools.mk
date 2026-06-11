@@ -30,7 +30,7 @@ GOLANGCI_LINT              := $(TOOLS_BIN_DIR)/golangci-lint
 ADDLICENSE                 := $(TOOLS_BIN_DIR)/addlicense
 
 # default tool versions
-GOLANGCI_LINT_VERSION ?= v1.61.0
+GOLANGCI_LINT_VERSION ?= v2.12.2
 
 export TOOLS_BIN_DIR := $(TOOLS_BIN_DIR)
 export PATH := $(abspath $(TOOLS_BIN_DIR)):$(PATH)
@@ -72,7 +72,7 @@ $(GOIMPORTS): go.mod
 $(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION))
 	@# CGO_ENABLED has to be set to 1 in order for golangci-lint to be able to load plugins
 	@# see https://github.com/golangci/golangci-lint/issues/1276
-	GOBIN=$(abspath $(TOOLS_BIN_DIR)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	GOBIN=$(abspath $(TOOLS_BIN_DIR)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
 $(ADDLICENSE): go.mod
 	go build -o $(ADDLICENSE) github.com/google/addlicense
