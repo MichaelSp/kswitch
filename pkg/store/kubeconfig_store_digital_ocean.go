@@ -21,14 +21,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/danielfoehrkn/kswitch/pkg/store/doks"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/store/doks"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/disiqueira/gotree"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/digitalocean/doctl/do"
 	"github.com/digitalocean/godo"
 )

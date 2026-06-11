@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	gardenclient "github.com/danielfoehrkn/kswitch/pkg/store/gardener/copied_gardenctlv2"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	gardenclient "github.com/MichaelSp/kswitch/pkg/store/gardener/copied_gardenctlv2"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/disiqueira/gotree"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
@@ -37,10 +37,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gardenerstore "github.com/danielfoehrkn/kswitch/pkg/store/gardener"
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/state"
-	"github.com/danielfoehrkn/kswitch/pkg/util"
-	"github.com/danielfoehrkn/kswitch/types"
+	gardenerstore "github.com/MichaelSp/kswitch/pkg/store/gardener"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/alias/state"
+	"github.com/MichaelSp/kswitch/pkg/util"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 const (

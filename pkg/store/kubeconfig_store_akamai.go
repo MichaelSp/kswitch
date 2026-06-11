@@ -29,8 +29,8 @@ import (
 	"github.com/linode/linodego"
 	"github.com/sirupsen/logrus"
 
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 func NewAkamaiStore(store types.KubeconfigStore) (*AkamaiStore, error) {

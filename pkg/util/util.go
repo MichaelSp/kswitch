@@ -21,8 +21,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kswitch/types"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // GetContextsNamesFromKubeconfig takes kubeconfig bytes and parses the kubeconfig to extract the context names.

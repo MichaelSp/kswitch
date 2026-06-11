@@ -22,10 +22,10 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/sirupsen/logrus"
 
-	"github.com/danielfoehrkn/kswitch/pkg"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/state"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/alias/state"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 var logger = logrus.New()

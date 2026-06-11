@@ -17,7 +17,7 @@ package gke
 import (
 	"fmt"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 	"gopkg.in/yaml.v3"
 )
 
