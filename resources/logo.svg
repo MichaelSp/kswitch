@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80" role="img" aria-label="kswitch logo">
+  <defs>
+    <!-- Kubernetes blue gradient -->
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6"/>
+      <stop offset="100%" style="stop-color:#1D4ED8"/>
+    </linearGradient>
+    <!-- Arrow accent gradient -->
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#60A5FA"/>
+      <stop offset="100%" style="stop-color:#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hexagon (Kubernetes motif) -->
+  <polygon
+    points="40,8 56,17 56,35 40,44 24,35 24,17"
+    fill="url(#hexGrad)"
+    stroke="#1E40AF"
+    stroke-width="1.5"
+  />
+
+  <!-- "k" letterform inside hex -->
+  <text x="34" y="32" font-family="'Courier New', monospace" font-size="20" font-weight="700" fill="white" letter-spacing="-1">k</text>
+
+  <!-- Switch arrows — two arcs suggesting a bidirectional switch -->
+  <!-- Top arc arrow (left → right) -->
+  <path d="M 68 22 Q 82 12 96 22" fill="none" stroke="url(#arrowGrad)" stroke-width="2.5" stroke-linecap="round"/>
+  <polygon points="96,18 100,24 92,24" fill="#60A5FA"/>
+
+  <!-- Bottom arc arrow (right → left) -->
+  <path d="M 96 30 Q 82 40 68 30" fill="none" stroke="url(#arrowGrad)" stroke-width="2.5" stroke-linecap="round"/>
+  <polygon points="68,34 64,28 72,28" fill="#34D399"/>
+
+  <!-- Wordmark -->
+  <text x="112" y="37" font-family="'Courier New', monospace" font-size="26" font-weight="700" fill="#1E293B" letter-spacing="-0.5">kswitch</text>
+
+  <!-- Tagline -->
+  <text x="113" y="55" font-family="'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#64748B" letter-spacing="1.5">KUBECONFIG SWITCHER</text>
+</svg>

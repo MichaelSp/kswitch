@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" width="900" height="200" role="img" aria-label="kswitch banner">
+  <defs>
+    <!-- Dark background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F172A"/>
+      <stop offset="100%" style="stop-color:#1E293B"/>
+    </linearGradient>
+    <!-- Hex fill gradient -->
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6"/>
+      <stop offset="100%" style="stop-color:#1D4ED8"/>
+    </linearGradient>
+    <!-- Arrow / accent gradient -->
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#60A5FA"/>
+      <stop offset="100%" style="stop-color:#34D399"/>
+    </linearGradient>
+    <!-- Subtle grid overlay -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E3A5F" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+    <!-- Glow filter for hex -->
+    <filter id="hexGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Text glow -->
+    <filter id="textGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="200" rx="12" fill="url(#bgGrad)"/>
+  <!-- Grid texture -->
+  <rect width="900" height="200" rx="12" fill="url(#grid)"/>
+
+  <!-- Decorative large faint hexagons (background texture) -->
+  <polygon points="820,10 870,39 870,97 820,126 770,97 770,39"
+    fill="none" stroke="#1E3A5F" stroke-width="1" opacity="0.5"/>
+  <polygon points="840,50 878,72 878,116 840,138 802,116 802,72"
+    fill="none" stroke="#1E3A5F" stroke-width="1" opacity="0.3"/>
+  <polygon points="30,120 65,140 65,180 30,200 -5,180 -5,140"
+    fill="none" stroke="#1E3A5F" stroke-width="1" opacity="0.4"/>
+
+  <!-- ── ICON MARK ── -->
+  <!-- Outer glow ring around hex -->
+  <polygon points="100,38 136,59 136,101 100,122 64,101 64,59"
+    fill="none" stroke="#3B82F6" stroke-width="1" opacity="0.35" filter="url(#hexGlow)"/>
+
+  <!-- Main hexagon -->
+  <polygon points="100,44 130,62 130,98 100,116 70,98 70,62"
+    fill="url(#hexGrad)" stroke="#2563EB" stroke-width="2" filter="url(#hexGlow)"/>
+
+  <!-- "k" inside hex -->
+  <text x="84" y="96" font-family="'Courier New', monospace" font-size="46" font-weight="700"
+    fill="white" letter-spacing="-2" filter="url(#textGlow)">k</text>
+
+  <!-- ── SWITCH ARROWS ── -->
+  <!-- Top arc: left → right -->
+  <path d="M 152 72 Q 178 52 204 72"
+    fill="none" stroke="url(#arrowGrad)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Arrowhead right -->
+  <polygon points="204,66 212,74 200,78" fill="#60A5FA"/>
+
+  <!-- Bottom arc: right → left -->
+  <path d="M 204 90 Q 178 110 152 90"
+    fill="none" stroke="url(#arrowGrad)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Arrowhead left -->
+  <polygon points="152,96 144,88 156,84" fill="#34D399"/>
+
+  <!-- ── WORDMARK ── -->
+  <text x="228" y="118" font-family="'Courier New', monospace" font-size="72" font-weight="700"
+    fill="white" letter-spacing="-2" filter="url(#textGlow)">kswitch</text>
+
+  <!-- ── TAGLINE ── -->
+  <text x="230" y="148" font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
+    font-size="16" fill="#60A5FA" letter-spacing="4" opacity="0.9">KUBECONFIG SWITCHER</text>
+
+  <!-- ── DESCRIPTOR PILLS ── -->
+  <!-- Pill 1 -->
+  <rect x="230" y="158" width="130" height="22" rx="11" fill="#1E3A5F" opacity="0.9"/>
+  <text x="295" y="173" font-family="'Inter', sans-serif" font-size="10" fill="#34D399"
+    text-anchor="middle" letter-spacing="1">multi-provider</text>
+
+  <!-- Pill 2 -->
+  <rect x="368" y="158" width="130" height="22" rx="11" fill="#1E3A5F" opacity="0.9"/>
+  <text x="433" y="173" font-family="'Inter', sans-serif" font-size="10" fill="#60A5FA"
+    text-anchor="middle" letter-spacing="1">terminal isolation</text>
+
+  <!-- Pill 3 -->
+  <rect x="506" y="158" width="130" height="22" rx="11" fill="#1E3A5F" opacity="0.9"/>
+  <text x="571" y="173" font-family="'Inter', sans-serif" font-size="10" fill="#A78BFA"
+    text-anchor="middle" letter-spacing="1">live preview</text>
+</svg>
