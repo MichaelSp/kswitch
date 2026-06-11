@@ -16,7 +16,7 @@ project_name: kswitch
 
 builds:
   - id: switcher
-    main: ./cmd
+    main: .
     binary: switcher
     env:
       - CGO_ENABLED=0
