@@ -363,7 +363,7 @@ github.com/gdamore/tcell/v2/terminfo/x/xterm_termite
 # github.com/ghodss/yaml v1.0.0
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-cmd/cmd v1.4.2
+# github.com/go-cmd/cmd v1.4.3
 ## explicit; go 1.20
 github.com/go-cmd/cmd
 # github.com/go-jose/go-jose/v3 v3.0.1
