@@ -16,6 +16,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -52,6 +53,8 @@ const (
 	AllNamespacesDenominator = "/"
 	// defaultGardenloginConfigPath is the path to the default gardenlogin config
 	defaultGardenloginConfigPath = "$HOME/.garden/gardenlogin.yaml"
+	// defaultGardenctlV2ConfigPath is the path to the default gardenctl-v2 config
+	defaultGardenctlV2ConfigPath = "$HOME/.garden/gardenctl-v2.yaml"
 )
 
 // GardenloginConfig represents the config for the Gardenlogin-exec-provider that is
@@ -70,6 +73,21 @@ type GardenConfig struct {
 
 	// Kubeconfig holds the path for the kubeconfig of the garden cluster
 	Kubeconfig string `yaml:"kubeconfig"`
+}
+
+// GardenctlV2Config represents the configuration for gardenctl-v2.
+// See https://github.com/gardener/gardenctl-v2 for the format reference.
+type GardenctlV2Config struct {
+	// Gardens is a list of known garden clusters
+	Gardens []GardenctlV2Garden `yaml:"gardens" json:"gardens"`
+}
+
+// GardenctlV2Garden holds the config of a single garden cluster for gardenctl-v2
+type GardenctlV2Garden struct {
+	// Identity is the unique identifier of the garden cluster
+	Identity string `yaml:"identity" json:"identity"`
+	// Kubeconfig holds the path for the kubeconfig of the garden cluster
+	Kubeconfig string `yaml:"kubeconfig" json:"kubeconfig"`
 }
 
 // NewGardenerStore creates a new Gardener store
@@ -138,31 +156,36 @@ func (s *GardenerStore) InitializeGardenerStore() error {
 		}}); err != nil {
 			return fmt.Errorf("failed to write Gardenlogin config: %v", err)
 		}
-		return nil
-	}
+	} else {
+		// if already exists, check if contains an entry with the specified landscape identity
+		gardenloginConfig, err := getGardenloginConfig(gardenloginConfigPath)
+		if err != nil {
+			return err
+		}
 
-	// if already exists, check if contains an entry with the specified landscape identity
-	gardenloginConfig, err := getGardenloginConfig(gardenloginConfigPath)
-	if err != nil {
-		return err
-	}
+		foundEntry := false
+		for _, entry := range gardenloginConfig.Gardens {
+			if entry.Identity == s.LandscapeIdentity {
+				foundEntry = true
+				break
+			}
+		}
 
-	foundEntry := false
-	for _, entry := range gardenloginConfig.Gardens {
-		if entry.Identity == s.LandscapeIdentity {
-			foundEntry = true
-			break
+		if !foundEntry {
+			gardenloginConfig.Gardens = append(gardenloginConfig.Gardens, GardenConfig{
+				Identity:   s.LandscapeIdentity,
+				Kubeconfig: s.Config.GardenerAPIKubeconfigPath,
+			})
+			if err := writeGardenloginConfig(gardenloginConfigPath, gardenloginConfig); err != nil {
+				return fmt.Errorf("failed to write Gardenlogin config: %v", err)
+			}
 		}
 	}
 
-	if !foundEntry {
-		gardenloginConfig.Gardens = append(gardenloginConfig.Gardens, GardenConfig{
-			Identity:   s.LandscapeIdentity,
-			Kubeconfig: s.Config.GardenerAPIKubeconfigPath,
-		})
-		if err := writeGardenloginConfig(gardenloginConfigPath, gardenloginConfig); err != nil {
-			return fmt.Errorf("failed to write Gardenlogin config: %v", err)
-		}
+	// Also maintain the gardenctl-v2 config at the default location
+	gardenctlV2ConfigPath := os.ExpandEnv(defaultGardenctlV2ConfigPath)
+	if err := ensureGardenctlV2Config(gardenctlV2ConfigPath, s.LandscapeIdentity, s.Config.GardenerAPIKubeconfigPath); err != nil {
+		return fmt.Errorf("failed to write gardenctl-v2 config: %v", err)
 	}
 
 	return nil
@@ -206,6 +229,79 @@ func writeGardenloginConfig(path string, config *GardenloginConfig) error {
 		return err
 	}
 	return nil
+}
+
+// ensureGardenctlV2Config creates or updates the gardenctl-v2 config at path,
+// adding an entry for the given identity and kubeconfig path if not already present.
+func ensureGardenctlV2Config(path, identity, kubeconfigPath string) error {
+	var config GardenctlV2Config
+
+	if _, err := os.Stat(path); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		// file does not exist yet — start with a fresh config
+	} else {
+		existing, err := getGardenctlV2Config(path)
+		if err != nil {
+			return err
+		}
+		config = *existing
+
+		for _, entry := range config.Gardens {
+			if entry.Identity == identity {
+				return nil
+			}
+		}
+	}
+
+	config.Gardens = append(config.Gardens, GardenctlV2Garden{
+		Identity:   identity,
+		Kubeconfig: kubeconfigPath,
+	})
+	return writeGardenctlV2Config(path, &config)
+}
+
+// getGardenctlV2Config reads and parses the gardenctl-v2 config from path
+func getGardenctlV2Config(path string) (*GardenctlV2Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &GardenctlV2Config{}
+	if len(data) == 0 {
+		return config, nil
+	}
+
+	if err := json.Unmarshal(data, config); err != nil {
+		// gardenctl-v2 also supports YAML (it uses sigs.k8s.io/yaml which accepts both)
+		if yamlErr := yaml.Unmarshal(data, config); yamlErr != nil {
+			return nil, fmt.Errorf("could not parse gardenctl-v2 config file %q: %v", path, err)
+		}
+	}
+	return config, nil
+}
+
+// writeGardenctlV2Config writes the gardenctl-v2 config to path using YAML encoding
+func writeGardenctlV2Config(path string, config *GardenctlV2Config) (retErr error) {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := file.Close(); err != nil && retErr == nil {
+			retErr = err
+		}
+	}()
+
+	output, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(output)
+	return err
 }
 
 // StartSearch starts the search for Shoots and Managed Seeds
