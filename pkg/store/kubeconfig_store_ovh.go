@@ -49,7 +49,7 @@ func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 	}
 	ovhConsumerKey := ovhStoreConfig.OVHConsumerKey
 	if len(ovhConsumerKey) == 0 {
-		return nil, fmt.Errorf("When using the OVH kubeconfig store, the consumer key for OVH has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the OVH kubeconfig store, the consumer key for OVH has to be provided via a SwitchConfig file")
 	}
 	ovhEndpoint := ovhStoreConfig.OVHEndpoint
 	if len(ovhEndpoint) == 0 {
@@ -58,7 +58,7 @@ func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 
 	ovhClient, err := ovh.NewClient(ovhEndpoint, ovhApplicationKey, ovhApplicationSecret, ovhConsumerKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize OVH client due to error: %w", err)
+		return nil, fmt.Errorf("failed to initialize OVH client: %w", err)
 	}
 
 	return &OVHStore{
