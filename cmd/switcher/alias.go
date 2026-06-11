@@ -18,7 +18,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/alias"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/alias"
 	"github.com/spf13/cobra"
 )
 

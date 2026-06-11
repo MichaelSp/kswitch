@@ -17,9 +17,9 @@ No matter if they are stored on disk, in an Enterprise Vault, are spread in diff
 or need to be synchronized from a remote system.
 
 `kswitch` offers
-- Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/danielfoehrkn/kswitch#alias), [improved search experience](https://github.com/danielfoehrkn/kswitch#improved-search-experience), sanitized Kubeconfig preview);
+- Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/MichaelSp/kswitch#alias), [improved search experience](https://github.com/MichaelSp/kswitch#improved-search-experience), sanitized Kubeconfig preview);
 - advanced search capabilities (search index, hot reload, unified search over all kubeconfig stores);
-- as well as custom integration points with external systems (see [hooks](https://github.com/danielfoehrkn/kswitch/tree/master/hooks/README.md)).
+- as well as custom integration points with external systems (see [hooks](https://github.com/MichaelSp/kswitch/tree/master/hooks/README.md)).
 
 To not break existing setups, `kswitch` is a drop-in replacement for _kubectx_.
 You can just set an alias.

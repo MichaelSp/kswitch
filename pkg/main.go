@@ -20,18 +20,18 @@ import (
 	"sync"
 	"time"
 
-	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
+	historyutil "github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/danielfoehrkn/kswitch/pkg/index"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	aliasutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/util"
-	"github.com/danielfoehrkn/kswitch/pkg/util"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/index"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	aliasutil "github.com/MichaelSp/kswitch/pkg/subcommands/alias/util"
+	"github.com/MichaelSp/kswitch/pkg/util"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 var (

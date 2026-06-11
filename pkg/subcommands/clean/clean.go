@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/danielfoehrkn/kswitch/pkg/cache"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	"github.com/MichaelSp/kswitch/pkg/cache"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 )
 
 func Clean(stores []storetypes.KubeconfigStore) error {

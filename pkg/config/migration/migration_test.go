@@ -17,8 +17,8 @@ package migration_test
 import (
 	"time"
 
-	"github.com/danielfoehrkn/kswitch/pkg/config/migration"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/config/migration"
+	"github.com/MichaelSp/kswitch/types"
 	"k8s.io/utils/ptr"
 
 	. "github.com/onsi/ginkgo"

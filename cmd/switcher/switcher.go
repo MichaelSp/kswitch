@@ -22,19 +22,19 @@ import (
 	"github.com/bombsimon/logrusr/v4"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/danielfoehrkn/kswitch/pkg"
+	"github.com/MichaelSp/kswitch/pkg"
 
-	"github.com/danielfoehrkn/kswitch/pkg/cache"
-	"github.com/danielfoehrkn/kswitch/pkg/util"
+	"github.com/MichaelSp/kswitch/pkg/cache"
+	"github.com/MichaelSp/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/utils/ptr"
 
-	switchconfig "github.com/danielfoehrkn/kswitch/pkg/config"
-	"github.com/danielfoehrkn/kswitch/pkg/config/validation"
-	"github.com/danielfoehrkn/kswitch/pkg/store"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	switchconfig "github.com/MichaelSp/kswitch/pkg/config"
+	"github.com/MichaelSp/kswitch/pkg/config/validation"
+	"github.com/MichaelSp/kswitch/pkg/store"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 const (

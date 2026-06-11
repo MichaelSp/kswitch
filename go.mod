@@ -1,4 +1,4 @@
-module github.com/danielfoehrkn/kswitch
+module github.com/MichaelSp/kswitch
 
 go 1.22.7
 
