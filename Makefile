@@ -30,11 +30,11 @@ build: build-switcher
 
 .PHONY: build-switcher
 build-switcher:
-	@env GOOS=linux GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_linux_amd64 ./cmd/main.go
-	@env GOOS=linux GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_linux_arm64 ./cmd/main.go
-	@env GOOS=darwin GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_darwin_amd64 ./cmd/main.go
-	@env GOOS=darwin GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_darwin_arm64 ./cmd/main.go
-	@env GOOS=windows GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o 'hack/switch/switcher_windows_amd64.exe' ./cmd/main.go
+	@env GOOS=linux GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_linux_amd64 .
+	@env GOOS=linux GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_linux_arm64 .
+	@env GOOS=darwin GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_darwin_amd64 .
+	@env GOOS=darwin GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o hack/switch/switcher_darwin_arm64 .
+	@env GOOS=windows GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/switcher.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate=${DATE}" -o 'hack/switch/switcher_windows_amd64.exe' .
 
 .PHONY: all
 all: format check build
