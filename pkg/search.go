@@ -21,13 +21,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/danielfoehrkn/kswitch/pkg/index"
-	gardenerstore "github.com/danielfoehrkn/kswitch/pkg/store/gardener"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	aliasstate "github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/state"
-	aliasutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/alias/util"
-	"github.com/danielfoehrkn/kswitch/pkg/util"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/index"
+	gardenerstore "github.com/MichaelSp/kswitch/pkg/store/gardener"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	aliasstate "github.com/MichaelSp/kswitch/pkg/subcommands/alias/state"
+	aliasutil "github.com/MichaelSp/kswitch/pkg/subcommands/alias/util"
+	"github.com/MichaelSp/kswitch/pkg/util"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 type DiscoveredContext struct {

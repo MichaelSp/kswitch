@@ -28,8 +28,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/danielfoehrkn/kswitch/pkg/util"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/util"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 type GardenerResource string

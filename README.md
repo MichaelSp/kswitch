@@ -4,7 +4,7 @@
 
 # Kswitch
 
-![Latest GitHub release](https://img.shields.io/github/v/release/danielfoehrkn/kswitch.svg)
+![Latest GitHub release](https://img.shields.io/github/v/release/MichaelSp/kswitch.svg)
 [![Build](https://github.com/danielfoehrKn/kswitch/workflows/Build/badge.svg)](https://github.com/danielfoehrKn/switch/actions?query=workflow%3A"Build")
 [![Go Report Card](https://goreportcard.com/badge/github.com/danielfoehrKn/kswitch)](https://goreportcard.com/badge/github.com/danielfoehrKn/kswitch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

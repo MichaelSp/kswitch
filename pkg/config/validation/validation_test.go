@@ -23,8 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/ptr"
 
-	"github.com/danielfoehrkn/kswitch/pkg/config/validation"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/config/validation"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 var _ = Describe("ValidateConfig", func() {

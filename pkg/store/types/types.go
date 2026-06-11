@@ -15,7 +15,7 @@
 package types
 
 import (
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 
 	"github.com/sirupsen/logrus"
 )

@@ -20,9 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	gardenerstore "github.com/danielfoehrkn/kswitch/pkg/store/gardener"
-	gkestore "github.com/danielfoehrkn/kswitch/pkg/store/gke"
-	"github.com/danielfoehrkn/kswitch/types"
+	gardenerstore "github.com/MichaelSp/kswitch/pkg/store/gardener"
+	gkestore "github.com/MichaelSp/kswitch/pkg/store/gke"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // ValidateConfig validates the SwitchConfig

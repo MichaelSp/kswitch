@@ -19,7 +19,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -59,7 +59,7 @@ func UpdateHookState(hookName, stateFileName string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	state := &types.HookState{
 		HookName:          hookName,

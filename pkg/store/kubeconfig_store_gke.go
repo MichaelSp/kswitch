@@ -29,8 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	apiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 	"google.golang.org/api/cloudresourcemanager/v1"
 )
 

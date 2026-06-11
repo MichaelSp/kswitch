@@ -16,9 +16,9 @@ package show
 import (
 	"fmt"
 
-	"github.com/danielfoehrkn/kswitch/pkg"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 func Show(desiredName string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]byte, error) {
