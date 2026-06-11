@@ -20,8 +20,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/danielfoehrkn/kswitch/pkg/config/migration"
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/pkg/config/migration"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // LoadConfigFromFile takes a filename and de-serializes the contents into a Configuration object.

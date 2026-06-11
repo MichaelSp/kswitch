@@ -29,8 +29,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 func init() {

@@ -18,7 +18,7 @@ import (
 	"runtime"
 	"slices"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 
 	"github.com/spf13/cobra"
 )

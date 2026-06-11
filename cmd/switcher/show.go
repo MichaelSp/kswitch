@@ -16,7 +16,7 @@ package switcher
 import (
 	"fmt"
 
-	"github.com/danielfoehrkn/kswitch/pkg/subcommands/show"
+	"github.com/MichaelSp/kswitch/pkg/subcommands/show"
 	"github.com/spf13/cobra"
 )
 
