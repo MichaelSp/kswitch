@@ -16,11 +16,14 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/disiqueira/gotree"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -68,22 +71,24 @@ func (s *AzureStore) InitializeAzureStore() error {
 		return fmt.Errorf("obtaining Azure credentials failed: %v", err)
 	}
 
-	// TODO: upgrading to version github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice v0.1.0
-	// var options *arm.ClientOptions
-	// if s.Config.Endpoint != nil {
-	// 	options = &arm.ClientOptions{
-	// 		Host: arm.Endpoint(*s.Config.Endpoint),
-	// 	}
-	// }
-	// s.AksClient = armcontainerservice.NewManagedClustersClient(*s.Config.SubscriptionID, cred, options)
-
-	endpoint := "https://management.azure.com/"
+	var options *arm.ClientOptions
 	if s.Config.Endpoint != nil {
-		endpoint = *s.Config.Endpoint
+		options = &arm.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Cloud: cloud.Configuration{
+					Services: map[cloud.ServiceName]cloud.ServiceConfiguration{
+						cloud.ResourceManager: {Endpoint: *s.Config.Endpoint},
+					},
+				},
+			},
+		}
 	}
 
-	con := arm.NewConnection(endpoint, cred, nil)
-	s.AksClient = armcontainerservice.NewManagedClustersClient(con, *s.Config.SubscriptionID)
+	client, err := armcontainerservice.NewManagedClustersClient(*s.Config.SubscriptionID, cred, options)
+	if err != nil {
+		return fmt.Errorf("creating AKS client failed: %v", err)
+	}
+	s.AksClient = client
 
 	s.Logger.Debugf("Authenticated to subscription %s", *s.Config.SubscriptionID)
 	return nil
@@ -107,55 +112,45 @@ func (s *AzureStore) StartSearch(channel chan storetypes.SearchResult) {
 	if len(s.Config.ResourceGroups) > 0 {
 		// TODO: optimize using goroutines to hide I/O latency
 		for _, resourceGroup := range s.Config.ResourceGroups {
-			pager := s.AksClient.ListByResourceGroup(resourceGroup, nil)
-			if pager.Err() != nil {
-				handleAzureError(channel, pager.Err())
-				return
+			pager := s.AksClient.NewListByResourceGroupPager(resourceGroup, nil)
+			for pager.More() {
+				page, err := pager.NextPage(ctx)
+				if err != nil {
+					handleAzureError(channel, err)
+					return
+				}
+				s.returnSearchResultsForClusters(channel, page.Value)
 			}
-
-			for pager.NextPage(ctx) {
-				s.Logger.Debugf("next page found for resource group %q", resourceGroup)
-				s.returnSearchResultsForClusters(channel, pager.PageResponse().Value)
-			}
-
-			if pager.Err() != nil {
-				handleAzureError(channel, pager.Err())
-				return
-			}
+			s.Logger.Debugf("Search done for AKS resource groups")
 		}
-
-		s.Logger.Debugf("Search done for AKS resource groups")
 		return
 	}
 
-	pager := s.AksClient.List(nil)
-	if pager.Err() != nil {
-		handleAzureError(channel, pager.Err())
-		return
-	}
-
-	for pager.NextPage(ctx) {
-		s.Logger.Debugf("next page found")
-		s.returnSearchResultsForClusters(channel, pager.PageResponse().Value)
+	pager := s.AksClient.NewListPager(nil)
+	for pager.More() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			handleAzureError(channel, err)
+			return
+		}
+		s.returnSearchResultsForClusters(channel, page.Value)
 	}
 	s.Logger.Debugf("Search done for AKS")
 }
 
 func handleAzureError(channel chan storetypes.SearchResult, err error) {
-	if err, ok := err.(armcontainerservice.CloudError); ok && err.InnerError != nil {
-		// TODO: if 401 is returned, execute `az cli` to re-authenticate
-		// similar to gcp
-		channel <- storetypes.SearchResult{
-			Error: fmt.Errorf("AKS returned an error listing AKS clusters: %w", err),
-		}
-		return
-	}
-
 	if err != nil {
+		var respErr *azcore.ResponseError
+		if errors.As(err, &respErr) {
+			// TODO: if 401 is returned, execute `az cli` to re-authenticate
+			channel <- storetypes.SearchResult{
+				Error: fmt.Errorf("AKS returned an error listing AKS clusters: %w", err),
+			}
+			return
+		}
 		channel <- storetypes.SearchResult{
 			Error: fmt.Errorf("failed to list AKS clusters: %w", err),
 		}
-		return
 	}
 }
 
