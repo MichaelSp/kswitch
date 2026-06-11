@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="resources/banner.svg" alt="kswitch banner" width="900"/>
+</p>
+
 # Kswitch
 
 ![Latest GitHub release](https://img.shields.io/github/v/release/danielfoehrkn/kswitch.svg)
