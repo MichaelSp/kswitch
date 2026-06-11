@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/MichaelSp/kswitch/pkg/index"
+	gardenerstore "github.com/MichaelSp/kswitch/pkg/store/gardener"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	aliasstate "github.com/MichaelSp/kswitch/pkg/subcommands/alias/state"
 	aliasutil "github.com/MichaelSp/kswitch/pkg/subcommands/alias/util"
@@ -181,6 +182,21 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 				// save kubeconfig content to in-memory map to avoid duplicate read operation in getSanitizedKubeconfigForKubeconfigPath
 				writeToPathToKubeconfig(channelResult.KubeconfigPath, *kubeconfigString)
+
+				// if the store tagged this path with a cluster-name label, persist it as an alias now
+				// that we know the actual context name(s)
+				if clusterName, ok := channelResult.Tags[gardenerstore.LabelKeyClusterName]; ok && clusterName != "" {
+					a, err := aliasstate.GetDefaultAlias(stateDir)
+					if err != nil {
+						store.GetLogger().Warnf("failed to load alias state for auto-alias from label %q: %v", gardenerstore.LabelKeyClusterName, err)
+					} else if a != nil {
+						for _, contextName := range contexts {
+							if _, err := a.WriteAlias(clusterName, contextName); err != nil {
+								store.GetLogger().Warnf("failed to write auto-alias %q -> %q from label %q: %v", clusterName, contextName, gardenerstore.LabelKeyClusterName, err)
+							}
+						}
+					}
+				}
 
 				for _, contextName := range contexts {
 					// write to result channel
