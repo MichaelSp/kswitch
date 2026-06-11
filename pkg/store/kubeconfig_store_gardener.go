@@ -284,12 +284,16 @@ func getGardenctlV2Config(path string) (*GardenctlV2Config, error) {
 }
 
 // writeGardenctlV2Config writes the gardenctl-v2 config to path using YAML encoding
-func writeGardenctlV2Config(path string, config *GardenctlV2Config) error {
+func writeGardenctlV2Config(path string, config *GardenctlV2Config) (retErr error) {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil && retErr == nil {
+			retErr = err
+		}
+	}()
 
 	output, err := yaml.Marshal(config)
 	if err != nil {
