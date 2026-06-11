@@ -1,3 +1,4 @@
+/vendor/
 /.kube-secrets
 /tmp
 /dev
