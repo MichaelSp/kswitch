@@ -1,6 +1,6 @@
-# Setup Vault for `kubeswitch`
+# Setup Vault for `kswitch`
 
-Vault can be used as the kubeconfig store for `kubeswitch`.
+Vault can be used as the kubeconfig store for `kswitch`.
 Currently, the [key-value secrets engine](https://www.vaultproject.io/docs/secrets/kv) is supported.
 In addition, only one Vault instance can be configured. However, you can configure 
 multiple search paths within this one Vault instance.
@@ -36,9 +36,9 @@ If you deal with large numbers of changing kubeconfigs,
 it is recommended to setup an automation to sync the kubeconfigs to the vault instance.
 You can use [Hooks](../hooks/README.md) to achieve that.
 
-## Configure `kubeswitch` to use Vault as Kubeconfig store
+## Configure `kswitch` to use Vault as Kubeconfig store
 
-Please [see here](kubeconfig_stores.md) on how to configure `kubeswitch` either via CLI flags or a `SwitchConfig` file.
+Please [see here](kubeconfig_stores.md) on how to configure `kswitch` either via CLI flags or a `SwitchConfig` file.
 
 ## Additional Considerations
 

@@ -13,7 +13,7 @@ Searching over multiple OVH instances is supported, but may require `showPrefix`
 
 ## Configuration
 
-The OVH store configuration is defined in the `kubeswitch` configuration file. An example configuration is shown below:
+The OVH store configuration is defined in the `kswitch` configuration file. An example configuration is shown below:
 
 ```yaml
 kind: SwitchConfig

@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func init() {
@@ -178,7 +178,7 @@ func (s *AzureStore) returnSearchResultsForClusters(channel chan storetypes.Sear
 
 		// This is a hack: parse the resource group from the ID
 		// there is unfortunately currently no easy way to get the resource group of an AKS cluster as the go-sdk does not expose that field :/
-		//  - /subscriptions/<subscription-id>/resourcegroups/kubeswitch/providers/Microsoft.ContainerService/managedClusters/kubeswitch_test
+		//  - /subscriptions/<subscription-id>/resourcegroups/kswitch/providers/Microsoft.ContainerService/managedClusters/kswitch_test
 		split := strings.Split(*cluster.ID, "/")
 		if len(split) <= 4 {
 			s.Logger.Debugf("Unable to obtain resource group for cluster %q from cluster ID  %q", *cluster.Resource.Name, *cluster.ID)

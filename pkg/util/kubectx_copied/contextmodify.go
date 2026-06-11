@@ -21,21 +21,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ModifyKubeswitchContext adds a top-level field with the key "kubeswitch-context" to the kubeconfig file.
-// This context is the kubeswitch prefix (store dependent) / <kubeconfig-context>
+// ModifyKswitchContext adds a top-level field with the key "kswitch-context" to the kubeconfig file.
+// This context is the kswitch prefix (store dependent) / <kubeconfig-context>
 // this is done when creating a new temporary copy of the kubeconfig file when "switching" to it
 // During change of namespaces the current context information
-func (k *Kubeconfig) ModifyKubeswitchContext(context string) error {
-	currentCtxNode := valueOf(k.rootNode, "kubeswitch-context")
+func (k *Kubeconfig) ModifyKswitchContext(context string) error {
+	currentCtxNode := valueOf(k.rootNode, "kswitch-context")
 	if currentCtxNode != nil {
 		currentCtxNode.Value = context
 		return nil
 	}
 
-	// if kubeswitch-context field doesn't exist, create new field
+	// if kswitch-context field doesn't exist, create new field
 	keyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
-		Value: "kubeswitch-context",
+		Value: "kswitch-context",
 		Tag:   "!!str"}
 	valueNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
@@ -55,7 +55,7 @@ func (k *Kubeconfig) ModifyGardenerLandscapeIdentity(gardenerLandscapeIdentity s
 		return nil
 	}
 
-	// if kubeswitch-context field doesn't exist, create new field
+	// if kswitch-context field doesn't exist, create new field
 	keyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: "gardener-landscape-identity",
@@ -78,7 +78,7 @@ func (k *Kubeconfig) ModifyGardenerProject(namespace string) error {
 		return nil
 	}
 
-	// if kubeswitch-context field doesn't exist, create new field
+	// if kswitch-context field doesn't exist, create new field
 	keyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: "gardener-project",
@@ -101,7 +101,7 @@ func (k *Kubeconfig) ModifyGardenerClusterName(name string) error {
 		return nil
 	}
 
-	// if kubeswitch-context field doesn't exist, create new field
+	// if kswitch-context field doesn't exist, create new field
 	keyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: "gardener-cluster-name",
@@ -124,7 +124,7 @@ func (k *Kubeconfig) ModifyGardenerClusterType(clusterType string) error {
 		return nil
 	}
 
-	// if kubeswitch-context field doesn't exist, create new field
+	// if kswitch-context field doesn't exist, create new field
 	keyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: "gardener-cluster-type",

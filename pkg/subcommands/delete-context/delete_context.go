@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
 )
 
 func DeleteContext(desiredContext string) error {

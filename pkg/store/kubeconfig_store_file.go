@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import (
 	"github.com/karrick/godirwalk"
 	"github.com/sirupsen/logrus"
 
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func NewFilesystemStore(

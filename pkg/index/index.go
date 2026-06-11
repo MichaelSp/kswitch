@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )

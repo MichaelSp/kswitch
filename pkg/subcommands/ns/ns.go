@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	historyutil "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/history/util"
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
+	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -92,8 +92,8 @@ func SwitchToNamespace(targetNamespace, kubeconfigPathFromFlag string, checkExis
 		return fmt.Errorf("failed to write kubeconfig file: %v", err)
 	}
 
-	kubeswitchContext := kubeconfig.GetKubeswitchContext()
-	if err := historyutil.AppendToHistory(kubeswitchContext, targetNamespace); err != nil {
+	kswitchContext := kubeconfig.GetKswitchContext()
+	if err := historyutil.AppendToHistory(kswitchContext, targetNamespace); err != nil {
 		return fmt.Errorf("failed to write namespace history: %v", err)
 	}
 
@@ -115,10 +115,10 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 		return err
 	}
 
-	kubeswitchContext := kubeconfig.GetKubeswitchContext()
+	kswitchContext := kubeconfig.GetKswitchContext()
 
-	if len(kubeswitchContext) > 0 && !noIndex {
-		cache, err = NewNamespaceCache(stateDir, kubeswitchContext)
+	if len(kswitchContext) > 0 && !noIndex {
+		cache, err = NewNamespaceCache(stateDir, kswitchContext)
 		if err != nil {
 			logger.Warnf("failed to use namespace cache: %v", err)
 		}
@@ -193,11 +193,11 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 		return fmt.Errorf("failed to write kubeconfig file: %v", err)
 	}
 
-	if len(kubeswitchContext) == 0 {
+	if len(kswitchContext) == 0 {
 		return nil
 	}
 
-	if err := historyutil.AppendToHistory(kubeswitchContext, selectedNamespace); err != nil {
+	if err := historyutil.AppendToHistory(kswitchContext, selectedNamespace); err != nil {
 		return fmt.Errorf("failed to write namespace history: %v", err)
 	}
 
@@ -217,14 +217,14 @@ func ListNamespaces(kubeconfigPathFromFlag, stateDir string, noIndex bool) ([]st
 		return nil, err
 	}
 
-	kubeswitchContext := kubeconfig.GetKubeswitchContext()
-	if len(kubeswitchContext) == 0 {
+	kswitchContext := kubeconfig.GetKswitchContext()
+	if len(kswitchContext) == 0 {
 		// If no context return
 		return nil, nil
 	}
 
-	if len(kubeswitchContext) > 0 && !noIndex {
-		cache, err = NewNamespaceCache(stateDir, kubeswitchContext)
+	if len(kswitchContext) > 0 && !noIndex {
+		cache, err = NewNamespaceCache(stateDir, kswitchContext)
 		if err != nil {
 			logger.Warnf("failed to use namespace cache: %v", err)
 		}

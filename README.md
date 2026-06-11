@@ -1,13 +1,13 @@
-# Kubeswitch
+# Kswitch
 
-![Latest GitHub release](https://img.shields.io/github/v/release/danielfoehrkn/kubeswitch.svg)
-[![Build](https://github.com/danielfoehrKn/kubeswitch/workflows/Build/badge.svg)](https://github.com/danielfoehrKn/switch/actions?query=workflow%3A"Build")
-[![Go Report Card](https://goreportcard.com/badge/github.com/danielfoehrKn/kubeswitch)](https://goreportcard.com/badge/github.com/danielfoehrKn/kubeswitch)
+![Latest GitHub release](https://img.shields.io/github/v/release/danielfoehrkn/kswitch.svg)
+[![Build](https://github.com/danielfoehrKn/kswitch/workflows/Build/badge.svg)](https://github.com/danielfoehrKn/switch/actions?query=workflow%3A"Build")
+[![Go Report Card](https://goreportcard.com/badge/github.com/danielfoehrKn/kswitch)](https://goreportcard.com/badge/github.com/danielfoehrKn/kswitch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The kubectx for operators.
 
-`kubeswitch` (lazy: `switch`) is the single pane of glass for all of your kubeconfig files.  
+`kswitch` (lazy: `switch`) is the single pane of glass for all of your kubeconfig files.  
 Caters to operators of large scale Kubernetes installations.
 Designed as a [drop-in replacement](#difference-to-kubectx) for [kubectx](https://github.com/ahmetb/kubectx).
 
@@ -53,7 +53,7 @@ Designed as a [drop-in replacement](#difference-to-kubectx) for [kubectx](https:
 
 ## Installation
 
-Kubeswitch can be installed using `brew` for OSX, MacPorts, from Github Releases or from source. 
+Kswitch can be installed using `brew` for OSX, MacPorts, from Github Releases or from source. 
 Please [see the documentation](docs/installation.md).
 
 ## Usage 
@@ -176,14 +176,14 @@ To search over multiple directories and setup Kubeconfig stores (such as Vault),
 
 ## Kubeconfig cache
 
-A cache for kubeconfig files can be added to a store to prevent loading from remote on each invocation of `kubeswitch`.
+A cache for kubeconfig files can be added to a store to prevent loading from remote on each invocation of `kswitch`.
 The kubeconfig file will be cached after first download.
 
 To see how to configure the cache, [please see here](docs/kubeconfig_cache.md).
 
 ## Transition from Kubectx
 
-Offers a smooth transition as `kubeswitch` is a 
+Offers a smooth transition as `kswitch` is a 
 drop-in replacement for _kubectx_.
 You can set an alias and keep using your existing setup.
 ```
@@ -191,7 +191,7 @@ You can set an alias and keep using your existing setup.
   alias kctx='switch'
 ```
 
-However, that does not mean that `kubeswitch` behaves exactly like `kubectx`. 
+However, that does not mean that `kswitch` behaves exactly like `kubectx`. 
 Please [see here](#difference-to-kubectx) to read about some main differences to kubectx.
 
 ## Alias
@@ -246,7 +246,7 @@ Unfortunately operators sometimes have to deal with cryptic or generated kubecon
 it hard to guess which Kubernetes cluster this kubeconfig context actually points to.
 For example, these could be temporary CI clusters.
 
-Without having to manually change the Kubeconfig file, `kubeswitch` makes it easier to identify
+Without having to manually change the Kubeconfig file, `kswitch` makes it easier to identify
 the right context name by including the **direct parent path** name in the fuzzy search.
 This way, the directory layout can actually convey information useful for the search.
 
@@ -277,7 +277,7 @@ hook](hooks/README.md) (script / binary) to do that prior to the search.
 ### Extensibilty 
 
 Customization is possible by using `Hooks` (think Git pre-commit hooks). 
-Hooks can call an arbitrary executable or execute commands at a certain time (e.g every 6 hours) prior to the search via `kubeswitch`.
+Hooks can call an arbitrary executable or execute commands at a certain time (e.g every 6 hours) prior to the search via `kswitch`.
 For more information [take a look here](./hooks/README.md).
 
 ### Difference to kubectx
@@ -286,9 +286,9 @@ For more information [take a look here](./hooks/README.md).
 operating large Kubernetes installations where clusters spin up on demand,
 have cryptic context names or are stored in various kubeconfig stores (e.g., Vault).
 
-`kubeswitch` is build for a world where Kubernetes clusters are [treated as cattle, not pets](https://devops.stackexchange.com/questions/653/what-is-the-definition-of-cattle-not-pets).
+`kswitch` is build for a world where Kubernetes clusters are [treated as cattle, not pets](https://devops.stackexchange.com/questions/653/what-is-the-definition-of-cattle-not-pets).
 This has implications on how Kubeconfig files are managed. 
-`kubeswitch` is fundamentally designed for the modern Kubernetes operator of large dynamic Kubernetes 
+`kswitch` is fundamentally designed for the modern Kubernetes operator of large dynamic Kubernetes 
 installations with possibly thousands of Kubeconfig files in [various locations](docs/kubeconfig_stores.md).
 
 Has build-in
@@ -297,14 +297,14 @@ Has build-in
  - as well as integration points with external systems ([hooks](hooks/README.md)).
 
 
-In addition, `kubeswitch` is a drop-in replacement for _kubectx_.
+In addition, `kswitch` is a drop-in replacement for _kubectx_.
 You can set an alias and keep using your existing setup.
 ```
   alias kubectx='switch'
   alias kctx='switch'
 ```
 
-However, that does not mean that `kubeswitch` behaves exactly like `kubectx`.
+However, that does not mean that `kswitch` behaves exactly like `kubectx`.
 
 **Alias Names**
 
@@ -323,7 +323,7 @@ Directly modifying the Kubeconfig is problematic:
 This has the disadvantage that every other terminal using the same 
 Kubeconfig file (e.g, via environment variable _KUBECONFIG_) will also be affected and change the context.
 
-A guideline of `kubeswitch` is to not modify the underlying Kubeconfig file.
+A guideline of `kswitch` is to not modify the underlying Kubeconfig file.
 Hence, a temporary copy of the original Kubeconfig file is created and used to modify the context.
 This way, each terminal window works on its own copy of the Kubeconfig file and cannot interfere with each other.
 

@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package gke
 import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 // ValidateGKEStoreConfiguration validates the store configuration for GKE

@@ -1,4 +1,4 @@
-# The case of kubeswitch
+# The case of kswitch
 
 Managing a handful of Kubeconfig files and contexts is straightforward and well-supported by existing tools.
 You can use `kubectl config view --flatten`, define aliases or use `kubectx`.
@@ -11,17 +11,17 @@ To sum it up, many have moved on from treating Kubernetes clusters
 [as pets to treating them as cattle](https://devops.stackexchange.com/questions/653/what-is-the-definition-of-cattle-not-pets).
 Hence, there is a need for a tool that is build for this reality.
 
-The idea of `kubeswitch` is to enable seamless interaction with Kubeconfig files
+The idea of `kswitch` is to enable seamless interaction with Kubeconfig files
 for operators of large scale Kubernetes landscapes.
 No matter if they are stored on disk, in an Enterprise Vault, are spread in different directories 
 or need to be synchronized from a remote system.
 
-`kubeswitch` offers
-- Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/danielfoehrkn/kubeswitch#alias), [improved search experience](https://github.com/danielfoehrkn/kubeswitch#improved-search-experience), sanitized Kubeconfig preview);
+`kswitch` offers
+- Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/danielfoehrkn/kswitch#alias), [improved search experience](https://github.com/danielfoehrkn/kswitch#improved-search-experience), sanitized Kubeconfig preview);
 - advanced search capabilities (search index, hot reload, unified search over all kubeconfig stores);
-- as well as custom integration points with external systems (see [hooks](https://github.com/danielfoehrkn/kubeswitch/tree/master/hooks/README.md)).
+- as well as custom integration points with external systems (see [hooks](https://github.com/danielfoehrkn/kswitch/tree/master/hooks/README.md)).
 
-To not break existing setups, `kubeswitch` is a drop-in replacement for _kubectx_.
+To not break existing setups, `kswitch` is a drop-in replacement for _kubectx_.
 You can just set an alias.
 
 ```
@@ -55,8 +55,8 @@ Future plans are to act as an authentication helper for Kubeconfig files
 to inject the credentials from the backing store
 and to support more storage backends on top of Vault and the local filesystem.
 
-This should not be a long ramble, so I invite you to check out [kubeswitch on Github](https://github.com/danielfoehrKn/kubeswitch) 
-with more information or head straight to the [installation section](https://github.com/danielfoehrKn/kubeswitch#installation).
+This should not be a long ramble, so I invite you to check out [kswitch on Github](https://github.com/danielfoehrKn/kswitch) 
+with more information or head straight to the [installation section](https://github.com/danielfoehrKn/kswitch#installation).
 Of course contributions are more than welcome.
 Cheers,
 Daniel

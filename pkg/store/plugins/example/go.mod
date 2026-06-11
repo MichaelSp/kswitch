@@ -3,7 +3,7 @@ module example.com/dumb-plugin
 go 1.23.3
 
 require (
-	github.com/danielfoehrkn/kubeswitch v0.0.0-00010101000000-000000000000
+	github.com/danielfoehrkn/kswitch v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.2
 )
@@ -25,4 +25,4 @@ require (
 	k8s.io/apimachinery v0.31.2 // indirect
 )
 
-replace github.com/danielfoehrkn/kubeswitch => ../../../..
+replace github.com/danielfoehrkn/kswitch => ../../../..

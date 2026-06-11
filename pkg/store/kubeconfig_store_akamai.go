@@ -1,4 +1,4 @@
-// Copyright 2024 The Kubeswitch authors
+// Copyright 2024 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import (
 	"github.com/linode/linodego"
 	"github.com/sirupsen/logrus"
 
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func NewAkamaiStore(store types.KubeconfigStore) (*AkamaiStore, error) {

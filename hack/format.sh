@@ -5,7 +5,7 @@ echo "> Format"
 
 goimports -l -w $@
 
-addlicense -c "The Kubeswitch authors" pkg/
-addlicense -c "The Kubeswitch authors" cmd/
-addlicense -c "The Kubeswitch authors" hooks/
-addlicense -c "The Kubeswitch authors" types/
+addlicense -c "The Kswitch authors" pkg/
+addlicense -c "The Kswitch authors" cmd/
+addlicense -c "The Kswitch authors" hooks/
+addlicense -c "The Kswitch authors" types/

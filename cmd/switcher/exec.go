@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package switcher
 import (
 	"fmt"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/exec"
-	"github.com/danielfoehrkn/kubeswitch/pkg/util"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/exec"
+	"github.com/danielfoehrkn/kswitch/pkg/util"
 	"github.com/spf13/cobra"
 )
 

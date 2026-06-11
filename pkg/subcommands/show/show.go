@@ -1,4 +1,4 @@
-// Copyright 2025 The Kubeswitch authors
+// Copyright 2025 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ package show
 import (
 	"fmt"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func Show(desiredName string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]byte, error) {

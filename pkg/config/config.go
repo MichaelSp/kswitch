@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/config/migration"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg/config/migration"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 // LoadConfigFromFile takes a filename and de-serializes the contents into a Configuration object.

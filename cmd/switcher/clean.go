@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 package switcher
 
 import (
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/clean"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/clean"
 	"github.com/spf13/cobra"
 )
 

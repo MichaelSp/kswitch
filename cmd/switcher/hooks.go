@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package switcher
 import (
 	"os"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/hooks"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/hooks"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

@@ -5,7 +5,7 @@ Searching over multiple Rancher instances is supported, but may require `showPre
 
 ## Configuration
 
-The Rancher store configuration is defined in the `kubeswitch` configuration file. An example configuration is shown below:
+The Rancher store configuration is defined in the `kswitch` configuration file. An example configuration is shown below:
 
 ```yaml
 kind: SwitchConfig

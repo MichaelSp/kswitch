@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ type Config struct {
 	ExecShell *string `yaml:"execShell"`
 	// RefreshIndexAfter is the global default for how often
 	// the index for this kubeconfig store shall be refreshed.
-	// Not setting this field will cause kubeswitch to not use an index
+	// Not setting this field will cause kswitch to not use an index
 	// Can be overridden in the individual kubeconfig store configuration
 	// + optional
 	RefreshIndexAfter *time.Duration `yaml:"refreshIndexAfter"`
@@ -109,7 +109,7 @@ type KubeconfigStore struct {
 	// Paths contains the paths to search for in the backing store
 	Paths []string `yaml:"paths"`
 	// RefreshIndexAfter defines how often the index for this kubeconfig store shall be refreshed.
-	// Not setting this field will cause kubeswitch to not use an index
+	// Not setting this field will cause kswitch to not use an index
 	// + optional
 	RefreshIndexAfter *time.Duration `yaml:"refreshIndexAfter"`
 	// Required defines if errors when initializing this store should be logged
@@ -160,7 +160,7 @@ type StoreConfigGardener struct {
 type StoreConfigGKE struct {
 	// GKEAuthentication contains authentication configuration for GCP
 	GKEAuthentication *GKEAuthentication `yaml:"Authentication"`
-	// GCPAccount is the name of the gcp account kubeswitch shall discover GKE clusters from
+	// GCPAccount is the name of the gcp account kswitch shall discover GKE clusters from
 	// Only used when relying on gcloud authentication.
 	// Used to verify that gcloud currently has the correct account activated
 	// However, will not actively activate another account (has to be done manually by the user).
@@ -183,7 +183,7 @@ const (
 )
 
 type StoreConfigAzure struct {
-	// SubscriptionID is the name of the Azure Subscription kubeswitch shall discover Azure clusters from
+	// SubscriptionID is the name of the Azure Subscription kswitch shall discover Azure clusters from
 	// Please create on store per subscription
 	// + optional
 	SubscriptionID *string `yaml:"subscriptionID"`
@@ -225,7 +225,7 @@ const (
 	APIKeyAuthentication GCPAuthenticationType = "api-key"
 	// ServiceAccountAuthentication is an identifier for the authentication type with GCP service accounts
 	// also see: https://cloud.google.com/kubernetes-engine/docs/how-to/api-server-authentication#environments-without-gcloud
-	// To be able to use kubeswitch with multiple GCP accounts at once, please use Service Accounts and configure one
+	// To be able to use kswitch with multiple GCP accounts at once, please use Service Accounts and configure one
 	// GKE store per account
 	ServiceAccountAuthentication GCPAuthenticationType = "service-account"
 	// LegacyAuthentication is an identifier for the gcloud authentication type with legacy credentials

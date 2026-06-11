@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/store/doks"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/pkg/store/doks"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
 	"github.com/disiqueira/gotree"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/types"
 	"github.com/digitalocean/doctl/do"
 	"github.com/digitalocean/godo"
 )
@@ -100,7 +100,7 @@ func (d *DigitalOceanStore) getDoClient(accessToken string) (*godo.Client, error
 	oauthClient := oauth2.NewClient(context.Background(), tokenSource)
 
 	args := []godo.ClientOpt{
-		godo.SetUserAgent("kubeswitch-client"),
+		godo.SetUserAgent("kswitch-client"),
 	}
 
 	if d.Config.HttpRetryMax > 0 {

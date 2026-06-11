@@ -1,4 +1,4 @@
-// Copyright 2025 The Kubeswitch authors
+// Copyright 2025 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import (
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/tools/clientcmd"
 
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 func NewExoscaleStore(store types.KubeconfigStore) (*ExoscaleStore, error) {
@@ -158,7 +158,7 @@ func (s *ExoscaleStore) StartSearch(channel chan storetypes.SearchResult) {
 
 			s.Logger.Debugf("Discovered SKS cluster name: %s and id: %s in zone %s", cluster.Name, cluster.ID, zone.Name)
 
-			// The path we present back to kubeswitch:
+			// The path we present back to kswitch:
 			// e.g. "ch-gva-2/my-cluster"
 			kubeconfigPath := fmt.Sprintf("%s/%s", zone.Name, cluster.Name)
 

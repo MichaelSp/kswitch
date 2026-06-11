@@ -8,7 +8,7 @@ You need to create an IAM role with the following allowed operations:
 
 ## Configuration
 
-The Exoscale store configuration is defined in the `kubeswitch` configuration file. An example configuration is shown below:
+The Exoscale store configuration is defined in the `kswitch` configuration file. An example configuration is shown below:
 
 ```yaml
 kind: SwitchConfig

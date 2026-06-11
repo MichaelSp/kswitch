@@ -1,8 +1,8 @@
 # Installation
 
-The kubeswitch installation consists of both a `switcher` binary and a shell script which needs to be sourced.
+The kswitch installation consists of both a `switcher` binary and a shell script which needs to be sourced.
 
-**NOTE**: to invoke kubeswitch, do not call the `switcher` binary directly from the command line. 
+**NOTE**: to invoke kswitch, do not call the `switcher` binary directly from the command line. 
 Instead, use the sourced shell function as described in [source the shell function](#required-source-the-shell-function).
 
 ## Option 1 - Homebrew
@@ -21,7 +21,7 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 Mac users can also install both `switch.sh` and `switcher` from [MacPorts](https://www.macports.org)
 ```
 sudo port selfupdate
-sudo port install kubeswitch
+sudo port install kswitch
 ```
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
@@ -33,10 +33,10 @@ Download the switcher binary
 OS=linux                        # Pick the right os: linux, darwin (intel only)
 VERSION=0.9.3                   # Pick the current version.
 
-curl -L -o /usr/local/bin/switcher https://github.com/danielfoehrKn/kubeswitch/releases/download/${VERSION}/switcher_${OS}_amd64
+curl -L -o /usr/local/bin/switcher https://github.com/danielfoehrKn/kswitch/releases/download/${VERSION}/switcher_${OS}_amd64
 chmod +x /usr/local/bin/switcher
 ```
-If you are using Windows, go to the release webpage using you browser and download the windows binary: <https://github.com/danielfoehrKn/kubeswitch/releases/>\
+If you are using Windows, go to the release webpage using you browser and download the windows binary: <https://github.com/danielfoehrKn/kswitch/releases/>\
 Then copy it to a folder available in your path. To add a folder to your path, you can use the ``Environment Variables`` tool for the Windows' PowerToys: <https://learn.microsoft.com/en-us/windows/powertoys/environment-variables>\
 If you need to add a folder to the path for the current powershell session, you can run ``$env:Path += ';C:\myfolder'``
 
@@ -47,7 +47,7 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 ### Option 3 - From source
 
 ```
-go get github.com/danielfoehrkn/kubeswitch
+go get github.com/danielfoehrkn/kswitch
 ```
 
 From the repository root run `make build-switcher`.
@@ -59,7 +59,7 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 ## Required: Source the shell function
 
 Source the shell function which is used to call the `switcher` binary. 
-For `zsh/bash` the name of the shell function is `switch` and for `fish` its `kubeswitch`.
+For `zsh/bash` the name of the shell function is `switch` and for `fish` its `kswitch`.
 Additionally, installs the command completion script.
 
 ### Bash
@@ -82,28 +82,28 @@ echo 'alias s=switch' >> ~/.zshrc
 echo 'source <(switch completion zsh)' >> ~/.zshrc
 ```
 ### Fish
-Fish shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kubeswitch function is called `kubeswitch`.
+Fish shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kswitch function is called `kswitch`.
 ```sh
 echo 'switcher init fish | source' >> ~/.config/fish/config.fish
 
-# optionally use alias `s` instead of `kubeswitch` (add to config.fish)
+# optionally use alias `s` instead of `kswitch` (add to config.fish)
 function s --wraps switcher
-        kubeswitch $argv;
+        kswitch $argv;
 end
 ```
 ### Powershell
-Powershell shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kubeswitch function is called `kubeswitch`.
+Powershell shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kswitch function is called `kswitch`.
 
 ```powershell
 switcher_windows_amd64.exe init powershell >> $PROFILE
 
 # add this for the autocomplete to work
 echo 'Register-ArgumentCompleter -CommandName ''switcher_windows_amd64'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
-echo 'Register-ArgumentCompleter -CommandName ''kubeswitch'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
+echo 'Register-ArgumentCompleter -CommandName ''kswitch'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
 
-# optionally use alias `s` instead of `kubeswitch` (add to $PROFILE)
+# optionally use alias `s` instead of `kswitch` (add to $PROFILE)
 echo "" >> $PROFILE
-echo "Set-Alias -Name s -Value kubeswitch" >> $PROFILE
+echo "Set-Alias -Name s -Value kswitch" >> $PROFILE
 echo 'Register-ArgumentCompleter -CommandName ''s'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
 
 # source your profile again
@@ -112,10 +112,10 @@ echo 'Register-ArgumentCompleter -CommandName ''s'' -ScriptBlock $__switcherComp
 
 ## Check that it works
 
-If you installed kubeswitch correctly, you can run the command `switch` (zsh, bash) or `kubeswitch` (fish, powershell) or alternatively the alias `s` from the terminal.
+If you installed kswitch correctly, you can run the command `switch` (zsh, bash) or `kswitch` (fish, powershell) or alternatively the alias `s` from the terminal.
 In case the terminal can't find the function, you might need to open another terminal or re-source your config file (`.zshrc`,`.bashrc`,...).
 
 That should display the contexts the tool can find with the default configuration.
-If you get the error `Error: you need to point kubeswitch to a kubeconfig file` or do not see all
+If you get the error `Error: you need to point kswitch to a kubeconfig file` or do not see all
 desired kubeconfig contexts that you want to choose from, follow
 [kubeconfig stores](kubeconfig_stores.md) for the configuration.

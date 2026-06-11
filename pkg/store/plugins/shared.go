@@ -1,4 +1,4 @@
-// Copyright 2024 The Kubeswitch authors
+// Copyright 2024 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 
-	kubeconfigstorev1 "github.com/danielfoehrkn/kubeswitch/pkg/store/plugins/kubeconfigstore/v1"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
+	kubeconfigstorev1 "github.com/danielfoehrkn/kswitch/pkg/store/plugins/kubeconfigstore/v1"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
 )
 
 var Handshake = plugin.HandshakeConfig{
 	ProtocolVersion:  1,
-	MagicCookieKey:   "KUBESWITCH_PLUGIN",
-	MagicCookieValue: "kubeswitch",
+	MagicCookieKey:   "KSWITCH_PLUGIN",
+	MagicCookieValue: "kswitch",
 }
 
 type Store interface {

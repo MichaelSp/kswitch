@@ -1,13 +1,13 @@
 # GKE store
 
-Kubeswitch can discover Google Kubernetes Engine (GKE) clusters with the help of a locally installed `gcloud` tool.
+Kswitch can discover Google Kubernetes Engine (GKE) clusters with the help of a locally installed `gcloud` tool.
 `gcloud` takes care of the authentication and authorization flow.
 
 ## Setup
 
 Please make sure that the `gcloud` tool is installed and on your `PATH`.
 
-Next, create the GKE store configuration in the `kubeswitch` configuration file.
+Next, create the GKE store configuration in the `kswitch` configuration file.
 The only currently supported `authenticationType` is `gcloud`.
 
 ```yaml
@@ -32,9 +32,9 @@ kubeconfigStores:
 ```
 
 ## Re-authentication for expired credentials
-By using `kubeswitch` you are essentially reusing the valid credentials (`JWT` token) obtained via gcloud's OIDC flow.
+By using `kswitch` you are essentially reusing the valid credentials (`JWT` token) obtained via gcloud's OIDC flow.
 As OIDC id tokens have an expiration date, these credentials can expire.
-`kubeswitch` detects failed requests against the GCP API and triggers a re-authentication via `gcloud` (this will open the default Web browser).
+`kswitch` detects failed requests against the GCP API and triggers a re-authentication via `gcloud` (this will open the default Web browser).
 
 ```bash
 switch

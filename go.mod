@@ -1,4 +1,4 @@
-module github.com/danielfoehrkn/kubeswitch
+module github.com/danielfoehrkn/kswitch
 
 go 1.22.7
 

@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,6 @@ package types
 // ContextAlias contains alias names for contexts
 type ContextAlias struct {
 	// ContextToAliasMapping defines how alias names are written
-	// used internally by the kubeswitch tool
+	// used internally by the kswitch tool
 	ContextToAliasMapping map[string]string `yaml:"contextToAliasMapping"`
 }

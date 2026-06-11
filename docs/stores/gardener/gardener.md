@@ -1,6 +1,6 @@
 # Configure Gardener store
 
-Kubeswitch can search through multiple [Gardener](https://gardener.cloud) installations for kubeconfigs 
+Kswitch can search through multiple [Gardener](https://gardener.cloud) installations for kubeconfigs 
 of `Shoot` clusters and `Shooted /Managed Seeds`.
 External `Seeds` (not managed) and `Plants` are currently not supported.
 
@@ -9,7 +9,7 @@ External `Seeds` (not managed) and `Plants` are currently not supported.
 **Requirements on you local machine** 
 
 - On the client side, you need to have the `Gardenlogin` credentials plugin installed. Please check the [documentation here](https://github.com/gardener/gardenlogin#installation).
-For your convenience, the configuration file for the credential-plugin at `$HOME/.garden/gardenlogin.yaml` will be generated based on the `kubeswitch` configuration file .
+For your convenience, the configuration file for the credential-plugin at `$HOME/.garden/gardenlogin.yaml` will be generated based on the `kswitch` configuration file .
 
 Please see an example gardenlogin configuration:
 ```
@@ -23,23 +23,23 @@ gardens:
 ```
 
 **Requirements for Gardener Installation**
-- Since `kubeswitch` version `> 0.5.0` only kubeconfigs with short-lived static tokens are used to access Shoot clusters.
+- Since `kswitch` version `> 0.5.0` only kubeconfigs with short-lived static tokens are used to access Shoot clusters.
   For this to work, the Gardener API Server must be started with feature gate `AdminKubeconfigRequest` (will be enabled per-default in future versions of Gardener).
   For more information, please see the [GEP](https://github.com/gardener/gardener/blob/master/docs/proposals/16-adminkubeconfig-subresource.md).
 
-**Requirements for Gardener Installation for kubeswitch < 0.7.0**
+**Requirements for Gardener Installation for kswitch < 0.7.0**
 
 - Installed [gardenlogin-controller](https://github.com/gardener/gardenlogin-controller-manager)
   - This controller creates the Shoot kubeconfig in the config map with name `<shoot-name>.kubeconfig` in the project namespace in the garden cluster.
 
-**Requirements for Gardener Installation for kubeswitch >= 0.7.0**
+**Requirements for Gardener Installation for kswitch >= 0.7.0**
 
 - Gardener Installation >= `v1.43.0`
 
-**Background**: Please note that the [gardenlogin-controller](https://github.com/gardener/gardenlogin-controller-manager) has been deprecated (also see [this issue](https://github.com/danielfoehrKn/kubeswitch/issues/38)). 
+**Background**: Please note that the [gardenlogin-controller](https://github.com/gardener/gardenlogin-controller-manager) has been deprecated (also see [this issue](https://github.com/danielfoehrKn/kswitch/issues/38)). 
 Since gardener version [v1.43.0](https://github.com/gardener/gardener/releases/tag/v1.43.0), the Shoot's CA secret is synced by the Gardenlet to the Garden cluster into the secret `<shoot-name>.ca-cluster` so that 
 clients can construct a Shoot kubeconfig without having to rely on the `gardenlogin-controller`.
-As a result, Kubeswitch, starting with version `0.7.0`, does not support `gardenlogin-controller` created kubeconfigs.
+As a result, Kswitch, starting with version `0.7.0`, does not support `gardenlogin-controller` created kubeconfigs.
 
 ## Search Semantics
 
@@ -98,12 +98,12 @@ The preview can be turned off using the flag `--show-preview false`.
 
 ## Switch to the controlplane of a Shoot cluster
 
-If you used `kubeswitch` to switch to any context of a Shoot cluster, you can use the command `switch gardener controlplane` to directly switch to
+If you used `kswitch` to switch to any context of a Shoot cluster, you can use the command `switch gardener controlplane` to directly switch to
 the controlplane namespace in the Shoot's Seed cluster.
 
 ## Configuration 
 
-You need to configure kubeswitch with a kubeconfig for each Gardener installation.
+You need to configure kswitch with a kubeconfig for each Gardener installation.
 It should have 
 - permissions to list `Shoots`, `Secrets` and `ManagedSeeds` (limited to namespaces dependent on the [configured paths](#optional-configuration))
 - the current-context set

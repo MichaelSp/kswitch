@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 // GetContextsNamesFromKubeconfig takes kubeconfig bytes and parses the kubeconfig to extract the context names.

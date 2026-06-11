@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg/store/plugins"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
+	"github.com/danielfoehrkn/kswitch/pkg/store/plugins"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
 )
 
 // Store is the implementation of the store plugin

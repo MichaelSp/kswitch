@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 
-	"github.com/danielfoehrkn/kubeswitch/pkg"
-	storetypes "github.com/danielfoehrkn/kubeswitch/pkg/store/types"
-	historyutil "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/history/util"
-	kubeconfigutil "github.com/danielfoehrkn/kubeswitch/pkg/util/kubectx_copied"
-	"github.com/danielfoehrkn/kubeswitch/types"
+	"github.com/danielfoehrkn/kswitch/pkg"
+	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	historyutil "github.com/danielfoehrkn/kswitch/pkg/subcommands/history/util"
+	kubeconfigutil "github.com/danielfoehrkn/kswitch/pkg/util/kubectx_copied"
+	"github.com/danielfoehrkn/kswitch/types"
 )
 
 var logger = logrus.New()
@@ -78,7 +78,7 @@ func SetContext(desiredContext string, stores []storetypes.KubeconfigStore, conf
 				return nil, nil, err
 			}
 
-			if err := kubeconfig.SetKubeswitchContext(desiredContext); err != nil {
+			if err := kubeconfig.SetKswitchContext(desiredContext); err != nil {
 				return nil, nil, err
 			}
 

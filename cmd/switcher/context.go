@@ -1,4 +1,4 @@
-// Copyright 2021 The Kubeswitch authors
+// Copyright 2021 The Kswitch authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"os"
 
-	delete_context "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/delete-context"
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/history"
-	"github.com/danielfoehrkn/kubeswitch/pkg/subcommands/hooks"
-	list_contexts "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/list-contexts"
-	set_context "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/set-context"
-	unset_context "github.com/danielfoehrkn/kubeswitch/pkg/subcommands/unset-context"
-	"github.com/danielfoehrkn/kubeswitch/pkg/util"
+	delete_context "github.com/danielfoehrkn/kswitch/pkg/subcommands/delete-context"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/history"
+	"github.com/danielfoehrkn/kswitch/pkg/subcommands/hooks"
+	list_contexts "github.com/danielfoehrkn/kswitch/pkg/subcommands/list-contexts"
+	set_context "github.com/danielfoehrkn/kswitch/pkg/subcommands/set-context"
+	unset_context "github.com/danielfoehrkn/kswitch/pkg/subcommands/unset-context"
+	"github.com/danielfoehrkn/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
