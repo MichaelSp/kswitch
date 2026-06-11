@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	kubeconfigstorev1 "github.com/danielfoehrkn/kswitch/pkg/store/plugins/kubeconfigstore/v1"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	kubeconfigstorev1 "github.com/MichaelSp/kswitch/pkg/store/plugins/kubeconfigstore/v1"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 )
 
 type GRPCClient struct {

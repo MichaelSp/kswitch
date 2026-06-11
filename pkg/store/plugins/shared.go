@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 
-	kubeconfigstorev1 "github.com/danielfoehrkn/kswitch/pkg/store/plugins/kubeconfigstore/v1"
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
+	kubeconfigstorev1 "github.com/MichaelSp/kswitch/pkg/store/plugins/kubeconfigstore/v1"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 )
 
 var Handshake = plugin.HandshakeConfig{

@@ -16,7 +16,7 @@ package switcher
 import (
 	"os"
 
-	gardenercontrolplane "github.com/danielfoehrkn/kswitch/pkg/subcommands/gardener"
+	gardenercontrolplane "github.com/MichaelSp/kswitch/pkg/subcommands/gardener"
 	"github.com/spf13/cobra"
 )
 

@@ -80,7 +80,7 @@ func (i *NamespaceCache) loadFromFile() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
@@ -96,7 +96,7 @@ func (i *NamespaceCache) Write(toWrite []string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// print values to f, one per line
 	for _, value := range toWrite {

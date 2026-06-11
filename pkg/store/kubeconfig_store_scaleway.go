@@ -23,8 +23,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
-	storetypes "github.com/danielfoehrkn/kswitch/pkg/store/types"
-	"github.com/danielfoehrkn/kswitch/types"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 func NewScalewayStore(store types.KubeconfigStore) (*ScalewayStore, error) {
@@ -44,15 +44,15 @@ func NewScalewayStore(store types.KubeconfigStore) (*ScalewayStore, error) {
 
 	scalewayAccessKey := scalewayStoreConfig.ScalewayAccessKey
 	if len(scalewayAccessKey) == 0 {
-		return nil, fmt.Errorf("When using the Scaleway kubeconfig store, the access key for Scaleway has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the Scaleway kubeconfig store, the access key for Scaleway has to be provided via a SwitchConfig file")
 	}
 	scalewayOrganizationID := scalewayStoreConfig.ScalewayOrganizationID
 	if len(scalewayOrganizationID) == 0 {
-		return nil, fmt.Errorf("When using the Scaleway kubeconfig store, the organization ID for Scaleway has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the Scaleway kubeconfig store, the organization ID for Scaleway has to be provided via a SwitchConfig file")
 	}
 	scalewaySecretKey := scalewayStoreConfig.ScalewaySecretKey
 	if len(scalewaySecretKey) == 0 {
-		return nil, fmt.Errorf("When using the Scaleway kubeconfig store, the secret key for Scaleway has to be provided via a SwitchConfig file")
+		return nil, fmt.Errorf("when using the Scaleway kubeconfig store, the secret key for Scaleway has to be provided via a SwitchConfig file")
 	}
 	scalewayRegion := scalewayStoreConfig.ScalewayRegion
 	if len(scalewayRegion) == 0 {
@@ -66,7 +66,7 @@ func NewScalewayStore(store types.KubeconfigStore) (*ScalewayStore, error) {
 		scw.WithDefaultRegion(scw.Region(scalewayRegion)),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize Scaleway client due to error: %w", err)
+		return nil, fmt.Errorf("failed to initialize Scaleway client: %w", err)
 	}
 
 	return &ScalewayStore{
@@ -122,7 +122,7 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 	if papi == nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
-			Error:          fmt.Errorf("Failed to create scaleway project API"),
+			Error:          fmt.Errorf("failed to create scaleway project API"),
 		}
 		return
 	}
@@ -132,7 +132,7 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 	if err != nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
-			Error:          fmt.Errorf("Could no list projects in Scaleway err: %w", err),
+			Error:          fmt.Errorf("could not list projects in Scaleway: %w", err),
 		}
 		return
 	}
@@ -142,7 +142,7 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 	if kapi == nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
-			Error:          fmt.Errorf("Failed to create Kubernetes API instance for scaleway err: %w", err),
+			Error:          fmt.Errorf("failed to create Kubernetes API instance for scaleway: %w", err),
 		}
 		return
 	}
@@ -152,7 +152,7 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 		if err != nil {
 			channel <- storetypes.SearchResult{
 				KubeconfigPath: "",
-				Error:          fmt.Errorf("Failed to retrieve Kubernetes cluster for project %v err: %w", project.Name, err),
+				Error:          fmt.Errorf("failed to retrieve Kubernetes cluster for project %v: %w", project.Name, err),
 			}
 			return
 		}

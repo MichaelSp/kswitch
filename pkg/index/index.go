@@ -19,7 +19,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -141,7 +141,7 @@ func (i *SearchIndex) WriteState(toWrite types.IndexState) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	output, err := yaml.Marshal(toWrite)
 	if err != nil {
@@ -162,7 +162,7 @@ func (i *SearchIndex) Write(toWrite types.Index) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	output, err := yaml.Marshal(toWrite)
 	if err != nil {

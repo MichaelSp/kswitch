@@ -17,7 +17,7 @@ package migration
 import (
 	"k8s.io/utils/ptr"
 
-	"github.com/danielfoehrkn/kswitch/types"
+	"github.com/MichaelSp/kswitch/types"
 )
 
 // ConvertConfiguration converts the old configuration to the new format
