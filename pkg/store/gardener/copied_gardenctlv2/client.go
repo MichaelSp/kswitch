@@ -66,7 +66,7 @@ type Client interface {
 	GetShootClientConfig(ctx context.Context, namespace, name string, memoizedShoot gardencorev1beta1.Shoot, memoizedCASecret corev1.Secret) (clientcmd.ClientConfig, error)
 
 	// GetSecretBinding returns a Gardener secretbinding resource
-	GetSecretBinding(ctx context.Context, namespace, name string) (*gardencorev1beta1.SecretBinding, error)
+	GetSecretBinding(ctx context.Context, namespace, name string) (*gardencorev1beta1.SecretBinding, error) //nolint:staticcheck
 
 	// GetCloudProfile returns a Gardener cloudprofile resource
 	GetCloudProfile(ctx context.Context, name string) (*gardencorev1beta1.CloudProfile, error)
@@ -230,8 +230,8 @@ func (g *clientImpl) GetNamespace(ctx context.Context, name string) (*corev1.Nam
 }
 
 // GetSecretBinding returns a Gardener secretbinding resource
-func (g *clientImpl) GetSecretBinding(ctx context.Context, namespace, name string) (*gardencorev1beta1.SecretBinding, error) {
-	secretBinding := &gardencorev1beta1.SecretBinding{}
+func (g *clientImpl) GetSecretBinding(ctx context.Context, namespace, name string) (*gardencorev1beta1.SecretBinding, error) { //nolint:staticcheck
+	secretBinding := &gardencorev1beta1.SecretBinding{} //nolint:staticcheck
 	key := types.NamespacedName{Namespace: namespace, Name: name}
 
 	if err := g.c.Get(ctx, key, secretBinding); err != nil {
