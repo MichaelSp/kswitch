@@ -216,17 +216,19 @@ func (m Model) View() string {
 func (m Model) renderLeft(width int) string {
 	lh := m.listHeight()
 
-	// Render items so the cursor row sits at the bottom of the list area
-	// (fzf-style: list grows upward, selected item closest to the prompt).
-	// Collect up to lh rows ending at cursor (inclusive).
-	end := m.cursor + 1
-	start := end - lh
-	if start < 0 {
-		start = 0
+	// fzf-style: cursor (best match) sits at the bottom, less-relevant items
+	// above it. Items with higher indices in filtered[] are displayed higher up.
+	// Window: show items [cursor .. cursor+lh-1], rendered top-to-bottom in
+	// reverse order so cursor lands on the bottom row.
+	start := m.cursor
+	end := start + lh
+	if end > len(m.filtered) {
+		end = len(m.filtered)
 	}
 
+	// build rows in reverse (highest index first = topmost row)
 	rows := make([]string, 0, lh)
-	for i := start; i < end && i < len(m.filtered); i++ {
+	for i := end - 1; i >= start; i-- {
 		it := m.filtered[i]
 		name := truncate(it.displayName, width-3)
 		if i == m.cursor {
@@ -236,7 +238,7 @@ func (m Model) renderLeft(width int) string {
 		}
 	}
 
-	// Pad at the top so items are bottom-aligned
+	// Pad at the top so items are bottom-aligned when fewer than lh exist
 	for len(rows) < lh {
 		rows = append([]string{""}, rows...)
 	}

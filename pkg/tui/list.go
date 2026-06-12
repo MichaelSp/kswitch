@@ -116,15 +116,15 @@ func (m listModel) View() string {
 		lh = 1
 	}
 
-	// Bottom-aligned: cursor row at the bottom, earlier items above.
-	end := m.cursor + 1
-	start := end - lh
-	if start < 0 {
-		start = 0
+	// fzf-style: cursor at bottom, higher-index items above.
+	start := m.cursor
+	end := start + lh
+	if end > len(m.filtered) {
+		end = len(m.filtered)
 	}
 
 	rows := make([]string, 0, lh)
-	for i := start; i < end && i < len(m.filtered); i++ {
+	for i := end - 1; i >= start; i-- {
 		name := truncate(m.filtered[i], m.width-3)
 		if i == m.cursor {
 			rows = append(rows, styleCursor.Render("> ")+styleSelected.Render(name))
