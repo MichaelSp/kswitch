@@ -32,8 +32,8 @@ builds:
         goarch: arm64
     ldflags:
       - -w
-        -X github.com/danielfoehrkn/kswitch/cmd/switcher.version={{.Version}}
-        -X github.com/danielfoehrkn/kswitch/cmd/switcher.buildDate={{.Date}}
+        -X github.com/MichaelSp/kswitch/cmd/switcher.version={{.Version}}
+        -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate={{.Date}}
 
 # Upload raw binaries (no archives/tarballs).
 # name_template matches the original release asset naming: switcher_{os}_{arch}
