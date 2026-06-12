@@ -48,7 +48,7 @@ require (
 	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego v1.69.1
-	github.com/onsi/ginkgo v1.15.0
+	github.com/onsi/ginkgo v1.16.5
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
