@@ -16,6 +16,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -200,7 +201,7 @@ func RunList(items []string, labelFunc func(i int) string) (int, error) {
 	}
 
 	model := newListModel(labels)
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithOutput(os.Stderr))
 
 	final, err := p.Run()
 	if err != nil {

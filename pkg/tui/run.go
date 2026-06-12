@@ -17,6 +17,7 @@ package tui
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -44,7 +45,7 @@ func Run(
 ) (kubeconfigPath string, selectedContext string, err error) {
 	model := NewModel(storeIDToStore, showPreview)
 
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithOutput(os.Stderr))
 
 	go func() {
 		var batch []item

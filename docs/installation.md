@@ -70,6 +70,11 @@ echo 'source <(switcher init bash)' >> ~/.bashrc
 # optionally use alias `s` instead of `switch`
 echo 'alias s=switch' >> ~/.bashrc
 echo 'complete -o default -F __start_switcher s' >> ~/.bashrc
+
+# optionally use `kswitch` as an alias for `switch`
+# NOTE: do NOT alias `kswitch` to the raw binary — it must go through the shell wrapper
+# so that KUBECONFIG is exported into your current shell session.
+echo 'alias kswitch=switch' >> ~/.bashrc
 ```
 ### Zsh
 ```sh
@@ -77,6 +82,11 @@ echo 'source <(switcher init zsh)' >> ~/.zshrc
 
 # optionally use alias `s` instead of `switch`
 echo 'alias s=switch' >> ~/.zshrc
+
+# optionally use `kswitch` as an alias for `switch`
+# NOTE: do NOT alias `kswitch` to the raw binary — it must go through the shell wrapper
+# so that KUBECONFIG is exported into your current shell session.
+echo 'alias kswitch=switch' >> ~/.zshrc
 
 # optionally use command completion
 echo 'source <(switch completion zsh)' >> ~/.zshrc
