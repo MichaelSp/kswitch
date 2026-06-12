@@ -327,35 +327,70 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 		secretList []corev1.Secret
 	)
 	for _, path := range s.KubeconfigStore.Paths {
-		var (
-			shoots      *gardencorev1beta1.ShootList
-			listOptions = client.ListOptions{}
-		)
+		var namespacesToSearch []string
 
-		if path != AllNamespacesDenominator {
-			listOptions.Namespace = path
-		}
-
-		shoots, err := s.GardenClient.ListShoots(ctx, &listOptions)
-		if err != nil {
-			channel <- storetypes.SearchResult{
-				Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %v", path, err),
+		if path == AllNamespacesDenominator {
+			// Try listing all shoots at once; fall back to per-namespace if forbidden
+			shoots, err := s.GardenClient.ListShoots(ctx, &client.ListOptions{})
+			if err == nil {
+				selector := labels.SelectorFromSet(labels.Set{"gardener.cloud/role": "ca-cluster"})
+				secrets := &corev1.SecretList{}
+				if listErr := s.Client.List(ctx, secrets, &client.ListOptions{LabelSelector: selector}); listErr != nil {
+					s.Logger.Debugf("failed to list CA secrets across all namespaces: %v", listErr)
+				}
+				shootList = append(shootList, shoots.Items...)
+				secretList = append(secretList, secrets.Items...)
+				break
 			}
-			return
-		}
 
-		selector := labels.SelectorFromSet(labels.Set{"gardener.cloud/role": "ca-cluster"})
-		listOptions.LabelSelector = selector
-		secrets := &corev1.SecretList{}
-		if err := s.Client.List(ctx, secrets, &listOptions); err != nil {
-			channel <- storetypes.SearchResult{
-				Error: fmt.Errorf("failed to list CA secrets for namespace %q: %v", path, err),
+			if !apierrors.IsForbidden(err) {
+				channel <- storetypes.SearchResult{
+					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %v", path, err),
+				}
+				return
 			}
-			return
+
+			// No cluster-wide permission — discover namespaces via Projects
+			s.Logger.Debugf("no cluster-wide shoot list permission, falling back to per-namespace listing via Projects: %v", err)
+			namespacesToSearch = s.discoverProjectNamespaces(ctx)
+			if len(namespacesToSearch) == 0 {
+				s.Logger.Debugf("no accessible project namespaces found")
+				break
+			}
+		} else {
+			namespacesToSearch = []string{path}
 		}
 
-		shootList = append(shootList, shoots.Items...)
-		secretList = append(secretList, secrets.Items...)
+		for _, ns := range namespacesToSearch {
+			listOptions := client.ListOptions{Namespace: ns}
+			shoots, err := s.GardenClient.ListShoots(ctx, &listOptions)
+			if err != nil {
+				if apierrors.IsForbidden(err) {
+					s.Logger.Debugf("skipping namespace %q: no list permission for shoots", ns)
+					continue
+				}
+				channel <- storetypes.SearchResult{
+					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %v", ns, err),
+				}
+				return
+			}
+
+			selector := labels.SelectorFromSet(labels.Set{"gardener.cloud/role": "ca-cluster"})
+			secrets := &corev1.SecretList{}
+			if listErr := s.Client.List(ctx, secrets, &client.ListOptions{Namespace: ns, LabelSelector: selector}); listErr != nil {
+				if !apierrors.IsForbidden(listErr) {
+					channel <- storetypes.SearchResult{
+						Error: fmt.Errorf("failed to list CA secrets for namespace %q: %v", ns, listErr),
+					}
+					return
+				}
+				s.Logger.Debugf("skipping CA secrets for namespace %q: no list permission", ns)
+			} else {
+				secretList = append(secretList, secrets.Items...)
+			}
+
+			shootList = append(shootList, shoots.Items...)
+		}
 
 		if path == AllNamespacesDenominator {
 			break
@@ -376,6 +411,44 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	s.sendKubeconfigPaths(channel, shootList, managedSeeds.Items)
+}
+
+// discoverProjectNamespaces returns the list of Gardener project namespaces the
+// current user can access.  It first tries to list Projects (cluster-scoped),
+// falling back to listing all Kubernetes namespaces and filtering for the
+// "garden-" prefix when Project listing is also forbidden.
+func (s *GardenerStore) discoverProjectNamespaces(ctx context.Context) []string {
+	projects, err := s.GardenClient.ListProjects(ctx)
+	if err == nil {
+		namespaces := make([]string, 0, len(projects.Items))
+		for _, p := range projects.Items {
+			if p.Spec.Namespace != nil && *p.Spec.Namespace != "" {
+				namespaces = append(namespaces, *p.Spec.Namespace)
+			}
+		}
+		return namespaces
+	}
+
+	if !apierrors.IsForbidden(err) {
+		s.Logger.Debugf("failed to list Gardener projects: %v", err)
+	} else {
+		s.Logger.Debugf("no permission to list Gardener projects, falling back to namespace listing: %v", err)
+	}
+
+	// Last resort: list all namespaces and keep those with the garden- prefix
+	nsList := &corev1.NamespaceList{}
+	if listErr := s.Client.List(ctx, nsList); listErr != nil {
+		s.Logger.Debugf("failed to list namespaces: %v", listErr)
+		return nil
+	}
+
+	var namespaces []string
+	for _, ns := range nsList.Items {
+		if strings.HasPrefix(ns.Name, "garden-") {
+			namespaces = append(namespaces, ns.Name)
+		}
+	}
+	return namespaces
 }
 
 func (s *GardenerStore) GetContextPrefix(path string) string {
