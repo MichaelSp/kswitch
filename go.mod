@@ -46,7 +46,7 @@ require (
 	github.com/digitalocean/doctl v1.161.0
 	github.com/digitalocean/godo v1.195.0
 	github.com/exoscale/egoscale/v3 v3.1.38
-	github.com/gardener/gardener/pkg/apis v1.142.1
+	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego v1.69.1
 	github.com/ovh/go-ovh v1.9.0
