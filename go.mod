@@ -45,7 +45,7 @@ require (
 
 require (
 	github.com/digitalocean/doctl v1.161.0
-	github.com/digitalocean/godo v1.194.1
+	github.com/digitalocean/godo v1.195.0
 	github.com/exoscale/egoscale/v3 v3.1.37
 	github.com/hashicorp/go-plugin v1.6.2
 	github.com/linode/linodego v1.42.0

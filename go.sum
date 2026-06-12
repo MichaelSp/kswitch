@@ -143,6 +143,8 @@ github.com/digitalocean/godo v1.113.0 h1:CLtCxlP4wDAjKIQ+Hshht/UNbgAp8/J/XBH1ZtD
 github.com/digitalocean/godo v1.113.0/go.mod h1:Z2mTP848Vi3IXXl5YbPekUgr4j4tOePomA+OE1Ag98w=
 github.com/digitalocean/godo v1.194.1 h1:NaJzcMNFkbxhdIIqnKfBLUtrOvhXZJU8pAsIHfSNmVE=
 github.com/digitalocean/godo v1.194.1/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
+github.com/digitalocean/godo v1.195.0 h1:khMlHpzi3VCfgZZnRcNSzLmXodk/3MIcjuuJTCG1jiQ=
+github.com/digitalocean/godo v1.195.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/disiqueira/gotree v1.0.0 h1:en5wk87n7/Jyk6gVME3cx3xN9KmUCstJ1IjHr4Se4To=
 github.com/disiqueira/gotree v1.0.0/go.mod h1:7CwL+VWsWAU95DovkdRZAtA7YbtHwGk+tLV/kNi8niU=
 github.com/distribution/reference v0.6.0 h1:0IXCQ5g4/QMHHkarYzh5l+u8T3t73zM5QvfrDyIgxBk=
