@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
-	clusterv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	clusterv1beta2 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	utilkubeconfig "sigs.k8s.io/cluster-api/util/kubeconfig"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -93,7 +93,7 @@ func (s *CapiStore) VerifyKubeconfigPaths() error {
 func (s *CapiStore) getCapiClient() (client.Client, error) {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(corev1.AddToScheme(scheme))
-	utilruntime.Must(clusterv1beta1.AddToScheme(scheme))
+	utilruntime.Must(clusterv1beta2.AddToScheme(scheme))
 
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	if s.Config.KubeconfigPath != "" {
@@ -135,7 +135,7 @@ func (s *CapiStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	// list clusters
-	clusters := &clusterv1beta1.ClusterList{}
+	clusters := &clusterv1beta2.ClusterList{}
 	err := s.Client.List(ctx, clusters)
 	if err != nil {
 		// if kubeconfigPath for mgmt cluster is defined error out and return if the Cluster CRD is not installed
@@ -147,7 +147,7 @@ func (s *CapiStore) StartSearch(channel chan storetypes.SearchResult) {
 			}
 			return
 		}
-		s.Logger.Debug("CAPI: cannot listing v1beta1.Cluster resources, not currently connected to a cluster with CAPI installed")
+		s.Logger.Debug("CAPI: cannot listing v1beta2.Cluster resources, not currently connected to a cluster with CAPI installed")
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
 		}
