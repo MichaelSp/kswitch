@@ -588,7 +588,7 @@ func (s *GardenerStore) GetKubeconfigForPath(path string, _ map[string]string) (
 		if s.Config == nil || len(s.Config.GardenerAPIKubeconfigPath) == 0 {
 			return nil, fmt.Errorf("cannot get garden kubeconfig. Field 'gardenerAPIKubeconfigPath' is not configured in the Gardener store configuration in the SwitchConfig file")
 		}
-		return os.ReadFile(s.Config.GardenerAPIKubeconfigPath)
+		return os.ReadFile(util.ExpandEnv(s.Config.GardenerAPIKubeconfigPath))
 	}
 
 	landscape, resource, name, namespace, gardenerProjectName, err := gardenerstore.ParseIdentifier(path)
