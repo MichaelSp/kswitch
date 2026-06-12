@@ -71,7 +71,7 @@ var (
 	noIndex       bool
 
 	rootCommand = &cobra.Command{
-		Use:     "switcher",
+		Use:     "kswitch",
 		Short:   "Launch the switch binary",
 		Long:    `The kubectx for operators.`,
 		Version: version,

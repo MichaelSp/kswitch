@@ -27,7 +27,7 @@ function switch(){
 #  if the executable path is not set, the switcher binary has to be on the path
 # this is the case when installing it via homebrew
 
-  local DEFAULT_EXECUTABLE_PATH="switcher"
+  local DEFAULT_EXECUTABLE_PATH="kswitch"
   declare -a opts
 
   while test $# -gt 0; do
@@ -98,7 +98,7 @@ function switch(){
 function kswitch
 #  if the executable path is not set, the switcher binary has to be on the path
 # this is the case when installing it via homebrew
-  set -f DEFAULT_EXECUTABLE_PATH 'switcher'
+  set -f DEFAULT_EXECUTABLE_PATH 'kswitch'
   set -f REPORT_RESPONSE
   set -f opts
 
