@@ -271,7 +271,7 @@ func (d *DigitalOceanStore) GetKubeconfigForPath(path string, tags map[string]st
 
 	d.Logger.Debugf("Digital Ocean: GetKubeconfigForPath (context: %s, region: %s, DOKS cluster name: %s, DOKS cluster ID: %s)", doctlContextName, region, name, clusterID)
 
-	kubeconfigBytes, err := d.ContextToKubernetesService[doctlContextName].GetKubeConfig(clusterID)
+	kubeconfigBytes, err := d.ContextToKubernetesService[doctlContextName].GetKubeConfig(clusterID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain kubeconfig for DOKS cluster (context: %s, region: %s, DOKS cluster name: %s, cluster_id: %s): %w", doctlContextName, region, name, clusterID, err)
 	}
