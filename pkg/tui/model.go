@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"strings"
 
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 )
 
 // item represents a discovered kubeconfig context entry.
@@ -68,14 +68,14 @@ type Model struct {
 }
 
 var (
-	stylePrompt    = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	styleCursor    = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	styleSelected  = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-	styleDim       = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	styleCount     = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
-	styleBorder    = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	stylePreview   = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
-	styleLoading   = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	stylePrompt   = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	styleCursor   = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	styleSelected = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	styleDim      = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	styleCount    = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
+	styleBorder   = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	stylePreview  = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+	styleLoading  = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
 )
 
 // NewModel creates an initial TUI model.
@@ -138,9 +138,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyUp, tea.KeyCtrlK, tea.KeyCtrlP:
-			if msg.Type == tea.KeyCtrlP && !msg.Alt {
-				// ctrl+p without alt → navigate up (matches fzf muscle memory)
-			}
 			m.moveCursor(-1)
 			return m, m.fetchPreviewCmd()
 
