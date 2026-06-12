@@ -55,7 +55,6 @@ type Model struct {
 	allItems []item
 	filtered []item
 	cursor   int
-	offset   int // first visible row index in filtered
 
 	previewContent string
 	previewForPath string // path the current preview belongs to
@@ -162,7 +161,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.query = ""
 			m.filtered = filterItems("", m.allItems)
 			m.cursor = 0
-			m.offset = 0
 			return m, m.fetchPreviewCmd()
 
 		case tea.KeyCtrlW:
@@ -217,9 +215,18 @@ func (m Model) View() string {
 
 func (m Model) renderLeft(width int) string {
 	lh := m.listHeight()
-	rows := make([]string, 0, lh)
 
-	for i := m.offset; i < m.offset+lh && i < len(m.filtered); i++ {
+	// Render items so the cursor row sits at the bottom of the list area
+	// (fzf-style: list grows upward, selected item closest to the prompt).
+	// Collect up to lh rows ending at cursor (inclusive).
+	end := m.cursor + 1
+	start := end - lh
+	if start < 0 {
+		start = 0
+	}
+
+	rows := make([]string, 0, lh)
+	for i := start; i < end && i < len(m.filtered); i++ {
 		it := m.filtered[i]
 		name := truncate(it.displayName, width-3)
 		if i == m.cursor {
@@ -229,9 +236,9 @@ func (m Model) renderLeft(width int) string {
 		}
 	}
 
-	// Pad empty rows so layout doesn't shift
+	// Pad at the top so items are bottom-aligned
 	for len(rows) < lh {
-		rows = append(rows, "")
+		rows = append([]string{""}, rows...)
 	}
 
 	// Separator line
@@ -299,7 +306,6 @@ func (m *Model) moveCursor(delta int) {
 func (m *Model) clampCursor() {
 	if len(m.filtered) == 0 {
 		m.cursor = 0
-		m.offset = 0
 		return
 	}
 	if m.cursor < 0 {
@@ -308,20 +314,11 @@ func (m *Model) clampCursor() {
 	if m.cursor >= len(m.filtered) {
 		m.cursor = len(m.filtered) - 1
 	}
-
-	lh := m.listHeight()
-	if m.cursor < m.offset {
-		m.offset = m.cursor
-	}
-	if m.cursor >= m.offset+lh {
-		m.offset = m.cursor - lh + 1
-	}
 }
 
 func (m *Model) refilter() {
 	m.filtered = filterItems(m.query, m.allItems)
 	m.cursor = 0
-	m.offset = 0
 }
 
 // deleteWord removes the last word from the textinput (Alt+Backspace / ctrl+w).

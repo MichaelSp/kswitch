@@ -116,8 +116,15 @@ func (m listModel) View() string {
 		lh = 1
 	}
 
+	// Bottom-aligned: cursor row at the bottom, earlier items above.
+	end := m.cursor + 1
+	start := end - lh
+	if start < 0 {
+		start = 0
+	}
+
 	rows := make([]string, 0, lh)
-	for i := m.offset; i < m.offset+lh && i < len(m.filtered); i++ {
+	for i := start; i < end && i < len(m.filtered); i++ {
 		name := truncate(m.filtered[i], m.width-3)
 		if i == m.cursor {
 			rows = append(rows, styleCursor.Render("> ")+styleSelected.Render(name))
@@ -126,7 +133,7 @@ func (m listModel) View() string {
 		}
 	}
 	for len(rows) < lh {
-		rows = append(rows, "")
+		rows = append([]string{""}, rows...)
 	}
 
 	sep := styleBorder.Render(strings.Repeat("─", m.width))
@@ -143,16 +150,6 @@ func (m *listModel) moveCursor(delta int) {
 	}
 	if m.cursor >= len(m.filtered) {
 		m.cursor = len(m.filtered) - 1
-	}
-	lh := m.height - 2
-	if lh < 1 {
-		lh = 1
-	}
-	if m.cursor < m.offset {
-		m.offset = m.cursor
-	}
-	if m.cursor >= m.offset+lh {
-		m.offset = m.cursor - lh + 1
 	}
 }
 
