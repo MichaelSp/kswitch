@@ -26,7 +26,8 @@ import (
 
 // item represents a discovered kubeconfig context entry.
 type item struct {
-	displayName string
+	displayName string // rich display name shown in the TUI list
+	contextName string // actual context name (or alias) used for kubeconfig lookup
 	path        string
 	tags        map[string]string
 	storeID     string
