@@ -26,8 +26,8 @@ import (
 
 	"github.com/MichaelSp/kswitch/pkg/index"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
-	"github.com/MichaelSp/kswitch/pkg/tui"
 	aliasutil "github.com/MichaelSp/kswitch/pkg/subcommands/alias/util"
+	"github.com/MichaelSp/kswitch/pkg/tui"
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/MichaelSp/kswitch/types"
 )
