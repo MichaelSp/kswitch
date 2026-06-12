@@ -93,7 +93,9 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 			writeToPathToStoreID(dc.Path, kubeconfigStore.GetID())
 
 			tuiCh <- tui.ContextItem{
-				DisplayName: contextName,
+				ContextName: contextName,
+				Alias:       dc.Alias,
+				StoreKind:   string(kubeconfigStore.GetKind()),
 				Path:        dc.Path,
 				Tags:        dc.Tags,
 				StoreID:     kubeconfigStore.GetID(),

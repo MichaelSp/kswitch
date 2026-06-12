@@ -20,6 +20,7 @@ import (
 	"os"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -28,10 +29,15 @@ var ErrAbort = errors.New("abort")
 
 // ContextItem is the input type that callers feed into Run.
 type ContextItem struct {
-	DisplayName string
-	Path        string
-	Tags        map[string]string
-	StoreID     string
+	// ContextName is the actual kubeconfig context name (or alias) used for lookup.
+	ContextName string
+	// Alias is the human-friendly alias for this context, if any.
+	Alias string
+	// StoreKind identifies the backing store so the display can be formatted accordingly.
+	StoreKind string
+	Path      string
+	Tags      map[string]string
+	StoreID   string
 }
 
 // Run launches the interactive bubbletea TUI and blocks until the user selects
@@ -50,8 +56,10 @@ func Run(
 	go func() {
 		var batch []item
 		for ci := range itemCh {
+			display := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias)
 			batch = append(batch, item{
-				displayName: ci.DisplayName,
+				displayName: display,
+				contextName: ci.ContextName,
 				path:        ci.Path,
 				tags:        ci.Tags,
 				storeID:     ci.StoreID,
@@ -81,5 +89,5 @@ func Run(
 		return "", "", ErrAbort
 	}
 
-	return m.Selected.path, m.Selected.displayName, nil
+	return m.Selected.path, m.Selected.contextName, nil
 }
