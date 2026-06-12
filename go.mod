@@ -41,22 +41,22 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice v1.0.0
 	github.com/digitalocean/doctl v1.161.0
 	github.com/digitalocean/godo v1.195.0
 	github.com/exoscale/egoscale/v3 v3.1.38
 	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
+	github.com/linode/linodego v1.69.1
 	github.com/linode/linodego/v2 v2.1.0
-	github.com/linode/linodego/v2 v2.1.0
-	github.com/onsi/ginkgo v1.15.0
+	github.com/onsi/ginkgo v1.16.5
 	github.com/ovh/go-ovh v1.9.0
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
-	gopkg.in/yaml.v3 v3.0.1
+	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/cluster-api v1.13.2
 )
 
