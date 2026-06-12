@@ -38,7 +38,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # goreleaser needs the full tag history to generate changelogs
           fetch-depth: 0
