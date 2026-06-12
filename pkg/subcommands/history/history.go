@@ -18,11 +18,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
+	"github.com/MichaelSp/kswitch/pkg/tui"
 	setcontext "github.com/MichaelSp/kswitch/pkg/subcommands/set-context"
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/MichaelSp/kswitch/types"
@@ -38,9 +38,7 @@ func SwitchToHistory(stores []storetypes.KubeconfigStore, config *types.Config, 
 
 	historyLength := len(history)
 
-	idx, err := fuzzyfinder.Find(
-		history,
-		func(i int) string {
+	idx, err := tui.RunList(history, func(i int) string {
 			// we expect a mapping context: namespace
 			context, ns, err := util.ParseHistoryEntry(history[i])
 			if err != nil {

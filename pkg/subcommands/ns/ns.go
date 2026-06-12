@@ -19,12 +19,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	historyutil "github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
+	"github.com/MichaelSp/kswitch/pkg/tui"
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
-	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -45,10 +44,8 @@ const (
 
 var (
 	kubeconfigPathFromEnv = os.Getenv("KUBECONFIG")
-	// only use namespace cache for contexts switched to by the switch tool
-	cache         *NamespaceCache
-	logger        = logrus.New()
-	hotReloadLock sync.RWMutex
+	cache                 *NamespaceCache
+	logger                = logrus.New()
 
 	allNamespaces []string
 )
@@ -170,13 +167,7 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 		}
 	}()
 
-	idx, err := fuzzyfinder.Find(
-		&allNamespaces,
-		func(i int) string {
-			return allNamespaces[i]
-		},
-		fuzzyfinder.WithHotReloadLock(hotReloadLock.RLocker()),
-	)
+	idx, err := tui.RunList(allNamespaces, nil)
 	if err != nil {
 		return err
 	}

@@ -170,7 +170,7 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				}
 
 				// get the context names from the parsed kubeconfig
-				kubeconfigString, contexts, err := util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
+				_, contexts, err := util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
 				if err != nil {
 					store.GetLogger().Debugf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err)
 					resultChannel <- DiscoveredContext{
@@ -179,9 +179,6 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 					// do not throw Error, try to parse the other files
 					continue
 				}
-
-				// save kubeconfig content to in-memory map to avoid duplicate read operation in getSanitizedKubeconfigForKubeconfigPath
-				writeToPathToKubeconfig(channelResult.KubeconfigPath, *kubeconfigString)
 
 				// if the store tagged this path with a cluster-name label, persist it as an alias now
 				// that we know the actual context name(s)
