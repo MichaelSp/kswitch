@@ -143,7 +143,7 @@ func ParseIdentifier(path string) (string, GardenerResource, string, string, str
 func IsManagedSeed(shoot gardencorev1beta1.Shoot) bool {
 	if shoot.Namespace == v1beta1constants.GardenNamespace && shoot.Status.Conditions != nil {
 		for _, condition := range shoot.Status.Conditions {
-			if condition.Type == gardencorev1beta1.SeedGardenletReady {
+			if condition.Type == gardencorev1beta1.GardenletReady {
 				return true
 			}
 		}
