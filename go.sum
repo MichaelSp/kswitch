@@ -162,6 +162,8 @@ github.com/gardener/gardener-extension-provider-openstack v1.55.3 h1:DXqsJ/EBMEw
 github.com/gardener/gardener-extension-provider-openstack v1.55.3/go.mod h1:dnr5KBhzIAX5BRJa0HbqY4EPDwBLFz93Zh2o8Iwf3BM=
 github.com/gardener/gardener/pkg/apis v1.142.1 h1:DLWpTpq1cxPzOHPcfYG7+YL1/0Cb9enxkejtMA65blw=
 github.com/gardener/gardener/pkg/apis v1.142.1/go.mod h1:oN2NXhb68BCwMS8DHlVHZeGA88IUtjtCpMT1DapNN5o=
+github.com/gardener/gardener/pkg/apis v1.144.1 h1:T6btvkERhtN9XdrkFVH7GrAeTq7uY78HHzwW/t846sg=
+github.com/gardener/gardener/pkg/apis v1.144.1/go.mod h1:we6hJ8r80nL1rkXzVnOQwey4q77pQXHN3pvoBgeak8g=
 github.com/gdamore/encoding v1.0.1 h1:YzKZckdBL6jVt2Gc+5p82qhrGiqMdG/eNs6Wy0u3Uhw=
 github.com/gdamore/encoding v1.0.1/go.mod h1:0Z0cMFinngz9kS1QfMjCP8TY7em3bZYeeklsSDPivEo=
 github.com/gdamore/tcell/v2 v2.13.10 h1:Afs3JKt83HnhuUKdZ3MnxUgOqQRWftj5JyDqv1LLynA=
