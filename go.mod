@@ -50,7 +50,7 @@ require (
 	github.com/hashicorp/go-plugin v1.6.2
 	github.com/linode/linodego v1.42.0
 	github.com/ovh/go-ovh v1.4.3
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
 	golang.org/x/oauth2 v0.25.0
 	google.golang.org/grpc v1.69.2
