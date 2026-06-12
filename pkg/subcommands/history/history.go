@@ -22,8 +22,8 @@ import (
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/pkg/subcommands/history/util"
-	"github.com/MichaelSp/kswitch/pkg/tui"
 	setcontext "github.com/MichaelSp/kswitch/pkg/subcommands/set-context"
+	"github.com/MichaelSp/kswitch/pkg/tui"
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/MichaelSp/kswitch/types"
 )
@@ -39,47 +39,47 @@ func SwitchToHistory(stores []storetypes.KubeconfigStore, config *types.Config, 
 	historyLength := len(history)
 
 	idx, err := tui.RunList(history, func(i int) string {
-			// we expect a mapping context: namespace
-			context, ns, err := util.ParseHistoryEntry(history[i])
-			if err != nil {
-				logger.Debugf("failed to parse namespace history entry")
-				return ""
+		// we expect a mapping context: namespace
+		context, ns, err := util.ParseHistoryEntry(history[i])
+		if err != nil {
+			logger.Debugf("failed to parse namespace history entry")
+			return ""
+		}
+
+		if ns == nil {
+			return fmt.Sprintf("%d: %s", len(history)-i-1, *context)
+		}
+
+		if i+1 == historyLength {
+			return fmt.Sprintf("%d: %s (ns: %s)", 0, *context, *ns)
+		}
+
+		previousContext, _, err := util.ParseHistoryEntry(history[i+1])
+		if err != nil {
+			logger.Debugf("failed to parse previous namespace history entry")
+			return ""
+		}
+
+		// Grouping: check if the previous entry has the same context name
+		// then only show the namespace
+		if *context == *previousContext {
+			unicodeCirceledStar := '\U0000272A'
+			unicodeWhitespace := '\U00002009'
+
+			// just to make sure that the namespace is shown in the terminal
+			// window at the same position as the context
+			var b bytes.Buffer
+			n := len(history) - i - 1
+			for n > 0 {
+				n = n / 10
+				b.WriteRune(unicodeWhitespace)
 			}
 
-			if ns == nil {
-				return fmt.Sprintf("%d: %s", len(history)-i-1, *context)
-			}
+			return fmt.Sprintf("%s%c %s", b.String(), unicodeCirceledStar, *ns)
+		}
 
-			if i+1 == historyLength {
-				return fmt.Sprintf("%d: %s (ns: %s)", 0, *context, *ns)
-			}
-
-			previousContext, _, err := util.ParseHistoryEntry(history[i+1])
-			if err != nil {
-				logger.Debugf("failed to parse previous namespace history entry")
-				return ""
-			}
-
-			// Grouping: check if the previous entry has the same context name
-			// then only show the namespace
-			if *context == *previousContext {
-				unicodeCirceledStar := '\U0000272A'
-				unicodeWhitespace := '\U00002009'
-
-				// just to make sure that the namespace is shown in the terminal
-				// window at the same position as the context
-				var b bytes.Buffer
-				n := len(history) - i - 1
-				for n > 0 {
-					n = n / 10
-					b.WriteRune(unicodeWhitespace)
-				}
-
-				return fmt.Sprintf("%s%c %s", b.String(), unicodeCirceledStar, *ns)
-			}
-
-			return fmt.Sprintf("%d: %s (%s)", len(history)-i-1, *context, *ns)
-		})
+		return fmt.Sprintf("%d: %s (%s)", len(history)-i-1, *context, *ns)
+	})
 
 	if err != nil {
 		return nil, nil, err
