@@ -10,7 +10,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.25
 	github.com/aws/aws-sdk-go-v2/service/eks v1.85.0
-	github.com/aws/smithy-go v1.27.1
+	github.com/aws/smithy-go v1.27.2
 	github.com/becheran/wildmatch-go v1.0.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/disiqueira/gotree v1.0.0
