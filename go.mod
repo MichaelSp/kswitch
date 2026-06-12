@@ -22,7 +22,6 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.8.1
 	github.com/karrick/godirwalk v1.17.0
 	github.com/ktr0731/go-fuzzyfinder v0.9.0
-	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.30.0
 	github.com/onsi/gomega v1.41.0
 	github.com/pkg/errors v0.9.1
@@ -50,6 +49,7 @@ require (
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego v1.69.1
 	github.com/linode/linodego/v2 v2.1.0
+	github.com/onsi/ginkgo v1.15.0
 	github.com/ovh/go-ovh v1.9.0
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
