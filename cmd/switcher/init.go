@@ -16,18 +16,27 @@ package switcher
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
+func executablePath() string {
+	path, err := os.Executable()
+	if err != nil {
+		return "kswitch"
+	}
+	return path
+}
+
 var (
-	shellScript string = `
+	shellScriptTemplate string = `
 has_prefix() { case $2 in "$1"*) true;; *) false;; esac; }
 function switch(){
 #  if the executable path is not set, the switcher binary has to be on the path
 # this is the case when installing it via homebrew
 
-  local DEFAULT_EXECUTABLE_PATH="switcher"
+  local DEFAULT_EXECUTABLE_PATH="{{KSWITCH_EXECUTABLE}}"
   declare -a opts
 
   while test $# -gt 0; do
@@ -257,6 +266,7 @@ var (
 			if setName != "" {
 				root.Use = setName
 			}
+			shellScript := strings.ReplaceAll(shellScriptTemplate, "{{KSWITCH_EXECUTABLE}}", executablePath())
 			switch args[0] {
 			case "bash":
 				// same shell script as zsh, but different bash completion
