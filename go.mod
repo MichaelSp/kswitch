@@ -14,7 +14,7 @@ require (
 	github.com/becheran/wildmatch-go v1.0.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/disiqueira/gotree v1.0.0
-	github.com/gardener/gardener-extension-provider-openstack v1.54.0
+	github.com/gardener/gardener-extension-provider-openstack v1.55.3
 	github.com/go-cmd/cmd v1.4.3
 	github.com/google/addlicense v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
