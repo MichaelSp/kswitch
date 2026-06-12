@@ -157,6 +157,8 @@ github.com/evanphx/json-patch/v5 v5.9.0 h1:kcBlZQbplgElYIlo/n1hJbls2z/1awpXxpRi0
 github.com/evanphx/json-patch/v5 v5.9.0/go.mod h1:VNkHZ/282BpEyt/tObQO8s5CMPmYYq14uClGH4abBuQ=
 github.com/exoscale/egoscale/v3 v3.1.9 h1:kC876X4GKsojoqzJtq/MxNG91ebrDVEM9Ro+XOL7Yts=
 github.com/exoscale/egoscale/v3 v3.1.9/go.mod h1:t9+MpSEam94na48O/xgvvPFpQPRiwZ3kBN4/UuQtKco=
+github.com/exoscale/egoscale/v3 v3.1.37 h1:nY1aGqSg/ebT8FBaOALaAKIzesOwW+quBbXeDKtnI4U=
+github.com/exoscale/egoscale/v3 v3.1.37/go.mod h1:DUTgeubl5msPAo3SKFed04AxNhyTNOrCTJHZDRYLR10=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
