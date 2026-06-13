@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	gardenclient "github.com/MichaelSp/kswitch/pkg/store/gardener/copied_gardenctlv2"
@@ -113,13 +112,13 @@ func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerSt
 	}
 
 	return &GardenerStore{
-		BaseStore:             NewBaseStore(types.StoreKindGardener, store),
-		Config:                config,
-		LandscapeName:         landscapeName,
-		StateDirectory:        stateDir,
-		PathToShootLock:       sync.RWMutex{},
-		PathToManagedSeedLock: sync.RWMutex{},
-		CaNameToCACMLock:      sync.RWMutex{},
+		BaseStore:              NewBaseStore(types.StoreKindGardener, store),
+		Config:                 config,
+		LandscapeName:          landscapeName,
+		StateDirectory:         stateDir,
+		CachePathToShoot:       newClusterCache[string, gardencorev1beta1.Shoot](),
+		CachePathToManagedSeed: newClusterCache[string, seedmanagementv1alpha1.ManagedSeed](),
+		CacheCaNameToCACM:      newClusterCache[string, corev1.ConfigMap](),
 	}, nil
 }
 
@@ -412,9 +411,9 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	// for memoization
-	s.CacheCaNameToCACM = make(map[string]corev1.ConfigMap, len(cmList))
+	s.CacheCaNameToCACM.Reset()
 	for _, cm := range cmList {
-		s.writeCacheCaNameToCACMLock(fmt.Sprintf("%s:%s", cm.Namespace, cm.Name), cm)
+		s.CacheCaNameToCACM.Set(fmt.Sprintf("%s:%s", cm.Namespace, cm.Name), cm)
 	}
 
 	s.sendKubeconfigPaths(channel, shootList, managedSeeds.Items)
@@ -601,7 +600,7 @@ func (s *GardenerStore) GetKubeconfigForPath(path string, _ map[string]string) (
 	var clientConfig clientcmd.ClientConfig
 	switch resource {
 	case gardenerstore.GardenerResourceSeed:
-		managedSeed, ok := s.readFromCachePathToManagedSeed(path)
+		managedSeed, ok := s.CachePathToManagedSeed.Get(path)
 
 		// we know the namespace and name for the Shoot for the ManagedSeed
 		// so we can use that knowledge to get the correct index to get the corresponding Shoot from the cache
@@ -613,9 +612,9 @@ func (s *GardenerStore) GetKubeconfigForPath(path string, _ map[string]string) (
 	case gardenerstore.GardenerResourceShoot:
 		s.Logger.Debugf("Getting kubeconfig for %s (%s/%s)", resource, namespace, name)
 
-		shoot, _ := s.readFromCachePathToShoot(path)
+		shoot, _ := s.CachePathToShoot.Get(path)
 		caCMName := fmt.Sprintf("%s:%s.%s", namespace, name, gardenclient.ShootProjectSecretSuffixCACluster)
-		cachedCACM, _ := s.readFromCacheCaNameToCACMLock(caCMName)
+		cachedCACM, _ := s.CacheCaNameToCACM.Get(caCMName)
 
 		clientConfig, err = s.GardenClient.GetShootClientConfig(ctx, namespace, name, shoot, cachedCACM)
 		if err != nil {
@@ -745,8 +744,8 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 		}
 	}
 
-	s.CachePathToManagedSeed = make(map[string]seedmanagementv1alpha1.ManagedSeed, len(managedSeeds))
-	s.CachePathToShoot = make(map[string]gardencorev1beta1.Shoot, len(shoots))
+	s.CachePathToManagedSeed.Reset()
+	s.CachePathToShoot.Reset()
 
 	shootNamesManagedSeed := make(map[string]struct{})
 	for _, managedSeed := range managedSeeds {
@@ -756,7 +755,7 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 		kubeconfigPath := gardenerstore.GetSeedIdentifier(landscapeName, managedSeed.Name)
 
 		// for memoization
-		s.writeCachePathToManagedSeed(kubeconfigPath, managedSeed)
+		s.CachePathToManagedSeed.Set(kubeconfigPath, managedSeed)
 	}
 
 	// loop over all Shoots/ShootedSeeds and construct and send their kubeconfig paths as search result
@@ -793,7 +792,7 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 		}
 
 		// for memoization
-		s.writeCachePathToShoot(kubeconfigPath, shoot)
+		s.CachePathToShoot.Set(kubeconfigPath, shoot)
 
 		_, isAlreadyReferencedByManagedSeed := shootNamesManagedSeed[fmt.Sprintf("%s:%s", shoot.Namespace, shoot.Name)]
 		if isAlreadyReferencedByManagedSeed {
@@ -817,14 +816,12 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 	// the reason why the paths for managed seeds are populated here in the end (even though they are available before),
 	// is so that the corresponding Shoot resource for the ManagedSeed is already available the cache s.CachePathToShoot[]
 	// when populating the path. This avoids cache misses.
-	s.PathToManagedSeedLock.RLock()
-	for pathForSeed := range s.CachePathToManagedSeed {
+	for _, pathForSeed := range s.CachePathToManagedSeed.Keys() {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: pathForSeed,
 			Error:          nil,
 		}
 	}
-	s.PathToManagedSeedLock.RUnlock()
 }
 
 func (s *GardenerStore) createGardenKubeconfigAlias(gardenKubeconfigPath string) error {
@@ -857,43 +854,4 @@ func (s *GardenerStore) createGardenKubeconfigAlias(gardenKubeconfigPath string)
 		return err
 	}
 	return nil
-}
-
-func (s *GardenerStore) writeCachePathToShoot(key string, value gardencorev1beta1.Shoot) {
-	s.PathToShootLock.Lock()
-	defer s.PathToShootLock.Unlock()
-	s.CachePathToShoot[key] = value
-}
-
-func (s *GardenerStore) readFromCachePathToShoot(key string) (gardencorev1beta1.Shoot, bool) {
-	s.PathToShootLock.RLock()
-	defer s.PathToShootLock.RUnlock()
-	shoot, ok := s.CachePathToShoot[key]
-	return shoot, ok
-}
-
-func (s *GardenerStore) writeCachePathToManagedSeed(key string, value seedmanagementv1alpha1.ManagedSeed) {
-	s.PathToManagedSeedLock.Lock()
-	defer s.PathToManagedSeedLock.Unlock()
-	s.CachePathToManagedSeed[key] = value
-}
-
-func (s *GardenerStore) readFromCachePathToManagedSeed(key string) (seedmanagementv1alpha1.ManagedSeed, bool) {
-	s.PathToManagedSeedLock.RLock()
-	defer s.PathToManagedSeedLock.RUnlock()
-	managedSeed, ok := s.CachePathToManagedSeed[key]
-	return managedSeed, ok
-}
-
-func (s *GardenerStore) writeCacheCaNameToCACMLock(key string, value corev1.ConfigMap) {
-	s.CaNameToCACMLock.Lock()
-	defer s.CaNameToCACMLock.Unlock()
-	s.CacheCaNameToCACM[key] = value
-}
-
-func (s *GardenerStore) readFromCacheCaNameToCACMLock(key string) (corev1.ConfigMap, bool) {
-	s.CaNameToCACMLock.RLock()
-	defer s.CaNameToCACMLock.RUnlock()
-	cm, ok := s.CacheCaNameToCACM[key]
-	return cm, ok
 }

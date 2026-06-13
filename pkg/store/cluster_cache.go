@@ -60,3 +60,22 @@ func (c *clusterCache[K, V]) Values() []V {
 	}
 	return out
 }
+
+// Keys returns a snapshot copy of the cached keys, safe to range over without
+// holding the lock.
+func (c *clusterCache[K, V]) Keys() []K {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	out := make([]K, 0, len(c.m))
+	for k := range c.m {
+		out = append(out, k)
+	}
+	return out
+}
+
+// Reset empties the cache.
+func (c *clusterCache[K, V]) Reset() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.m = make(map[K]V)
+}
