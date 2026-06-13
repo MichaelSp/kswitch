@@ -42,7 +42,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
-	github.com/charmbracelet/lipgloss v1.1.0
+	github.com/charmbracelet/lipgloss/v2 v2.0.4
 	github.com/digitalocean/doctl v1.161.0
 	github.com/digitalocean/godo v1.195.0
 	github.com/exoscale/egoscale/v3 v3.1.38
