@@ -139,19 +139,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyUp, tea.KeyCtrlK, tea.KeyCtrlP:
-			m.moveCursor(-1)
-			return m, m.fetchPreviewCmd()
-
-		case tea.KeyDown, tea.KeyCtrlJ, tea.KeyCtrlN:
 			m.moveCursor(1)
 			return m, m.fetchPreviewCmd()
 
+		case tea.KeyDown, tea.KeyCtrlJ, tea.KeyCtrlN:
+			m.moveCursor(-1)
+			return m, m.fetchPreviewCmd()
+
 		case tea.KeyPgUp:
-			m.moveCursor(-m.listHeight())
+			m.moveCursor(m.listHeight())
 			return m, m.fetchPreviewCmd()
 
 		case tea.KeyPgDown:
-			m.moveCursor(m.listHeight())
+			m.moveCursor(-m.listHeight())
 			return m, m.fetchPreviewCmd()
 
 		case tea.KeyCtrlU:
