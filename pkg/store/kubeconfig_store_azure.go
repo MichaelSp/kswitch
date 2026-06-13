@@ -67,6 +67,10 @@ func NewAzureStore(store types.KubeconfigStore, stateDir string) (*AzureStore, e
 
 // InitializeAzureStore initializes the Azure store
 func (s *AzureStore) InitializeAzureStore() error {
+	return s.ensure(s.initialize)
+}
+
+func (s *AzureStore) initialize() error {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return fmt.Errorf("obtaining Azure credentials failed: %v", err)
@@ -201,7 +205,7 @@ func (s *AzureStore) GetContextPrefix(path string) string {
 
 // IsInitialized checks if the store has been initialized already
 func (s *AzureStore) IsInitialized() bool {
-	return s.AksClient != nil && s.Config != nil
+	return s.done()
 }
 
 func (s *AzureStore) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {

@@ -58,6 +58,7 @@ type VaultStore struct {
 
 type GardenerStore struct {
 	BaseStore
+	lazyInit
 	GardenClient           gardenclient.Client
 	Client                 client.Client
 	Config                 *types.StoreConfigGardener
@@ -74,6 +75,7 @@ type GardenerStore struct {
 
 type EKSStore struct {
 	BaseStore
+	lazyInit
 	Client *awseks.Client
 	Config *types.StoreConfigEKS
 	// DiscoveredClusters maps the kubeconfig path (az_<resource-group>--<cluster-name>) -> cluster
@@ -100,6 +102,7 @@ type GKEStore struct {
 
 type AzureStore struct {
 	BaseStore
+	lazyInit
 	AksClient *armcontainerservice.ManagedClustersClient
 	Config    *types.StoreConfigAzure
 	// DiscoveredClusters maps the kubeconfig path (az_<resource-group>--<cluster-name>) -> cluster

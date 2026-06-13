@@ -127,6 +127,10 @@ func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerSt
 // decoupled from the NewGardenerStore() to be called when starting the search to reduce
 // time when the CLI can start showing the fuzzy search
 func (s *GardenerStore) InitializeGardenerStore() error {
+	return s.ensure(s.initialize)
+}
+
+func (s *GardenerStore) initialize() error {
 	var err error
 	s.Client, err = gardenerstore.GetGardenClient(s.Config)
 	if err != nil {
@@ -467,7 +471,7 @@ func (s *GardenerStore) GetContextPrefix(path string) string {
 
 // IsInitialized checks if the store has been initialized already
 func (s *GardenerStore) IsInitialized() bool {
-	return s.Client != nil && len(s.LandscapeIdentity) > 0
+	return s.done()
 }
 
 func (s *GardenerStore) GetID() string {

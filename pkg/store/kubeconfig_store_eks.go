@@ -91,6 +91,10 @@ func NewEKSStore(store types.KubeconfigStore, stateDir string) (*EKSStore, error
 }
 
 func (s *EKSStore) InitializeEKSStore() error {
+	return s.ensure(s.initialize)
+}
+
+func (s *EKSStore) initialize() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -112,7 +116,7 @@ func (s *EKSStore) InitializeEKSStore() error {
 }
 
 func (s *EKSStore) IsInitialized() bool {
-	return s.Client != nil && s.Config != nil
+	return s.done()
 }
 
 func (s *EKSStore) GetContextPrefix(path string) string {
