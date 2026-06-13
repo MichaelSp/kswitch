@@ -23,7 +23,7 @@ require (
 	github.com/onsi/gomega v1.41.0
 	github.com/pkg/errors v0.9.1
 	github.com/rancher/norman v0.9.7
-	github.com/rancher/rancher/pkg/client v0.0.0-20260612202524-46fb9d616017
+	github.com/rancher/rancher/pkg/client v0.0.0-20260613005840-96bf0b0b1130
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.46.0
