@@ -49,6 +49,7 @@ require (
 	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego v1.69.1
+	github.com/linode/linodego/v2 v2.1.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
