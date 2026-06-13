@@ -85,6 +85,7 @@ type EKSStore struct {
 
 type GKEStore struct {
 	BaseStore
+	lazyInit
 	GkeClient *gkev1.Service
 	Config    *types.StoreConfigGKE
 	// DiscoveredClusters maps the kubeconfig path (gke--project-name--clusterName) -> cluster
@@ -134,13 +135,9 @@ type ScalewayStore struct {
 
 type DigitalOceanStore struct {
 	BaseStore
-	// DiscoveredClustersMutex is a mutex allow many reads, one write mutex to synchronize writes
-	// to the DiscoveredClusters map.
-	// This can happen when a goroutine still discovers clusters while another goroutine computes the preview for a missing cluster.
-	DiscoveredClustersMutex                   sync.RWMutex
-	ContextNameAndClusterNameToClusterIDMutex sync.RWMutex
-	ContextToKubernetesService                map[string]do.KubernetesService
-	Config                                    doks.DoctlConfig
+	lazyInit
+	ContextToKubernetesService map[string]do.KubernetesService
+	Config                     doks.DoctlConfig
 }
 
 type AkamaiStore struct {

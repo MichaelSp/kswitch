@@ -85,6 +85,10 @@ func NewDigitalOceanStore(store types.KubeconfigStore) (*DigitalOceanStore, erro
 
 // InitializeDigitalOceanStore initializes the DigitalOcean store with digital ocean clients
 func (d *DigitalOceanStore) InitializeDigitalOceanStore() error {
+	return d.ensure(d.initialize)
+}
+
+func (d *DigitalOceanStore) initialize() error {
 	contextToKubernetesService := make(map[string]do.KubernetesService)
 	accessToken := d.Config.DefaultAuthContextAccessToken
 	defaultContextClient, err := d.getDoClient(accessToken)
@@ -230,7 +234,7 @@ func (s *DigitalOceanStore) GetContextPrefix(path string) string {
 
 // IsInitialized checks if the store has been initialized with clients already
 func (s *DigitalOceanStore) IsInitialized() bool {
-	return len(s.ContextToKubernetesService) > 0
+	return s.done()
 }
 
 // GetKubeconfigForPath gets the kubeconfig bytes for the given kubeconfig path and tags

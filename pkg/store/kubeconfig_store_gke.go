@@ -79,6 +79,10 @@ func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error
 // Decoupled from the NewGKEStore() to be called when starting the search to reduce
 // time when the CLI can start showing the fuzzy search
 func (s *GKEStore) InitializeGKEStore() error {
+	return s.ensure(s.initialize)
+}
+
+func (s *GKEStore) initialize() error {
 	ctx := context.Background()
 
 	// Create GKE client
@@ -219,7 +223,7 @@ func (s *GKEStore) GetContextPrefix(path string) string {
 
 // IsInitialized checks if the store has been initialized already
 func (s *GKEStore) IsInitialized() bool {
-	return s.GkeClient != nil && s.Config != nil
+	return s.done()
 }
 
 func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
