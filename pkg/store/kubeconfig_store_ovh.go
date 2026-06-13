@@ -70,6 +70,13 @@ type OVHKube struct {
 	Project string
 }
 
+const (
+	// tagOVHClusterID is the search-result tag holding the unique OVH cluster ID
+	tagOVHClusterID = "clusterID"
+	// tagOVHProjectID is the search-result tag holding the OVH project ID
+	tagOVHProjectID = "projectID"
+)
+
 func (r *OVHStore) GetContextPrefix(path string) string {
 	if r.GetStoreConfig().ShowPrefix != nil && !*r.GetStoreConfig().ShowPrefix {
 		return ""
@@ -123,30 +130,48 @@ func (r *OVHStore) StartSearch(channel chan storetypes.SearchResult) {
 
 			channel <- storetypes.SearchResult{
 				KubeconfigPath: kube.Name,
-				Error:          nil,
+				// the cluster ID and project uniquely identify the cluster in the
+				// OVH API. Carrying them in the tags lets the kubeconfig be fetched
+				// without the in-memory cache (e.g. when a search index is used)
+				// and without colliding on duplicate cluster names.
+				Tags: map[string]string{
+					tagOVHClusterID: kube.ID,
+					tagOVHProjectID: project,
+				},
+				Error: nil,
 			}
 		}
 
 	}
 }
 
-func (r *OVHStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
+func (r *OVHStore) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
 	r.Logger.Debugf("OVH: getting secret for path %q", path)
 
-	var cluster OVHKube
-	for _, c := range r.OVHKubeCache {
-		if c.Name == path {
-			cluster = c
+	// prefer the IDs carried in the tags (set during the search): they are
+	// unique and work even when the in-memory cache is empty (search index).
+	clusterID := tags[tagOVHClusterID]
+	project := tags[tagOVHProjectID]
+	if clusterID == "" || project == "" {
+		// fallback for entries without tags: resolve from the cache by name
+		for _, c := range r.OVHKubeCache {
+			if c.Name == path {
+				clusterID = c.ID
+				project = c.Project
+				break
+			}
 		}
+	}
+	if clusterID == "" || project == "" {
+		return nil, fmt.Errorf("could not resolve an OVH cluster ID for %q", path)
 	}
 
 	response := struct {
 		Content string `json:"content"`
 	}{}
-	err := r.Client.Post(fmt.Sprintf("/cloud/project/%v/kube/%v/kubeconfig", cluster.Project, cluster.ID), nil, &response)
+	err := r.Client.Post(fmt.Sprintf("/cloud/project/%v/kube/%v/kubeconfig", project, clusterID), nil, &response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kubeconfig for cluster '%s': %w", path, err)
 	}
 	return []byte(response.Content), nil
-
 }
