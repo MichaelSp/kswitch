@@ -32,6 +32,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*PluginStore)(nil)
+
 func NewPluginStore(store types.KubeconfigStore) (*PluginStore, error) {
 	storePlugin, err := ParseStoreConfig[types.StoreConfigPlugin](store)
 	if err != nil {

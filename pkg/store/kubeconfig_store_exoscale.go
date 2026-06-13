@@ -34,6 +34,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*ExoscaleStore)(nil)
+
 func NewExoscaleStore(store types.KubeconfigStore) (*ExoscaleStore, error) {
 	exoscaleStoreConfig, err := ParseStoreConfig[types.StoreConfigExoscale](store)
 	if err != nil {

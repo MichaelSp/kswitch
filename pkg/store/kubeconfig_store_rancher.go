@@ -30,6 +30,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*RancherStore)(nil)
+
 func NewRancherStore(store types.KubeconfigStore) (*RancherStore, error) {
 	rancherStoreConfig, err := ParseStoreConfig[types.StoreConfigRancher](store)
 	if err != nil {

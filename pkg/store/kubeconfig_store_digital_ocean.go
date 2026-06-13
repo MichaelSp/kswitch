@@ -60,6 +60,11 @@ func init() {
 	})
 }
 
+var (
+	_ storetypes.KubeconfigStore = (*DigitalOceanStore)(nil)
+	_ storetypes.Previewer       = (*DigitalOceanStore)(nil)
+)
+
 // NewDigitalOceanStore creates a new DigitalOcean store
 func NewDigitalOceanStore(store types.KubeconfigStore) (*DigitalOceanStore, error) {
 	doctlConfig, err := doks.GetDoctlConfiguration()

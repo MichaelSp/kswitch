@@ -31,6 +31,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*ScalewayStore)(nil)
+
 func NewScalewayStore(store types.KubeconfigStore) (*ScalewayStore, error) {
 	scalewayStoreConfig, err := ParseStoreConfig[types.StoreConfigScaleway](store)
 	if err != nil {

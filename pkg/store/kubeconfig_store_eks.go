@@ -38,6 +38,11 @@ func init() {
 	})
 }
 
+var (
+	_ storetypes.KubeconfigStore = (*EKSStore)(nil)
+	_ storetypes.Previewer       = (*EKSStore)(nil)
+)
+
 func NewEKSStore(store types.KubeconfigStore, stateDir string) (*EKSStore, error) {
 	eksStoreConfig, err := ParseStoreConfig[types.StoreConfigEKS](store)
 	if err != nil {

@@ -29,6 +29,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*OVHStore)(nil)
+
 func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 	ovhStoreConfig, err := ParseStoreConfig[types.StoreConfigOVH](store)
 	if err != nil {

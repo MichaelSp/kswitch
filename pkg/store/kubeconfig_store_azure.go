@@ -45,6 +45,11 @@ func init() {
 	})
 }
 
+var (
+	_ storetypes.KubeconfigStore = (*AzureStore)(nil)
+	_ storetypes.Previewer       = (*AzureStore)(nil)
+)
+
 // NewAzureStore creates a new Azure store
 func NewAzureStore(store types.KubeconfigStore, stateDir string) (*AzureStore, error) {
 	storeConfig, err := ParseStoreConfig[types.StoreConfigAzure](store)

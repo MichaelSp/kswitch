@@ -37,6 +37,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*VaultStore)(nil)
+
 func NewVaultStore(vaultAPIAddressFromFlag, vaultTokenFileName, kubeconfigName string, kubeconfigStore types.KubeconfigStore) (*VaultStore, error) {
 	vaultStoreConfig, err := ParseStoreConfig[types.StoreConfigVault](kubeconfigStore)
 	if err != nil {

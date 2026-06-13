@@ -37,6 +37,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*CapiStore)(nil)
+
 func NewCapiStore(store types.KubeconfigStore, stateDir string) (*CapiStore, error) {
 	storeConfig, err := ParseStoreConfig[types.StoreConfigCapi](store)
 	if err != nil {

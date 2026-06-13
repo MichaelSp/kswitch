@@ -48,6 +48,8 @@ func init() {
 	})
 }
 
+var _ storetypes.KubeconfigStore = (*GKEStore)(nil)
+
 // NewGKEStore creates a new GKE store
 func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error) {
 	gkeStoreConfig, err := ParseStoreConfig[types.StoreConfigGKE](store)
