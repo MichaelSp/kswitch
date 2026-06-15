@@ -23,7 +23,7 @@ or need to be synchronized from a remote system.
 `kswitch` offers
 - Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/MichaelSp/kswitch#alias), [improved search experience](https://github.com/MichaelSp/kswitch#improved-search-experience), sanitized Kubeconfig preview);
 - advanced search capabilities (search index, hot reload, unified search over all kubeconfig stores);
-- as well as custom integration points with external systems (see [hooks](https://github.com/MichaelSp/kswitch/tree/master/hooks/README.md)).
+- as well as custom integration points with external systems (see [hooks](https://MichaelSp.github.io/kswitch/hooks/)).
 
 To not break existing setups, `kswitch` is a drop-in replacement for _kubectx_.
 You can just set an alias.

@@ -38,7 +38,7 @@ config    <base64 kubeconfig>
 
 If you deal with large numbers of changing kubeconfigs, 
 it is recommended to setup an automation to sync the kubeconfigs to the vault instance.
-You can use [Hooks](../hooks/README.md) to achieve that.
+You can use [Hooks](../hooks.md) to achieve that.
 
 ## Configure `kswitch` to use Vault as Kubeconfig store
 
@@ -52,4 +52,4 @@ However, for security reasons they should instead be stored in a Vault.
 
 Because in my case there is no central Vault with up to date kubeconfigs,
 I run a [local `vault` instance](https://www.vaultproject.io/docs/concepts/dev-server) that uses an encrypted RAM disk for storage.
-The kubeconfigs are regularly synced to the local vault with a [custom `switch hook`](../hooks/README.md).
+The kubeconfigs are regularly synced to the local vault with a [custom `switch hook`](../hooks.md).

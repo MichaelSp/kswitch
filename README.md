@@ -46,7 +46,7 @@ Designed as a [drop-in replacement](#difference-to-kubectx) for [kubectx](https:
 - **Easy Navigation**
   - Define alias names for contexts without changing the underlying Kubeconfig
 - **Extensibility** 
-  - Integrate custom functionality using [Hooks](./hooks/README.md) (comparable with Git pre-commit hooks).
+  - Integrate custom functionality using [Hooks](./docs/hooks.md) (comparable with Git pre-commit hooks).
   - Build your own integration e.g., synchronise Kubeconfig files of clusters from Git or remote systems.
 
 ![demo GIF](resources/gifs/switch-demo-large.gif)
@@ -276,13 +276,13 @@ The parent directory name is part of the search.
 ![demo GIF](resources/gifs/search-show-parent-folder.png)
 
 You can either manually create such a path layout and place the kubeconfigs, or write a [custom 
-hook](hooks/README.md) (script / binary) to do that prior to the search.
+hook](docs/hooks.md) (script / binary) to do that prior to the search.
 
 ### Extensibilty 
 
 Customization is possible by using `Hooks` (think Git pre-commit hooks). 
 Hooks can call an arbitrary executable or execute commands at a certain time (e.g every 6 hours) prior to the search via `kswitch`.
-For more information [take a look here](./hooks/README.md).
+For more information [take a look here](./docs/hooks.md).
 
 ### Difference to kubectx
 
@@ -298,7 +298,7 @@ installations with possibly thousands of Kubeconfig files in [various locations]
 Has build-in
  - convenience features (terminal window isolation, context history, [context aliasing](#alias), [improved search experience](#search-cryptic-context-names), sanitized Kubeconfig preview);
  - advanced search capabilities (search index, hot reload);
- - as well as integration points with external systems ([hooks](hooks/README.md)).
+ - as well as integration points with external systems ([hooks](docs/hooks.md)).
 
 
 In addition, `kswitch` is a drop-in replacement for _kubectx_.
