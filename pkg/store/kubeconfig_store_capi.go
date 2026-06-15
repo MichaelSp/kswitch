@@ -21,8 +21,6 @@ import (
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,24 +31,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewCapiStore(store types.KubeconfigStore, stateDir string) (*CapiStore, error) {
-	storeConfig := &types.StoreConfigCapi{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, err
-		}
+func init() {
+	Register(types.StoreKindCapi, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewCapiStore(s, deps.StateDirectory)
+	})
+}
 
-		err = yaml.Unmarshal(buf, storeConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Azure config: %w", err)
-		}
+var _ storetypes.KubeconfigStore = (*CapiStore)(nil)
+
+func NewCapiStore(store types.KubeconfigStore, stateDir string) (*CapiStore, error) {
+	storeConfig, err := ParseStoreConfig[types.StoreConfigCapi](store)
+	if err != nil {
+		return nil, err
 	}
 
 	return &CapiStore{
-		KubeconfigStore: store,
-		Logger:          logrus.New().WithField("store", types.StoreKindCapi),
-		Config:          storeConfig,
+		BaseStore: NewBaseStore(types.StoreKindCapi, store),
+		Config:    storeConfig,
 	}, nil
 }
 
@@ -65,29 +62,12 @@ func (s *CapiStore) InitializeCapiStore() error {
 	return nil
 }
 
-// GetID returns the unique store ID
-func (s *CapiStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-	return fmt.Sprintf("%s.%s", types.StoreKindCapi, id)
-}
-
-// GetKind returns the store kind
-func (s *CapiStore) GetKind() types.StoreKind {
-	return types.StoreKindCapi
-}
-
 // GetContextPrefix returns the context prefix
 func (s *CapiStore) GetContextPrefix(path string) string {
+	if s.GetStoreConfig().ShowPrefix != nil && !*s.GetStoreConfig().ShowPrefix {
+		return ""
+	}
 	return string(types.StoreKindCapi)
-}
-
-// VerifyKubeconfigPaths verifies the kubeconfig paths
-func (s *CapiStore) VerifyKubeconfigPaths() error {
-	return nil
 }
 
 func (s *CapiStore) getCapiClient() (client.Client, error) {
@@ -185,12 +165,4 @@ func (s *CapiStore) GetKubeconfigForPath(path string, tags map[string]string) ([
 		return nil, err
 	}
 	return dataBytes, nil
-}
-
-func (s *CapiStore) GetLogger() *logrus.Entry {
-	return s.Logger
-}
-
-func (s *CapiStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
 }

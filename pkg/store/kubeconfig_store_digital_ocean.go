@@ -24,7 +24,7 @@ import (
 	"github.com/MichaelSp/kswitch/pkg/store/doks"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/pkg/util/gotree"
-	"github.com/sirupsen/logrus"
+
 	"golang.org/x/oauth2"
 
 	"github.com/MichaelSp/kswitch/types"
@@ -47,6 +47,24 @@ const (
 	tagDOKSClusterName = "name"
 )
 
+func init() {
+	Register(types.StoreKindDigitalOcean, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		// NewDigitalOceanStore returns a nil store when no doctl config is
+		// present. Return an untyped nil so Create's (nil, nil) opt-out
+		// contract holds instead of a typed-nil-in-interface.
+		doStore, err := NewDigitalOceanStore(s)
+		if doStore == nil {
+			return nil, err
+		}
+		return doStore, err
+	})
+}
+
+var (
+	_ storetypes.KubeconfigStore = (*DigitalOceanStore)(nil)
+	_ storetypes.Previewer       = (*DigitalOceanStore)(nil)
+)
+
 // NewDigitalOceanStore creates a new DigitalOcean store
 func NewDigitalOceanStore(store types.KubeconfigStore) (*DigitalOceanStore, error) {
 	doctlConfig, err := doks.GetDoctlConfiguration()
@@ -60,9 +78,8 @@ func NewDigitalOceanStore(store types.KubeconfigStore) (*DigitalOceanStore, erro
 	}
 
 	return &DigitalOceanStore{
-		Logger:          logrus.New().WithField("store", types.StoreKindDigitalOcean),
-		KubeconfigStore: store,
-		Config:          *doctlConfig,
+		BaseStore: NewBaseStore(types.StoreKindDigitalOcean, store),
+		Config:    *doctlConfig,
 	}, nil
 }
 
@@ -216,28 +233,6 @@ func (s *DigitalOceanStore) IsInitialized() bool {
 	return len(s.ContextToKubernetesService) > 0
 }
 
-func (s *DigitalOceanStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-
-	return fmt.Sprintf("%s.%s", types.StoreKindDigitalOcean, id)
-}
-
-func (s *DigitalOceanStore) GetKind() types.StoreKind {
-	return types.StoreKindDigitalOcean
-}
-
-func (s *DigitalOceanStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *DigitalOceanStore) GetLogger() *logrus.Entry {
-	return s.Logger
-}
-
 // GetKubeconfigForPath gets the kubeconfig bytes for the given kubeconfig path and tags
 // For this store, instead of using the path to identify the kubeconfig in the backing store, the cluster ID in the tags metadata
 // is used. Reason: the clusterID is a long non-intuitive string that we don't want to
@@ -276,11 +271,6 @@ func (d *DigitalOceanStore) GetKubeconfigForPath(path string, tags map[string]st
 	}
 
 	return kubeconfigBytes, nil
-}
-
-func (s *DigitalOceanStore) VerifyKubeconfigPaths() error {
-	// NOOP
-	return nil
 }
 
 // ParseIdentifier takes a kubeconfig identifier and

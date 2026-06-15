@@ -20,32 +20,29 @@ import (
 	"os/exec"
 
 	"github.com/hashicorp/go-plugin"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 
 	"github.com/MichaelSp/kswitch/pkg/store/plugins"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
 
-func NewPluginStore(store types.KubeconfigStore) (*PluginStore, error) {
-	storePlugin := &types.StoreConfigPlugin{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process plugin store config: %w", err)
-		}
+func init() {
+	Register(types.StoreKindPlugin, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewPluginStore(s)
+	})
+}
 
-		err = yaml.Unmarshal(buf, storePlugin)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal plugin config: %w", err)
-		}
+var _ storetypes.KubeconfigStore = (*PluginStore)(nil)
+
+func NewPluginStore(store types.KubeconfigStore) (*PluginStore, error) {
+	storePlugin, err := ParseStoreConfig[types.StoreConfigPlugin](store)
+	if err != nil {
+		return nil, err
 	}
 
 	return &PluginStore{
-		Logger:          logrus.New().WithField("store", types.StoreKindPlugin),
-		KubeconfigStore: store,
-		Config:          storePlugin,
+		BaseStore: NewBaseStore(types.StoreKindPlugin, store),
+		Config:    storePlugin,
 	}, nil
 }
 
@@ -96,10 +93,6 @@ func (s *PluginStore) GetID() string {
 	return id
 }
 
-func (s *PluginStore) GetKind() types.StoreKind {
-	return types.StoreKindPlugin
-}
-
 func (s *PluginStore) GetContextPrefix(path string) string {
 	ctx := context.Background()
 
@@ -118,14 +111,6 @@ func (s *PluginStore) VerifyKubeconfigPaths() error {
 	}
 
 	return s.Client.VerifyKubeconfigPaths(ctx)
-}
-
-func (s *PluginStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *PluginStore) GetLogger() *logrus.Entry {
-	return s.Logger
 }
 
 func (s *PluginStore) StartSearch(channel chan storetypes.SearchResult) {

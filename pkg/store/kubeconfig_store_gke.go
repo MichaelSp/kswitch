@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/api/container/v1"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,19 +42,19 @@ func init() {
 	utilruntime.Must(apiv1.AddToScheme(scheme))
 }
 
+func init() {
+	Register(types.StoreKindGKE, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewGKEStore(s, deps.StateDirectory)
+	})
+}
+
+var _ storetypes.KubeconfigStore = (*GKEStore)(nil)
+
 // NewGKEStore creates a new GKE store
 func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error) {
-	gkeStoreConfig := &types.StoreConfigGKE{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, err
-		}
-
-		err = yaml.Unmarshal(buf, gkeStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal gke config: %w", err)
-		}
+	gkeStoreConfig, err := ParseStoreConfig[types.StoreConfigGKE](store)
+	if err != nil {
+		return nil, err
 	}
 
 	binaryPath, err := getGcloudBinaryPath()
@@ -68,8 +67,7 @@ func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error
 	// validate by invoking gcloud auth list --format json that the correct account is ACTIVE
 
 	return &GKEStore{
-		Logger:             logrus.New().WithField("store", types.StoreKindGKE),
-		KubeconfigStore:    store,
+		BaseStore:          NewBaseStore(types.StoreKindGKE, store),
 		Config:             gkeStoreConfig,
 		StateDirectory:     stateDir,
 		ProjectNameToID:    map[string]string{},
@@ -224,28 +222,6 @@ func (s *GKEStore) IsInitialized() bool {
 	return s.GkeClient != nil && s.Config != nil
 }
 
-func (s *GKEStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-
-	return fmt.Sprintf("%s.%s", types.StoreKindGKE, id)
-}
-
-func (s *GKEStore) GetKind() types.StoreKind {
-	return types.StoreKindGKE
-}
-
-func (s *GKEStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *GKEStore) GetLogger() *logrus.Entry {
-	return s.Logger
-}
-
 func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -377,11 +353,6 @@ func getGcloudBinaryPath() (string, error) {
 		return "", fmt.Errorf("unable to find gcloud on the system. Is it installed?: %v", err)
 	}
 	return path, nil
-}
-
-func (s *GKEStore) VerifyKubeconfigPaths() error {
-	// NOOP
-	return nil
 }
 
 // ParseIdentifier takes a kubeconfig identifier and

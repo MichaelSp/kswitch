@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -27,25 +26,23 @@ import (
 	"sync"
 
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
 
-func NewVaultStore(vaultAPIAddressFromFlag, vaultTokenFileName, kubeconfigName string, kubeconfigStore types.KubeconfigStore) (*VaultStore, error) {
-	vaultStoreConfig := &types.StoreConfigVault{}
-	if kubeconfigStore.Config != nil {
-		buf, err := yaml.Marshal(kubeconfigStore.Config)
-		if err != nil {
-			log.Fatal(err)
-		}
+func init() {
+	Register(types.StoreKindVault, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewVaultStore(deps.VaultAPIAddressFromFlag, deps.VaultTokenFileName, deps.KubeconfigName, s)
+	})
+}
 
-		err = yaml.Unmarshal(buf, vaultStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal vault config: %w", err)
-		}
+var _ storetypes.KubeconfigStore = (*VaultStore)(nil)
+
+func NewVaultStore(vaultAPIAddressFromFlag, vaultTokenFileName, kubeconfigName string, kubeconfigStore types.KubeconfigStore) (*VaultStore, error) {
+	vaultStoreConfig, err := ParseStoreConfig[types.StoreConfigVault](kubeconfigStore)
+	if err != nil {
+		return nil, err
 	}
 
 	vaultAPI := vaultStoreConfig.VaultAPIAddress
@@ -104,21 +101,12 @@ func NewVaultStore(vaultAPIAddressFromFlag, vaultTokenFileName, kubeconfigName s
 	client.SetToken(vaultToken)
 
 	return &VaultStore{
-		Logger:             logrus.New().WithField("store", types.StoreKindVault),
+		BaseStore:          NewBaseStore(types.StoreKindVault, kubeconfigStore),
 		KubeconfigName:     kubeconfigName,
-		KubeconfigStore:    kubeconfigStore,
 		VaultKeyKubeconfig: vaultKeyKubeconfig,
 		Client:             client,
 		EngineVersion:      engineversion,
 	}, nil
-}
-
-func (s *VaultStore) GetID() string {
-	id := "default"
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-	return fmt.Sprintf("%s.%s", types.StoreKindVault, id)
 }
 
 func (s *VaultStore) GetContextPrefix(path string) string {
@@ -128,18 +116,6 @@ func (s *VaultStore) GetContextPrefix(path string) string {
 
 	// for vault, the secret name itself contains the semantic information (not the key of the kv-pair of the vault secret)
 	return filepath.Base(path)
-}
-
-func (s *VaultStore) GetKind() types.StoreKind {
-	return types.StoreKindVault
-}
-
-func (s *VaultStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *VaultStore) GetLogger() *logrus.Entry {
-	return s.Logger
 }
 
 // recursivePathTraversal dfs-traverses the secrets tree rooted at the given path

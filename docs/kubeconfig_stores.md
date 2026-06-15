@@ -14,6 +14,8 @@ Please check the documentation for each kubeconfig store on how to use it
  - [Gardener](stores/gardener/gardener.md)
  - [Rancher](stores/rancher/rancher.md)
 
+Want to support another provider? See [Adding a new kubeconfig store](stores/adding-a-store.md).
+
 Please note that, to search over **multiple** directories and kubeconfig stores,
 you need to use the `SwitchConfig` file.
 

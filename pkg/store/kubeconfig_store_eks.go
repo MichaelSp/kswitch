@@ -32,19 +32,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+func init() {
+	Register(types.StoreKindEKS, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewEKSStore(s, deps.StateDirectory)
+	})
+}
+
+var (
+	_ storetypes.KubeconfigStore = (*EKSStore)(nil)
+	_ storetypes.Previewer       = (*EKSStore)(nil)
+)
+
 func NewEKSStore(store types.KubeconfigStore, stateDir string) (*EKSStore, error) {
-	eksStoreConfig := &types.StoreConfigEKS{}
+	eksStoreConfig, err := ParseStoreConfig[types.StoreConfigEKS](store)
+	if err != nil {
+		return nil, err
+	}
 	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, err
-		}
-
-		err = yaml.Unmarshal(buf, eksStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal eks config: %w", err)
-		}
-
 		if eksStoreConfig.Region == nil {
 			defaultregion, ok := os.LookupEnv("AWS_DEFAULT_REGION")
 			if !ok {
@@ -79,7 +83,7 @@ func NewEKSStore(store types.KubeconfigStore, stateDir string) (*EKSStore, error
 	}
 
 	return &EKSStore{
-		KubeconfigStore:    store,
+		BaseStore:          NewBaseStore(types.StoreKindEKS, store),
 		Config:             eksStoreConfig,
 		StateDirectory:     stateDir,
 		DiscoveredClusters: make(map[string]*awsekstypes.Cluster),
@@ -111,42 +115,12 @@ func (s *EKSStore) IsInitialized() bool {
 	return s.Client != nil && s.Config != nil
 }
 
-func (s *EKSStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-
-	return fmt.Sprintf("%s.%s", types.StoreKindEKS, id)
-}
-
-func (s *EKSStore) GetKind() types.StoreKind {
-	return types.StoreKindEKS
-}
-
-func (s *EKSStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *EKSStore) GetLogger() *logrus.Entry {
-	if s.Logger == nil {
-		s.Logger = logrus.WithField("store", s.GetID())
-	}
-	return s.Logger
-}
-
 func (s *EKSStore) GetContextPrefix(path string) string {
 	if s.GetStoreConfig().ShowPrefix != nil && !*s.GetStoreConfig().ShowPrefix {
 		return ""
 	}
 
 	return strings.ReplaceAll(path, "--", "-")
-}
-
-func (s *EKSStore) VerifyKubeconfigPaths() error {
-	// NOOP
-	return nil
 }
 
 func (s *EKSStore) StartSearch(channel chan storetypes.SearchResult) {

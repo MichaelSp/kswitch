@@ -25,8 +25,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/MichaelSp/kswitch/pkg/util/gotree"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
+
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	apiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
@@ -40,24 +39,26 @@ func init() {
 	utilruntime.Must(apiv1.AddToScheme(scheme))
 }
 
+func init() {
+	Register(types.StoreKindAzure, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewAzureStore(s, deps.StateDirectory)
+	})
+}
+
+var (
+	_ storetypes.KubeconfigStore = (*AzureStore)(nil)
+	_ storetypes.Previewer       = (*AzureStore)(nil)
+)
+
 // NewAzureStore creates a new Azure store
 func NewAzureStore(store types.KubeconfigStore, stateDir string) (*AzureStore, error) {
-	storeConfig := &types.StoreConfigAzure{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, err
-		}
-
-		err = yaml.Unmarshal(buf, storeConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Azure config: %w", err)
-		}
+	storeConfig, err := ParseStoreConfig[types.StoreConfigAzure](store)
+	if err != nil {
+		return nil, err
 	}
 
 	return &AzureStore{
-		Logger:             logrus.New().WithField("store", types.StoreKindAzure),
-		KubeconfigStore:    store,
+		BaseStore:          NewBaseStore(types.StoreKindAzure, store),
 		Config:             storeConfig,
 		StateDirectory:     stateDir,
 		DiscoveredClusters: make(map[string]*armcontainerservice.ManagedCluster),
@@ -203,28 +204,6 @@ func (s *AzureStore) IsInitialized() bool {
 	return s.AksClient != nil && s.Config != nil
 }
 
-func (s *AzureStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-
-	return fmt.Sprintf("%s.%s", types.StoreKindAzure, id)
-}
-
-func (s *AzureStore) GetKind() types.StoreKind {
-	return types.StoreKindAzure
-}
-
-func (s *AzureStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *AzureStore) GetLogger() *logrus.Entry {
-	return s.Logger
-}
-
 func (s *AzureStore) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -272,11 +251,6 @@ func (s *AzureStore) GetKubeconfigForPath(path string, tags map[string]string) (
 		}
 	}
 	return nil, fmt.Errorf("no admin kubeconfig found for AKS cluster %q in resource group %q", clusterName, resourceGroup)
-}
-
-func (s *AzureStore) VerifyKubeconfigPaths() error {
-	// NOOP
-	return nil
 }
 
 // ParseIdentifier takes a kubeconfig identifier and

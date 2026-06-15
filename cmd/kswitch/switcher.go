@@ -199,143 +199,36 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 		digitalOceanStoreAddedViaConfig bool
 	)
 	for _, kubeconfigStoreFromConfig := range config.KubeconfigStores {
-		var s storetypes.KubeconfigStore
-
 		if kubeconfigStoreFromConfig.KubeconfigName != nil && *kubeconfigStoreFromConfig.KubeconfigName != "" {
 			kubeconfigName = *kubeconfigStoreFromConfig.KubeconfigName
 		}
 
-		switch kubeconfigStoreFromConfig.Kind {
-		case types.StoreKindFilesystem:
-			filesystemStore, err := store.NewFilesystemStore(kubeconfigName, kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
+		// All stores are built through the registry (see pkg/store/registry.go),
+		// so adding a new store kind requires no change here.
+		s, err := store.Create(kubeconfigStoreFromConfig, store.Dependencies{
+			KubeconfigName:          kubeconfigName,
+			StateDirectory:          stateDirectory,
+			VaultAPIAddressFromFlag: vaultAPIAddressFromFlag,
+			VaultTokenFileName:      vaultTokenFileName,
+		})
+		if err != nil {
+			// optional stores (required: false) must not abort the whole startup
+			if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
+				logrus.Debugf("skipping optional store %q: %v", kubeconfigStoreFromConfig.Kind, err)
+				continue
 			}
-			s = filesystemStore
+			return nil, nil, err
+		}
 
-		case types.StoreKindVault:
-			vaultStore, err := store.NewVaultStore(vaultAPIAddressFromFlag,
-				vaultTokenFileName,
-				kubeconfigName,
-				kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = vaultStore
-
-		case types.StoreKindGardener:
-			gardenerStore, err := store.NewGardenerStore(kubeconfigStoreFromConfig, stateDirectory)
-			if err != nil {
-				return nil, nil, fmt.Errorf("unable to create Gardener store: %w", err)
-			}
-			s = gardenerStore
-
-		case types.StoreKindGKE:
-			gkeStore, err := store.NewGKEStore(kubeconfigStoreFromConfig, stateDirectory)
-			if err != nil {
-				return nil, nil, fmt.Errorf("unable to create GKE store: %w", err)
-			}
-			s = gkeStore
-
-		case types.StoreKindAzure:
-			azureStore, err := store.NewAzureStore(kubeconfigStoreFromConfig, stateDirectory)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, fmt.Errorf("unable to create Azure store: %w", err)
-			}
-			s = azureStore
-		case types.StoreKindEKS:
-			eksStore, err := store.NewEKSStore(kubeconfigStoreFromConfig, stateDirectory)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = eksStore
-		case types.StoreKindExoscale:
-			exoscaleStore, err := store.NewExoscaleStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = exoscaleStore
-		case types.StoreKindRancher:
-			rancherStore, err := store.NewRancherStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = rancherStore
-		case types.StoreKindOVH:
-			ovhStore, err := store.NewOVHStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = ovhStore
-		case types.StoreKindScaleway:
-			scalewayStore, err := store.NewScalewayStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = scalewayStore
-		case types.StoreKindDigitalOcean:
-			doStore, err := store.NewDigitalOceanStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = doStore
+		// remember that the Digital Ocean store was explicitly configured so we
+		// don't additionally add it with the default configuration below
+		if kubeconfigStoreFromConfig.Kind == types.StoreKindDigitalOcean {
 			digitalOceanStoreAddedViaConfig = true
-		case types.StoreKindAkamai:
-			akamaiStore, err := store.NewAkamaiStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = akamaiStore
-		case types.StoreKindCapi:
-			capiStore, err := store.NewCapiStore(kubeconfigStoreFromConfig, stateDirectory)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = capiStore
-		case types.StoreKindPlugin:
-			pluginStore, err := store.NewPluginStore(kubeconfigStoreFromConfig)
-			if err != nil {
-				if kubeconfigStoreFromConfig.Required != nil && !*kubeconfigStoreFromConfig.Required {
-					continue
-				}
-				return nil, nil, err
-			}
-			s = pluginStore
-		default:
-			return nil, nil, fmt.Errorf("unknown store %q", kubeconfigStoreFromConfig.Kind)
+		}
+
+		// the factory opted out for this environment (e.g. Digital Ocean without a doctl config)
+		if s == nil {
+			continue
 		}
 
 		if showDebugLogs {

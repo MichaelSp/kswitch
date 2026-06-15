@@ -29,7 +29,6 @@ import (
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -91,6 +90,17 @@ type GardenctlV2Garden struct {
 }
 
 // NewGardenerStore creates a new Gardener store
+func init() {
+	Register(types.StoreKindGardener, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewGardenerStore(s, deps.StateDirectory)
+	})
+}
+
+var (
+	_ storetypes.KubeconfigStore = (*GardenerStore)(nil)
+	_ storetypes.Previewer       = (*GardenerStore)(nil)
+)
+
 func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerStore, error) {
 	config, err := gardenerstore.GetStoreConfig(store)
 	if err != nil {
@@ -103,8 +113,7 @@ func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerSt
 	}
 
 	return &GardenerStore{
-		Logger:                   logrus.New().WithField("store", types.StoreKindGardener),
-		KubeconfigStore:          store,
+		BaseStore:                NewBaseStore(types.StoreKindGardener, store),
 		Config:                   config,
 		LandscapeName:            landscapeName,
 		StateDirectory:           stateDir,
@@ -479,18 +488,6 @@ func (s *GardenerStore) GetID() string {
 	return fmt.Sprintf("%s.%s", types.StoreKindGardener, id)
 }
 
-func (s *GardenerStore) GetKind() types.StoreKind {
-	return types.StoreKindGardener
-}
-
-func (s *GardenerStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *GardenerStore) GetLogger() *logrus.Entry {
-	return s.Logger
-}
-
 func (s *GardenerStore) GetControlplaneKubeconfigForShoot(shootName, project string) ([]byte, *string, error) {
 	if !s.IsInitialized() {
 		if err := s.InitializeGardenerStore(); err != nil {
@@ -861,12 +858,6 @@ func (s *GardenerStore) createGardenKubeconfigAlias(gardenKubeconfigPath string)
 	if _, err := a.WriteAlias(gardenKubeconfigPath, gardenContextName); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (s *GardenerStore) VerifyKubeconfigPaths() error {
-	// NOOP as we do not allow any paths to be configured for the Gardener store
-	// searches through all namespaces
 	return nil
 }
 

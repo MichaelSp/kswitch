@@ -23,20 +23,25 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sirupsen/logrus"
-
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
+
+func init() {
+	Register(types.StoreKindFilesystem, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewFilesystemStore(deps.KubeconfigName, s)
+	})
+}
+
+var _ storetypes.KubeconfigStore = (*FilesystemStore)(nil)
 
 func NewFilesystemStore(
 	kubeconfigName string,
 	kubeconfigStore types.KubeconfigStore,
 ) (*FilesystemStore, error) {
 	return &FilesystemStore{
-		Logger:          logrus.New().WithField("store", types.StoreKindFilesystem),
-		KubeconfigStore: kubeconfigStore,
-		KubeconfigName:  kubeconfigName,
+		BaseStore:      NewBaseStore(types.StoreKindFilesystem, kubeconfigStore),
+		KubeconfigName: kubeconfigName,
 	}, nil
 }
 
@@ -47,26 +52,6 @@ func (s *FilesystemStore) GetContextPrefix(path string) string {
 
 	// return the name of the parent directory
 	return filepath.Base(filepath.Dir(path))
-}
-
-func (s *FilesystemStore) GetID() string {
-	id := "default"
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-	return fmt.Sprintf("%s.%s", types.StoreKindFilesystem, id)
-}
-
-func (s *FilesystemStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *FilesystemStore) GetKind() types.StoreKind {
-	return types.StoreKindFilesystem
-}
-
-func (s *FilesystemStore) GetLogger() *logrus.Entry {
-	return s.Logger
 }
 
 func (s *FilesystemStore) StartSearch(channel chan storetypes.SearchResult) {
