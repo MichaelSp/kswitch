@@ -235,18 +235,20 @@ func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name s
 		gardenClusterIdentity: g.name,
 	}
 
-	// Only include user-facing advertised addresses. Gardener clusters expose several
-	// address types (external, internal, unmanaged, ingress, wildcard-tls-seed-bound,
-	// service-account-issuer, …). Only "external" and "unmanaged" are intended for
-	// direct user access; the others are infrastructure-internal endpoints.
-	userFacingNames := map[string]bool{"external": true, "unmanaged": true}
+	// Exclude infrastructure-internal advertised addresses. "internal" goes through
+	// the seed ingress and is protected by the seed's CA (not the shoot's ca-cluster
+	// secret), causing x509 verification failures. "service-account-issuer" is not
+	// an API server endpoint. All other address types (external, unmanaged,
+	// wildcard-tls-seed-bound, …) are kept so that newly-introduced user-facing
+	// address types work without requiring code changes here.
+	infraInternalNames := map[string]bool{"internal": true, "service-account-issuer": true}
 	var filteredAddresses []gardencorev1beta1.ShootAdvertisedAddress
 	for _, address := range shoot.Status.AdvertisedAddresses {
-		if userFacingNames[address.Name] {
+		if !infraInternalNames[address.Name] {
 			filteredAddresses = append(filteredAddresses, address)
 		}
 	}
-	// Fall back to all addresses if none of the preferred names are present.
+	// Fall back to all addresses if the denylist removed everything (should not happen).
 	if len(filteredAddresses) == 0 {
 		filteredAddresses = shoot.Status.AdvertisedAddresses
 	}
