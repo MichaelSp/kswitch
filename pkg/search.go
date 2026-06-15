@@ -79,6 +79,10 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		if err := kubeconfigStore.VerifyKubeconfigPaths(); err != nil {
 			// Required defines if errors when initializing this store should be logged
 			if kubeconfigStore.GetStoreConfig().Required != nil && !*kubeconfigStore.GetStoreConfig().Required {
+				// no goroutine will be launched for this store, so release the
+				// WaitGroup slot we reserved up front to avoid hanging the
+				// resultChannel closer goroutine on Wait().
+				wgResultChannel.Done()
 				continue
 			}
 
@@ -170,7 +174,7 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				}
 
 				// get the context names from the parsed kubeconfig
-				_, contexts, err := util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
+				contexts, err := util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
 				if err != nil {
 					store.GetLogger().Debugf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err)
 					resultChannel <- DiscoveredContext{
