@@ -21,7 +21,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -54,7 +53,7 @@ func newListModel(items []string) listModel {
 	ti.Focus()
 	ti.Prompt = "> "
 	ti.PromptStyle = stylePrompt
-	ti.TextStyle = lipgloss.NewStyle().Bold(true)
+	ti.TextStyle = stderrRenderer.NewStyle().Bold(true)
 
 	filtered := make([]listEntry, len(items))
 	for i, s := range items {
@@ -147,7 +146,7 @@ func (m listModel) View() string {
 		if i == m.cursor {
 			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, m.filtered[i].matchedIndexes, styleSelected, styleSelected))
 		} else {
-			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, m.filtered[i].matchedIndexes, lipgloss.NewStyle(), styleMatch))
+			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, m.filtered[i].matchedIndexes, stderrRenderer.NewStyle(), styleMatch))
 		}
 	}
 	for len(rows) < lh {
