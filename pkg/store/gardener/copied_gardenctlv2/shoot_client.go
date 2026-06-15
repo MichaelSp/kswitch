@@ -235,7 +235,23 @@ func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name s
 		gardenClusterIdentity: g.name,
 	}
 
+	// Only include user-facing advertised addresses. Gardener clusters expose several
+	// address types (external, internal, unmanaged, ingress, wildcard-tls-seed-bound,
+	// service-account-issuer, …). Only "external" and "unmanaged" are intended for
+	// direct user access; the others are infrastructure-internal endpoints.
+	userFacingNames := map[string]bool{"external": true, "unmanaged": true}
+	var filteredAddresses []gardencorev1beta1.ShootAdvertisedAddress
 	for _, address := range shoot.Status.AdvertisedAddresses {
+		if userFacingNames[address.Name] {
+			filteredAddresses = append(filteredAddresses, address)
+		}
+	}
+	// Fall back to all addresses if none of the preferred names are present.
+	if len(filteredAddresses) == 0 {
+		filteredAddresses = shoot.Status.AdvertisedAddresses
+	}
+
+	for _, address := range filteredAddresses {
 		u, err := url.Parse(address.URL)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse shoot server url: %w", err)
