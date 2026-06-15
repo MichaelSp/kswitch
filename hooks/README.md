@@ -79,7 +79,7 @@ hooks:
     execution:
       interval: 6h
     arguments:
-      - "/Users/<your-user>/go/src/github.com/MichaelSp/kswitch/hack/switch/switcher clean && echo ' Garbage collection complete.'"
+      - "/Users/<your-user>/go/src/github.com/MichaelSp/kswitch/hack/switch/kswitch clean && echo ' Garbage collection complete.'"
 ```
 
 ### Hook State

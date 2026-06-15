@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package switcher
+package kswitch
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ var (
 	shellScriptTemplate string = `
 has_prefix() { case $2 in "$1"*) true;; *) false;; esac; }
 function switch(){
-#  if the executable path is not set, the switcher binary has to be on the path
+#  if the executable path is not set, the kswitch binary has to be on the path
 # this is the case when installing it via homebrew
 
   local DEFAULT_EXECUTABLE_PATH="{{KSWITCH_EXECUTABLE}}"
@@ -64,7 +64,7 @@ function switch(){
 	return $?
   fi
 
-  # switcher returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   prefix="__ "
   if ! has_prefix "$prefix" "$RESPONSE" ; then
@@ -75,7 +75,7 @@ function switch(){
   # remove prefix
   RESPONSE=${RESPONSE#"$prefix"}
 
-  #the response form the switcher binary is "kubeconfig_path,selected_context"
+  #the response form the kswitch binary is "kubeconfig_path,selected_context"
   remainder="$RESPONSE"
   KUBECONFIG_PATH="${remainder%%,*}"; remainder="${remainder#*,}"
   SELECTED_CONTEXT="${remainder%%,*}"; remainder="${remainder#*,}"
@@ -105,7 +105,7 @@ function switch(){
 
 	fishScript string = `
 function kswitch
-#  if the executable path is not set, the switcher binary has to be on the path
+#  if the executable path is not set, the kswitch binary has to be on the path
 # this is the case when installing it via homebrew
   set -f DEFAULT_EXECUTABLE_PATH 'kswitch'
   set -f REPORT_RESPONSE
@@ -133,7 +133,7 @@ function kswitch
 	return $RESULT
   end
 
-  # switcher returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   if string match -q "__ *" -- "$RESPONSE"
 	# remove the prefix
@@ -189,8 +189,8 @@ function has_prefix {
 
 function kswitch {
 
-	#You need to have switcher_windows_amd64.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
-	$EXECUTABLE_PATH = "switcher_windows_amd64.exe"
+	#You need to have kswitch_windows_amd64.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
+	$EXECUTABLE_PATH = "kswitch_windows_amd64.exe"
 
 	if (-not $args) {
 	Write-Output "no options provided"
@@ -208,7 +208,7 @@ function kswitch {
 		return $LASTEXITCODE
 	}
 
-	# switcher returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+	# kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
 	# distinguish it from other responses which just need to write to STDOUT
 	$prefix = "__ "
 	if (-not (has_prefix $prefix $RESPONSE)) {
@@ -257,7 +257,7 @@ var (
 	initCmd = &cobra.Command{
 		Use:                   "init [bash|zsh|fish|powershell]",
 		Short:                 "generate init and completion script",
-		Long:                  "generate and load the init and completion script for switch into the current shell. Use it like this: 'source <(switcher init zsh)'",
+		Long:                  "generate and load the init and completion script for switch into the current shell. Use it like this: 'source <(kswitch init zsh)'",
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.ExactArgs(1),

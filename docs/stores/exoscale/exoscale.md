@@ -24,7 +24,7 @@ kubeconfigStores:
       path: ~/.kube/cache
 ```
 
-The Exoscale store can be used without a filesystem cache but the Exoscale API will create a new Kubeconfig file every time you open switcher.
+The Exoscale store can be used without a filesystem cache but the Exoscale API will create a new Kubeconfig file every time you open kswitch.
 Therefore, it is recommended to use a filesystem cache.
 
 You can also use multiple organizations. For that you can define `ID` freely, the ID will be shown as prefix in the list if `ShowPrefix` is true (default).

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	// TemporaryKubeconfigDir is a constant for the directory where the switcher stores the temporary kubeconfig files
+	// TemporaryKubeconfigDir is a constant for the directory where kswitch stores the temporary kubeconfig files
 	TemporaryKubeconfigDir = "$HOME/.kube/.switch_tmp"
 )
 

@@ -81,7 +81,7 @@ func Hooks(log *logrus.Entry, configPath string, stateDirectory string, flagHook
 	}
 
 	// only log if explicitly requested to run hooks
-	// otherwise silently fail (for normal execution with switcher)
+	// otherwise silently fail (for normal execution with kswitch)
 	if config == nil && runImmediately {
 		log.Infof("Configuration file not found under path: %q", configPath)
 	}

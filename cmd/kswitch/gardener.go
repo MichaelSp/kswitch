@@ -11,32 +11,46 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package switcher
+package kswitch
 
 import (
-	"github.com/MichaelSp/kswitch/pkg/subcommands/clean"
+	"os"
+
+	gardenercontrolplane "github.com/MichaelSp/kswitch/pkg/subcommands/gardener"
 	"github.com/spf13/cobra"
 )
 
 var (
-	cleanCmd = &cobra.Command{
-		Use:   "clean",
-		Short: "Cleans all temporary and cached kubeconfig files",
-		Long:  `Cleans the temporary kubeconfig files created in the directory $HOME/.kube/switch_tmp and flushes every cache`,
-		Args:  cobra.NoArgs,
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return nil, cobra.ShellCompDirectiveNoFileComp
-		},
+	gardenerCmd = &cobra.Command{
+		Use:   "gardener",
+		Short: "gardener specific commands",
+		Long:  `Commands that can only be used if a Gardener store is configured.`,
+	}
+
+	controlplaneCmd = &cobra.Command{
+		Use:   "controlplane",
+		Short: "Switch to the Shoot's controlplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			stores, _, err := initialize()
 			if err != nil {
 				return err
 			}
-			return clean.Clean(stores)
+
+			_, err = gardenercontrolplane.SwitchToControlplane(stores, getKubeconfigPathFromFlag())
+			return err
 		},
 	}
 )
 
 func init() {
-	rootCommand.AddCommand(cleanCmd)
+	setCommonFlags(controlplaneCmd)
+	controlplaneCmd.Flags().StringVar(
+		&configPath,
+		"config-path",
+		os.ExpandEnv("$HOME/.kube/switch-config.yaml"),
+		"path on the local filesystem to the configuration file.")
+
+	gardenerCmd.AddCommand(controlplaneCmd)
+
+	rootCommand.AddCommand(gardenerCmd)
 }

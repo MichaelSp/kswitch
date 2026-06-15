@@ -21,7 +21,7 @@ echo 'kswitch completion fish | source' >> ~/.config/fish/config.fish
 ### Powershell
 ```powershell
 echo 'kswitch completion powershell' >> $PROFILE
-echo 'Register-ArgumentCompleter -CommandName ''switcher_windows_amd64'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
-echo 'Register-ArgumentCompleter -CommandName ''kswitch'' -ScriptBlock $__switcherCompleterBlock' >> $PROFILE
+echo 'Register-ArgumentCompleter -CommandName ''kswitch_windows_amd64'' -ScriptBlock $__kswitchCompleterBlock' >> $PROFILE
+echo 'Register-ArgumentCompleter -CommandName ''kswitch'' -ScriptBlock $__kswitchCompleterBlock' >> $PROFILE
 . $PROFILE
 ```

@@ -15,9 +15,9 @@ version: 2
 project_name: kswitch
 
 builds:
-  - id: switcher
+  - id: kswitch
     main: .
-    binary: switcher
+    binary: kswitch
     env:
       - CGO_ENABLED=0
     goos:
@@ -32,16 +32,16 @@ builds:
         goarch: arm64
     ldflags:
       - -w
-        -X github.com/MichaelSp/kswitch/cmd/switcher.version={{.Version}}
-        -X github.com/MichaelSp/kswitch/cmd/switcher.buildDate={{.Date}}
+        -X github.com/MichaelSp/kswitch/cmd/kswitch.version={{.Version}}
+        -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate={{.Date}}
 
 # Upload raw binaries (no archives/tarballs).
-# name_template matches the original release asset naming: switcher_{os}_{arch}
+# name_template matches the original release asset naming: kswitch_{os}_{arch}
 # (goreleaser automatically appends .exe for windows)
 archives:
   - formats:
       - binary
-    name_template: "switcher_{{ .Os }}_{{ .Arch }}"
+    name_template: "kswitch_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: checksums.txt

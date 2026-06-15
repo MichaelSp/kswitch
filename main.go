@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MichaelSp/kswitch/cmd/switcher"
+	"github.com/MichaelSp/kswitch/cmd/kswitch"
 )
 
 func main() {
-	rootCommand := switcher.NewCommandStartSwitcher()
+	rootCommand := kswitch.NewCommandStartKswitch()
 
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Print(err)

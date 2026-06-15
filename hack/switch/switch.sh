@@ -5,10 +5,10 @@
 has_prefix() { case $2 in "$1"*) true;; *) false;; esac; }
 
 function switch(){
-#  if the executable path is not set, the switcher binary has to be on the path
+#  if the executable path is not set, the kswitch binary has to be on the path
 # this is the case when installing it via homebrew
 
-  local DEFAULT_EXECUTABLE_PATH="switcher"
+  local DEFAULT_EXECUTABLE_PATH="kswitch"
   declare -a opts
 
   while test $# -gt 0; do
@@ -36,7 +36,7 @@ function switch(){
     return $?
   fi
 
-  # switcher returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   prefix="__ "
   if ! has_prefix "$prefix" "$RESPONSE" ; then
@@ -47,7 +47,7 @@ function switch(){
   # remove prefix
   RESPONSE=${RESPONSE#"$prefix"}
 
-  #the response form the switcher binary is "kubeconfig_path,selected_context"
+  #the response form the kswitch binary is "kubeconfig_path,selected_context"
   remainder="$RESPONSE"
   KUBECONFIG_PATH="${remainder%%,*}"; remainder="${remainder#*,}"
   SELECTED_CONTEXT="${remainder%%,*}"; remainder="${remainder#*,}"

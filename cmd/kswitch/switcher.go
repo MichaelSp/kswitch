@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package switcher
+package kswitch
 
 import (
 	"fmt"
@@ -134,7 +134,7 @@ func init() {
 	rootCommand.Flags().BoolVarP(&currentContext, "current", "c", false, "show current context")
 }
 
-func NewCommandStartSwitcher() *cobra.Command {
+func NewCommandStartKswitch() *cobra.Command {
 	return rootCommand
 }
 
