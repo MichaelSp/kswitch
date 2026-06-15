@@ -23,7 +23,7 @@ require (
 	github.com/onsi/gomega v1.42.0
 	github.com/pkg/errors v0.9.1
 	github.com/rancher/norman v0.9.7
-	github.com/rancher/rancher/pkg/client v0.0.0-20260613014404-91d55071283d
+	github.com/rancher/rancher/pkg/client v0.0.0-20260615061755-d799b65710c5
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.46.0
@@ -38,7 +38,7 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
