@@ -27,7 +27,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	awsekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go/logging"
-	"github.com/disiqueira/gotree"
+	"github.com/MichaelSp/kswitch/pkg/util/gotree"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )

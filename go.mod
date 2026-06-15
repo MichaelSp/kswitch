@@ -11,14 +11,12 @@ require (
 	github.com/aws/smithy-go v1.27.2
 	github.com/becheran/wildmatch-go v1.0.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
-	github.com/disiqueira/gotree v1.0.0
 	github.com/gardener/gardener-extension-provider-openstack v1.55.3
 	github.com/go-cmd/cmd v1.4.3
 	github.com/google/addlicense v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/jedib0t/go-pretty/v6 v6.8.1
-	github.com/karrick/godirwalk v1.17.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 	github.com/pkg/errors v0.9.1
@@ -51,7 +49,6 @@ require (
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
-	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
