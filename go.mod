@@ -38,7 +38,7 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
@@ -50,7 +50,7 @@ require (
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego v1.69.1
 	github.com/linode/linodego/v2 v2.1.0
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo v1.15.0
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
