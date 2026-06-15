@@ -20,7 +20,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.8.1
 	github.com/karrick/godirwalk v1.17.0
 	github.com/onsi/ginkgo/v2 v2.31.0
-	github.com/onsi/gomega v1.41.0
+	github.com/onsi/gomega v1.42.0
 	github.com/pkg/errors v0.9.1
 	github.com/rancher/norman v0.9.7
 	github.com/rancher/rancher/pkg/client v0.0.0-20260613014404-91d55071283d
