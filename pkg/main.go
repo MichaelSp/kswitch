@@ -216,6 +216,6 @@ func writeToAliasToContext(key, value string) {
 
 func logSearchErrors() {
 	if searchError != nil {
-		logger.Warnf("Supressed warnings during the search: %v", searchError.Error())
+		logger.Warnf("Suppressed warnings during the search: %v", searchError.Error())
 	}
 }

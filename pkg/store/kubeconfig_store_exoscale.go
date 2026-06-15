@@ -22,29 +22,25 @@ import (
 
 	v3 "github.com/exoscale/egoscale/v3"
 	"github.com/exoscale/egoscale/v3/credentials"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/tools/clientcmd"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
 
+func init() {
+	Register(types.StoreKindExoscale, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewExoscaleStore(s)
+	})
+}
+
+var _ storetypes.KubeconfigStore = (*ExoscaleStore)(nil)
+
 func NewExoscaleStore(store types.KubeconfigStore) (*ExoscaleStore, error) {
-	exoscaleStoreConfig := &types.StoreConfigExoscale{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process Exoscale store config: %w", err)
-		}
-
-		err = yaml.Unmarshal(buf, exoscaleStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Exoscale config: %w", err)
-		}
+	exoscaleStoreConfig, err := ParseStoreConfig[types.StoreConfigExoscale](store)
+	if err != nil {
+		return nil, err
 	}
-
-	logger := logrus.New().WithField("store", types.StoreKindExoscale)
 
 	exoscaleAPIKey := exoscaleStoreConfig.ExoscaleAPIKey
 	if len(exoscaleAPIKey) == 0 {
@@ -63,8 +59,7 @@ func NewExoscaleStore(store types.KubeconfigStore) (*ExoscaleStore, error) {
 	}
 
 	return &ExoscaleStore{
-		Logger:             logger,
-		KubeconfigStore:    store,
+		BaseStore:          NewBaseStore(types.StoreKindExoscale, store),
 		Client:             client,
 		DiscoveredClusters: make(map[v3.UUID]ExoscaleKube),
 	}, nil
@@ -78,14 +73,6 @@ type ExoscaleKube struct {
 	ZoneEndpoint v3.Endpoint // e.g. "https://api-ch-gva-2.exoscale.com/v2"
 }
 
-func (s *ExoscaleStore) GetID() string {
-	id := "default"
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-	return fmt.Sprintf("%s.%s", types.StoreKindExoscale, id)
-}
-
 func (s *ExoscaleStore) GetContextPrefix(path string) string {
 	if s.GetStoreConfig().ShowPrefix != nil && !*s.GetStoreConfig().ShowPrefix {
 		return ""
@@ -96,18 +83,6 @@ func (s *ExoscaleStore) GetContextPrefix(path string) string {
 	}
 
 	return string(types.StoreKindExoscale)
-}
-
-func (s *ExoscaleStore) GetKind() types.StoreKind {
-	return types.StoreKindExoscale
-}
-
-func (s *ExoscaleStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *ExoscaleStore) GetLogger() *logrus.Entry {
-	return s.Logger
 }
 
 // StartSearch queries *all* Exoscale zones, discovers SKS clusters
@@ -267,8 +242,4 @@ func (s *ExoscaleStore) GetKubeconfigForPath(path string, _ map[string]string) (
 	}
 
 	return modifiedBytes, nil
-}
-
-func (r *ExoscaleStore) VerifyKubeconfigPaths() error {
-	return nil
 }

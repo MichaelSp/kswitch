@@ -24,33 +24,30 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
-	"gopkg.in/yaml.v3"
 
 	"github.com/linode/linodego/v2"
-	"github.com/sirupsen/logrus"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
 
-func NewAkamaiStore(store types.KubeconfigStore) (*AkamaiStore, error) {
-	akamaiStoreConfig := &types.StoreConfigAkamai{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process akamai store config: %w", err)
-		}
+func init() {
+	Register(types.StoreKindAkamai, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewAkamaiStore(s)
+	})
+}
 
-		err = yaml.Unmarshal(buf, akamaiStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal akami config: %w", err)
-		}
+var _ storetypes.KubeconfigStore = (*AkamaiStore)(nil)
+
+func NewAkamaiStore(store types.KubeconfigStore) (*AkamaiStore, error) {
+	akamaiStoreConfig, err := ParseStoreConfig[types.StoreConfigAkamai](store)
+	if err != nil {
+		return nil, err
 	}
 
 	return &AkamaiStore{
-		Logger:          logrus.New().WithField("store", types.StoreKindAkamai),
-		KubeconfigStore: store,
-		Config:          akamaiStoreConfig,
+		BaseStore: NewBaseStore(types.StoreKindAkamai, store),
+		Config:    akamaiStoreConfig,
 	}, nil
 }
 
@@ -84,36 +81,11 @@ func (s *AkamaiStore) InitializeAkamaiStore() error {
 	return nil
 }
 
-// GetID returns the unique store ID
-func (s *AkamaiStore) GetID() string {
-	id := "default"
-
-	if s.KubeconfigStore.ID != nil {
-		id = *s.KubeconfigStore.ID
-	}
-
-	return fmt.Sprintf("%s.%s", s.GetKind(), id)
-}
-
-func (s *AkamaiStore) GetKind() types.StoreKind {
-	return types.StoreKindAkamai
-}
-
 func (s *AkamaiStore) GetContextPrefix(path string) string {
+	if s.GetStoreConfig().ShowPrefix != nil && !*s.GetStoreConfig().ShowPrefix {
+		return ""
+	}
 	return fmt.Sprintf("%s/%s", s.GetKind(), path)
-}
-
-func (s *AkamaiStore) VerifyKubeconfigPaths() error {
-	// NOOP
-	return nil
-}
-
-func (s *AkamaiStore) GetStoreConfig() types.KubeconfigStore {
-	return s.KubeconfigStore
-}
-
-func (s *AkamaiStore) GetLogger() *logrus.Entry {
-	return s.Logger
 }
 
 func (s *AkamaiStore) StartSearch(channel chan storetypes.SearchResult) {

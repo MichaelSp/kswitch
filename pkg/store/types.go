@@ -35,23 +35,20 @@ import (
 	"github.com/rancher/norman/clientbase"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 	"github.com/scaleway/scaleway-sdk-go/scw"
-	"github.com/sirupsen/logrus"
 	gkev1 "google.golang.org/api/container/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FilesystemStore struct {
-	Logger                *logrus.Entry
-	KubeconfigStore       types.KubeconfigStore
+	BaseStore
 	KubeconfigName        string
 	kubeconfigDirectories []string
 	kubeconfigFilepaths   []string
 }
 
 type VaultStore struct {
-	Logger             *logrus.Entry
-	KubeconfigStore    types.KubeconfigStore
+	BaseStore
 	Client             *vaultapi.Client
 	VaultKeyKubeconfig string
 	KubeconfigName     string
@@ -60,8 +57,7 @@ type VaultStore struct {
 }
 
 type GardenerStore struct {
-	Logger                    *logrus.Entry
-	KubeconfigStore           types.KubeconfigStore
+	BaseStore
 	GardenClient              gardenclient.Client
 	Client                    client.Client
 	Config                    *types.StoreConfigGardener
@@ -77,10 +73,9 @@ type GardenerStore struct {
 }
 
 type EKSStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	Client          *awseks.Client
-	Config          *types.StoreConfigEKS
+	BaseStore
+	Client *awseks.Client
+	Config *types.StoreConfigEKS
 	// DiscoveredClusters maps the kubeconfig path (az_<resource-group>--<cluster-name>) -> cluster
 	// This is a cache for the clusters discovered during the initial search for kubeconfig paths
 	// when not using a search index
@@ -89,10 +84,9 @@ type EKSStore struct {
 }
 
 type GKEStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	GkeClient       *gkev1.Service
-	Config          *types.StoreConfigGKE
+	BaseStore
+	GkeClient *gkev1.Service
+	Config    *types.StoreConfigGKE
 	// DiscoveredClusters maps the kubeconfig path (gke--project-name--clusterName) -> cluster
 	// This is a cache for the clusters discovered during the initial search for kubeconfig paths
 	// when not using a search index
@@ -104,12 +98,11 @@ type GKEStore struct {
 }
 
 type AzureStore struct {
-	Logger *logrus.Entry
+	BaseStore
 	// DiscoveredClustersMutex is a mutex allow many reads, one write mutex to synchronize writes
 	// to the DiscoveredClusters map.
 	// This can happen when a goroutine still discovers clusters while another goroutine computes the preview for a missing cluster.
 	DiscoveredClustersMutex sync.RWMutex
-	KubeconfigStore         types.KubeconfigStore
 	AksClient               *armcontainerservice.ManagedClustersClient
 	Config                  *types.StoreConfigAzure
 	// DiscoveredClusters maps the kubeconfig path (az_<resource-group>--<cluster-name>) -> cluster
@@ -120,62 +113,54 @@ type AzureStore struct {
 }
 
 type ExoscaleStore struct {
-	Logger             *logrus.Entry
-	KubeconfigStore    types.KubeconfigStore
+	BaseStore
 	Client             *exoscale.Client
 	DiscoveredClusters map[exoscale.UUID]ExoscaleKube
 }
 
 type RancherStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	ClientOpts      *clientbase.ClientOpts
-	Client          *managementClient.Client
+	BaseStore
+	ClientOpts *clientbase.ClientOpts
+	Client     *managementClient.Client
 }
 
 type OVHStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	Client          *ovh.Client
-	OVHKubeCache    map[string]OVHKube // map[clusterID]OVHKube
+	BaseStore
+	Client       *ovh.Client
+	OVHKubeCache map[string]OVHKube // map[clusterID]OVHKube
 }
 
 type ScalewayStore struct {
-	Logger             *logrus.Entry
-	KubeconfigStore    types.KubeconfigStore
+	BaseStore
 	Client             *scw.Client
 	DiscoveredClusters map[string]ScalewayKube
 }
 
 type DigitalOceanStore struct {
-	Logger *logrus.Entry
+	BaseStore
 	// DiscoveredClustersMutex is a mutex allow many reads, one write mutex to synchronize writes
 	// to the DiscoveredClusters map.
 	// This can happen when a goroutine still discovers clusters while another goroutine computes the preview for a missing cluster.
 	DiscoveredClustersMutex                   sync.RWMutex
 	ContextNameAndClusterNameToClusterIDMutex sync.RWMutex
-	KubeconfigStore                           types.KubeconfigStore
 	ContextToKubernetesService                map[string]do.KubernetesService
 	Config                                    doks.DoctlConfig
 }
 
 type AkamaiStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	Client          *linodego.Client
-	Config          *types.StoreConfigAkamai
+	BaseStore
+	Client *linodego.Client
+	Config *types.StoreConfigAkamai
 }
 
 type CapiStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	Client          client.Client
-	Config          *types.StoreConfigCapi
+	BaseStore
+	Client client.Client
+	Config *types.StoreConfigCapi
 }
 
 type PluginStore struct {
-	Logger          *logrus.Entry
-	KubeconfigStore types.KubeconfigStore
-	Config          *types.StoreConfigPlugin
-	Client          plugins.Store
+	BaseStore
+	Config *types.StoreConfigPlugin
+	Client plugins.Store
 }
