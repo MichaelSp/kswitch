@@ -193,11 +193,74 @@ func (k *Kubeconfig) RemoveContext(name string) error {
 		if contextName.Value == name {
 			continue
 		}
-
 		keepContexts = append(keepContexts, contextNode)
 	}
-
 	contexts.Content = keepContexts
 
+	k.removeOrphanedClusters()
+	k.removeOrphanedUsers()
+
 	return nil
+}
+
+// removeOrphanedClusters removes cluster entries not referenced by any remaining context.
+func (k *Kubeconfig) removeOrphanedClusters() {
+	clusters := valueOf(k.rootNode, "clusters")
+	if clusters == nil || clusters.Kind != yaml.SequenceNode {
+		return
+	}
+
+	referenced := k.referencedClusters()
+	var keep []*yaml.Node
+	for _, clusterNode := range clusters.Content {
+		if nameNode := valueOf(clusterNode, "name"); nameNode != nil && referenced[nameNode.Value] {
+			keep = append(keep, clusterNode)
+		}
+	}
+	clusters.Content = keep
+}
+
+// removeOrphanedUsers removes user entries not referenced by any remaining context.
+func (k *Kubeconfig) removeOrphanedUsers() {
+	users := valueOf(k.rootNode, "users")
+	if users == nil || users.Kind != yaml.SequenceNode {
+		return
+	}
+
+	referenced := k.referencedUsers()
+	var keep []*yaml.Node
+	for _, userNode := range users.Content {
+		if nameNode := valueOf(userNode, "name"); nameNode != nil && referenced[nameNode.Value] {
+			keep = append(keep, userNode)
+		}
+	}
+	users.Content = keep
+}
+
+func (k *Kubeconfig) referencedClusters() map[string]bool {
+	return k.referencedContextField("cluster")
+}
+
+func (k *Kubeconfig) referencedUsers() map[string]bool {
+	return k.referencedContextField("user")
+}
+
+// referencedContextField collects the values of a named field (e.g. "cluster" or "user")
+// from all context entries that remain in the kubeconfig.
+func (k *Kubeconfig) referencedContextField(field string) map[string]bool {
+	result := map[string]bool{}
+	contexts := valueOf(k.rootNode, "contexts")
+	if contexts == nil || contexts.Kind != yaml.SequenceNode {
+		return result
+	}
+	for _, ctxNode := range contexts.Content {
+		ctxData := valueOf(ctxNode, "context")
+		if ctxData == nil {
+			continue
+		}
+		if v := valueOf(ctxData, field); v != nil {
+			result[v.Value] = true
+		}
+	}
+	return result
 }
