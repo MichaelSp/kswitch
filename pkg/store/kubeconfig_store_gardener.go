@@ -839,7 +839,7 @@ func (s *GardenerStore) createGardenKubeconfigAlias(gardenKubeconfigPath string)
 	}
 
 	// get context name from the virtual garden kubeconfig
-	_, contexts, err := util.GetContextsNamesFromKubeconfig(bytes, s.GetContextPrefix(gardenKubeconfigPath))
+	contexts, err := util.GetContextsNamesFromKubeconfig(bytes, s.GetContextPrefix(gardenKubeconfigPath))
 	if err != nil {
 		return fmt.Errorf("failed to get kubeconfig context names for path %q: %v", gardenKubeconfigPath, err)
 	}

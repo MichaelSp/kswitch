@@ -33,9 +33,6 @@ import (
 )
 
 var (
-	contextToPathMapping     = make(map[string]string)
-	contextToPathMappingLock = sync.RWMutex{}
-
 	pathToTagsMapping     = make(map[string]map[string]string)
 	pathToTagsMappingLock = sync.RWMutex{}
 
@@ -52,6 +49,10 @@ var (
 )
 
 func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex, showPreview bool) (*string, *string, error) {
+	// reset accumulated search errors from any previous invocation in the same
+	// process to avoid re-logging stale warnings on subsequent runs.
+	searchError = nil
+
 	c, err := DoSearch(stores, config, stateDir, noIndex)
 	if err != nil {
 		return nil, nil, err
@@ -88,7 +89,6 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				writeToAliasToContext(dc.Alias, dc.Name)
 			}
 
-			writeToContextToPathMapping(contextName, dc.Path)
 			writeToPathToTagsMapping(dc.Path, dc.Tags)
 			writeToPathToStoreID(dc.Path, kubeconfigStore.GetID())
 
@@ -182,12 +182,6 @@ func writeIndex(store storetypes.KubeconfigStore, searchIndex *index.SearchIndex
 	if err := searchIndex.WriteState(indexStateToWrite); err != nil {
 		store.GetLogger().Warnf("failed to write index state file: %v", err)
 	}
-}
-
-func writeToContextToPathMapping(key, value string) {
-	contextToPathMappingLock.Lock()
-	defer contextToPathMappingLock.Unlock()
-	contextToPathMapping[key] = value
 }
 
 func readFromPathToTagsMapping(key string) map[string]string {

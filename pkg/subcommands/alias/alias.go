@@ -30,11 +30,17 @@ import (
 
 var logger = logrus.New()
 
+// ensureStateDir creates the alias state directory if it does not yet exist.
+func ensureStateDir(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return os.Mkdir(dir, 0755)
+	}
+	return nil
+}
+
 func GetAliases(stateDir string) ([]string, error) {
-	if _, err := os.Stat(stateDir); os.IsNotExist(err) {
-		if err := os.Mkdir(stateDir, 0755); err != nil {
-			return nil, err
-		}
+	if err := ensureStateDir(stateDir); err != nil {
+		return nil, err
 	}
 
 	a, err := state.GetDefaultAlias(stateDir)
@@ -54,10 +60,8 @@ func GetAliases(stateDir string) ([]string, error) {
 }
 
 func ListAliases(stateDir string) error {
-	if _, err := os.Stat(stateDir); os.IsNotExist(err) {
-		if err := os.Mkdir(stateDir, 0755); err != nil {
-			return err
-		}
+	if err := ensureStateDir(stateDir); err != nil {
+		return err
 	}
 
 	a, err := state.GetDefaultAlias(stateDir)
@@ -87,10 +91,8 @@ func ListAliases(stateDir string) error {
 }
 
 func RemoveAlias(aliasToRemove, stateDir string) error {
-	if _, err := os.Stat(stateDir); os.IsNotExist(err) {
-		if err := os.Mkdir(stateDir, 0755); err != nil {
-			return err
-		}
+	if err := ensureStateDir(stateDir); err != nil {
+		return err
 	}
 
 	a, err := state.GetDefaultAlias(stateDir)
@@ -130,10 +132,8 @@ func RemoveAlias(aliasToRemove, stateDir string) error {
 // state folder instead of renaming a context in the kubeconfig
 // this works independent of the backing store
 func Alias(aliasName, ctxNameToBeAliased string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) error {
-	if _, err := os.Stat(stateDir); os.IsNotExist(err) {
-		if err := os.Mkdir(stateDir, 0755); err != nil {
-			return err
-		}
+	if err := ensureStateDir(stateDir); err != nil {
+		return err
 	}
 
 	log := logrus.New().WithField("alias", aliasName)

@@ -147,7 +147,6 @@ var (
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctxName, err := resolveContextName(args[0])
-			fmt.Println("delete-context", ctxName, args, err)
 			if err != nil {
 				return err
 			}
@@ -209,7 +208,11 @@ func listContexts(prefix string) ([]string, error) {
 		return nil, err
 	}
 
-	lc, err := list_contexts.ListContexts("*", stores, config, stateDirectory, noIndex)
+	pattern := "*"
+	if prefix != "" {
+		pattern = prefix + "*"
+	}
+	lc, err := list_contexts.ListContexts(pattern, stores, config, stateDirectory, noIndex)
 	if err != nil {
 		return nil, err
 	}

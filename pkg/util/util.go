@@ -25,23 +25,16 @@ import (
 	"github.com/MichaelSp/kswitch/types"
 )
 
-// GetContextsNamesFromKubeconfig takes kubeconfig bytes and parses the kubeconfig to extract the context names.
-// returns the kubeconfig as a string as a first argument, and the context names as a second argument
-func GetContextsNamesFromKubeconfig(kubeconfigBytes []byte, contextPrefix string) (*string, []string, error) {
+// GetContextsNamesFromKubeconfig parses the kubeconfig bytes and returns the
+// list of context names, applying the given prefix to each name.
+func GetContextsNamesFromKubeconfig(kubeconfigBytes []byte, contextPrefix string) ([]string, error) {
 	// parse into struct that does not contain the credentials
 	config, err := ParseSanitizedKubeconfig(kubeconfigBytes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not parse Kubeconfig: %v", err)
+		return nil, fmt.Errorf("could not parse Kubeconfig: %v", err)
 	}
 
-	kubeconfigData, err := yaml.Marshal(config)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not marshal kubeconfig: %v", err)
-	}
-
-	data := string(kubeconfigData)
-	contextsFromKubeconfig := getContextNames(config, contextPrefix)
-	return &data, contextsFromKubeconfig, err
+	return getContextNames(config, contextPrefix), nil
 }
 
 // ParseSanitizedKubeconfig parses the kubeconfig bytes into a kubeconfig struct without credentials
