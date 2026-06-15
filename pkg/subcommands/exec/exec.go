@@ -30,7 +30,8 @@ import (
 
 // simpleFormatter is a minimal logrus formatter that supports two placeholders:
 // %time% and %msg%. It replaces the abandoned t-tomalak/logrus-easy-formatter
-// dependency while keeping identical output.
+// dependency while keeping identical output (no trailing newline; the kswitch
+// callers include "\n" in the format strings themselves).
 type simpleFormatter struct {
 	TimestampFormat string
 	LogFormat       string
@@ -42,10 +43,12 @@ func (f *simpleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	if timeFmt == "" {
 		timeFmt = "2006-01-02 15:04:05"
 	}
-	output = strings.ReplaceAll(output, "%time%", entry.Time.Format(timeFmt))
-	output = strings.ReplaceAll(output, "%msg%", entry.Message)
-	output = strings.ReplaceAll(output, "%lvl%", strings.ToUpper(entry.Level.String()))
-	return []byte(output + "\n"), nil
+	// Use Replace with n=1 to match logrus-easy-formatter v0.0.0-20190827215021
+	// behaviour (single replacement per placeholder, no trailing newline added).
+	output = strings.Replace(output, "%time%", entry.Time.Format(timeFmt), 1)
+	output = strings.Replace(output, "%msg%", entry.Message, 1)
+	output = strings.Replace(output, "%lvl%", strings.ToUpper(entry.Level.String()), 1)
+	return []byte(output), nil
 }
 
 func ExecuteCommand(pattern string, command []string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, showDebugLogs bool) error {
