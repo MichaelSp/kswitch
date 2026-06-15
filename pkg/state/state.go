@@ -21,7 +21,7 @@ import (
 
 	"github.com/MichaelSp/kswitch/types"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // GetHookState loads and unmarshalls a hook state file

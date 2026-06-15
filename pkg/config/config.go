@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/MichaelSp/kswitch/pkg/config/migration"
 	"github.com/MichaelSp/kswitch/types"
