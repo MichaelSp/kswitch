@@ -21,7 +21,7 @@ import (
 	"github.com/MichaelSp/kswitch/types"
 	"k8s.io/utils/ptr"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	// . "github.com/onsi/gomega/gstruct"
 )
