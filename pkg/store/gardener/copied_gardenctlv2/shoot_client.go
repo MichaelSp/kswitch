@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
@@ -235,35 +236,69 @@ func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name s
 		gardenClusterIdentity: g.name,
 	}
 
-	// Exclude infrastructure-internal advertised addresses. "internal" goes through
-	// the seed ingress and is protected by the seed's CA (not the shoot's ca-cluster
-	// secret), causing x509 verification failures. "service-account-issuer" is not
-	// an API server endpoint. All other address types (external, unmanaged,
-	// wildcard-tls-seed-bound, …) are kept so that newly-introduced user-facing
-	// address types work without requiring code changes here.
-	infraInternalNames := map[string]bool{"internal": true, "service-account-issuer": true}
-	var filteredAddresses []gardencorev1beta1.ShootAdvertisedAddress
-	for _, address := range shoot.Status.AdvertisedAddresses {
-		if !infraInternalNames[address.Name] {
-			filteredAddresses = append(filteredAddresses, address)
-		}
+	// Classify advertised addresses by how their TLS certificate is verified.
+	//
+	// "internal" goes through the seed ingress and is signed by the seed's CA, not the
+	// shoot's ca-cluster CA, so it must be excluded to avoid x509 verification failures.
+	// "service-account-issuer" is not a kube-apiserver endpoint at all.
+	// "ingress/*" addresses are monitoring/logging dashboards (prometheus, plutono), not API endpoints.
+	//
+	// "wildcard-tls-seed-bound" is a real API server endpoint but its TLS certificate is a
+	// publicly-trusted wildcard cert (e.g. Let's Encrypt) issued for the seed's ingress domain.
+	// Using the shoot's ca-cluster CA for it causes x509 failures because the cert is not
+	// signed by that CA. Setting caCert to nil lets kubectl fall back to the system root CA
+	// pool, which correctly validates the public cert.
+	excludedNames := map[string]bool{
+		"internal":               true,
+		"service-account-issuer": true,
 	}
-	// Fall back to all addresses if the denylist removed everything (should not happen).
-	if len(filteredAddresses) == 0 {
-		filteredAddresses = shoot.Status.AdvertisedAddresses
+	// publicCertNames contains addresses whose TLS cert is publicly trusted; they must not
+	// have certificate-authority-data set in the kubeconfig.
+	publicCertNames := map[string]bool{
+		"wildcard-tls-seed-bound": true,
 	}
 
-	for _, address := range filteredAddresses {
+	for _, address := range shoot.Status.AdvertisedAddresses {
+		if excludedNames[address.Name] {
+			continue
+		}
+		// "ingress/*" addresses (prometheus, plutono, …) are not API server endpoints.
+		if strings.HasPrefix(address.Name, "ingress/") {
+			continue
+		}
+
 		u, err := url.Parse(address.URL)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse shoot server url: %w", err)
 		}
 
+		var clusterCACert []byte
+		if !publicCertNames[address.Name] {
+			clusterCACert = caCert
+		}
+
 		kubeconfigRequest.clusters = append(kubeconfigRequest.clusters, cluster{
 			name:          address.Name,
 			apiServerHost: u.Host,
-			caCert:        caCert,
+			caCert:        clusterCACert,
 		})
+	}
+
+	// Fall back to external address only if filtering removed everything.
+	if len(kubeconfigRequest.clusters) == 0 {
+		for _, address := range shoot.Status.AdvertisedAddresses {
+			if address.Name == "external" || address.Name == "unmanaged" {
+				u, err := url.Parse(address.URL)
+				if err != nil {
+					return nil, fmt.Errorf("could not parse shoot server url: %w", err)
+				}
+				kubeconfigRequest.clusters = append(kubeconfigRequest.clusters, cluster{
+					name:          address.Name,
+					apiServerHost: u.Host,
+					caCert:        caCert,
+				})
+			}
+		}
 	}
 
 	if err := kubeconfigRequest.validate(); err != nil {

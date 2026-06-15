@@ -164,9 +164,11 @@ func (k *Kubeconfig) ModifyContextName(old, new string) error {
 		return err
 	}
 
+	var available []string
 	var changed bool
 	for _, contextNode := range contexts.Content {
 		nameNode := valueOf(contextNode, "name")
+		available = append(available, nameNode.Value)
 		if nameNode.Kind == yaml.ScalarNode && nameNode.Value == old {
 			nameNode.Value = new
 			changed = true
@@ -174,7 +176,7 @@ func (k *Kubeconfig) ModifyContextName(old, new string) error {
 		}
 	}
 	if !changed {
-		return fmt.Errorf("context with name %q not found", old)
+		return fmt.Errorf("context with name %q not found (available: %v)", old, available)
 	}
 	return nil
 }
