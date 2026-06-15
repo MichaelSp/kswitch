@@ -1,1 +1,0 @@
-/Users/d067570/.claudel/claudel-vm/repos/com/MichaelSp/kswitch/docs/how_it_works.md

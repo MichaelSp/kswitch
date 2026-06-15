@@ -3,6 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "prebuild": "rsync -a --exclude='index.mdx' ../docs/ src/content/docs/",
+    "predev": "rsync -a --exclude='index.mdx' ../docs/ src/content/docs/",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",

@@ -15,7 +15,7 @@ Using the search index is especially useful when
 
 Compared to the example in the [hot reload feature](../README.md#hot-reload), see that all the Kubeconfig contexts are available almost instantly.
 
-![demo GIF](/kswitch/resources/gifs/index-demo.gif)
+![demo GIF](https://raw.githubusercontent.com/MichaelSp/kswitch/main/resources/gifs/index-demo.gif)
 
 Per default, the search index is **not** used.
 

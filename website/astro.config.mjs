@@ -14,6 +14,7 @@ export default defineConfig({
 				src: './src/assets/logo.png',
 				replacesTitle: false,
 			},
+			favicon: '/favicon.png',
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/MichaelSp/kswitch' },
 			],

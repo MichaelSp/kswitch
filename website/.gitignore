@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .astro/
+
+# Synced from docs/ via prebuild — not committed
+src/content/docs/**
+!src/content/docs/index.mdx

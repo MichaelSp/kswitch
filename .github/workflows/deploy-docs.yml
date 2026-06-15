@@ -35,7 +35,7 @@ jobs:
         working-directory: website
 
       - name: Build site
-        run: npm run build
+        run: npm run build  # prebuild script syncs ../docs/ → src/content/docs/
         working-directory: website
 
       - name: Upload Pages artifact
