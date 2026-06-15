@@ -1,0 +1,22 @@
+kind: Config
+apiVersion: v1
+current-context: switch-demo
+contexts:
+- name: switch-demo
+  context:
+    cluster: switch-demo-cluster
+    user: switch-demo-user
+clusters:
+- name: switch-demo-cluster
+  cluster:
+    certificate-authority-data: ZHVtbXk=
+    server: https://api.dev-seed-gcp.shoot.dev.dummy.com
+users:
+- name: switch-demo-user
+  user:
+    client-certificate-data: ZHVtbXk=
+    client-key-data: ZHVtbXky
+- name: basic-auth
+  user:
+    username: admin
+    password: cGFzc3dvcmQ=

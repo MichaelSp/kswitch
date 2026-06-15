@@ -1,0 +1,57 @@
+---
+title: kswitch
+description: The kubectx for operators — single pane of glass for all your kubeconfig files.
+template: splash
+hero:
+  tagline: The kubectx for operators. Fuzzy search, terminal isolation, history, and 14+ cloud providers — built for large-scale Kubernetes.
+  image:
+    file: ../../assets/banner.png
+  actions:
+    - text: Get started
+      link: /kswitch/installation/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/MichaelSp/kswitch
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Highlights
+
+<CardGrid stagger>
+  <Card title="Unified fuzzy search" icon="magnifier">
+    Search all contexts across every provider and kubeconfig file in one instant fuzzy search. Hot-reload adds new kubeconfigs on the fly.
+  </Card>
+  <Card title="Terminal window isolation" icon="laptop">
+    Each terminal targets a different cluster independently. kswitch never modifies the original kubeconfig — a temporary copy is used per terminal.
+  </Card>
+  <Card title="History navigation" icon="list-format">
+    Every `{context, namespace}` tuple is recorded. Jump back with `kswitch .` or step through history with `kswitch -`.
+  </Card>
+  <Card title="Context aliases" icon="pencil">
+    Give human-friendly names to cryptic generated context names without modifying the underlying kubeconfig file.
+  </Card>
+  <Card title="Search index cache" icon="rocket">
+    Local index for instant results across massive directories or slow remote stores like Vault. Configure refresh intervals per store.
+  </Card>
+  <Card title="Extensible hooks" icon="setting">
+    Run arbitrary executables before search — sync kubeconfigs from Git, refresh tokens, rotate credentials. Fully composable.
+  </Card>
+</CardGrid>
+
+## Supported providers
+
+Amazon EKS · Azure AKS · Google GKE · Gardener · Hashicorp Vault · Local filesystem · DigitalOcean · Rancher · Exoscale · OVH · Akamai / Linode · Cluster API (CAPI) · Scaleway (coming soon)
+
+## Quick install
+
+```sh
+brew install kswitch
+echo 'source <(kswitch init zsh)' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Then just type `switch` to start switching contexts.

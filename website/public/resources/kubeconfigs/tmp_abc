@@ -1,0 +1,22 @@
+kind: Config
+apiVersion: v1
+current-context: def
+contexts:
+- name: abc
+  context:
+    cluster: shoot----dev-seed-gcp
+    user: shoot----dev-seed-gcp
+clusters:
+- name: shoot----dev-seed-gcp
+  cluster:
+    certificate-authority-data: ZHVtbXk=
+    server: https://api.dev-seed-gcp..shoot.dev.dummy.com
+users:
+- name: shoot----dev-seed-gcp
+  user:
+    client-certificate-data: ZHVtbXk=
+    client-key-data: ZHVtbXky
+- name: shoot----dev-seed-gcp-basic-auth
+  user:
+    username: admin
+    password: cGFzc3dvcmQ=

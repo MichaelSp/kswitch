@@ -1,0 +1,12 @@
+/* kswitch brand accent */
+:root {
+  --sl-color-accent-low: #1a2456;
+  --sl-color-accent: #4f6ef7;
+  --sl-color-accent-high: #a0b0ff;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #dde4ff;
+  --sl-color-accent: #3a55d4;
+  --sl-color-accent-high: #1a2456;
+}
