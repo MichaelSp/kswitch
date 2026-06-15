@@ -26,7 +26,7 @@ import (
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v3"
 
-	"github.com/linode/linodego"
+	"github.com/linode/linodego/v2"
 	"github.com/sirupsen/logrus"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -74,7 +74,10 @@ func (s *AkamaiStore) InitializeAkamaiStore() error {
 		},
 	}
 
-	linodeClient := linodego.NewClient(oauth2Client)
+	linodeClient, err := linodego.NewClient(oauth2Client)
+	if err != nil {
+		return fmt.Errorf("failed to create linode client: %w", err)
+	}
 
 	s.Client = &linodeClient
 

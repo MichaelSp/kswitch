@@ -43,7 +43,7 @@ require (
 	github.com/exoscale/egoscale/v3 v3.1.38
 	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
-	github.com/linode/linodego v1.69.1
+	github.com/linode/linodego/v2 v2.1.0
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
@@ -130,7 +130,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.3 // indirect
-	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
