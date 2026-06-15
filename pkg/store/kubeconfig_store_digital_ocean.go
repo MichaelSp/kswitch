@@ -24,7 +24,6 @@ import (
 	"github.com/MichaelSp/kswitch/pkg/store/doks"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/disiqueira/gotree"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
@@ -57,7 +56,7 @@ func NewDigitalOceanStore(store types.KubeconfigStore) (*DigitalOceanStore, erro
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load doctl config file")
+		return nil, fmt.Errorf("failed to load doctl config file: %w", err)
 	}
 
 	return &DigitalOceanStore{
@@ -73,7 +72,7 @@ func (d *DigitalOceanStore) InitializeDigitalOceanStore() error {
 	accessToken := d.Config.DefaultAuthContextAccessToken
 	defaultContextClient, err := d.getDoClient(accessToken)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to intialize the client for the default digital ocean account/context (context: %s)", d.Config.DefaultContextName))
+		return fmt.Errorf("failed to intialize the client for the default digital ocean account/context (context: %s): %w", d.Config.DefaultContextName, err)
 	}
 
 	contextToKubernetesService[d.Config.DefaultContextName] = do.NewKubernetesService(defaultContextClient)
@@ -83,7 +82,7 @@ func (d *DigitalOceanStore) InitializeDigitalOceanStore() error {
 	for doctlContextName, token := range d.Config.AuthContexts {
 		doClient, err := d.getDoClient(token)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to intialize digital ocean client (context: %s)", d.Config.DefaultContextName))
+			return fmt.Errorf("failed to intialize digital ocean client (context: %s): %w", d.Config.DefaultContextName, err)
 		}
 
 		contextToKubernetesService[doctlContextName] = do.NewKubernetesService(doClient)
