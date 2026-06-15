@@ -29,8 +29,9 @@ import (
 // the original (unfiltered) items slice. We track the index so that selection
 // is unambiguous even when two entries share the same display label.
 type listEntry struct {
-	displayName string
-	origIndex   int
+	displayName    string
+	origIndex      int
+	matchedIndexes []int // positions in displayName matched by the fuzzy query
 }
 
 // listModel is a minimal bubbletea model for simple string-list selection.
@@ -144,9 +145,9 @@ func (m listModel) View() string {
 	for i := end - 1; i >= start; i-- {
 		name := truncate(m.filtered[i].displayName, m.width-3)
 		if i == m.cursor {
-			rows = append(rows, styleCursor.Render("> ")+styleSelected.Render(name))
+			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, m.filtered[i].matchedIndexes, styleSelected, styleSelected))
 		} else {
-			rows = append(rows, styleDim.Render("  ")+name)
+			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, m.filtered[i].matchedIndexes, lipgloss.NewStyle(), styleMatch))
 		}
 	}
 	for len(rows) < lh {
@@ -200,7 +201,7 @@ func filterStringItems(query string, items []string) []listEntry {
 	matches := fuzzy.Find(query, items)
 	out := make([]listEntry, 0, len(matches))
 	for _, m := range matches {
-		out = append(out, listEntry{displayName: items[m.Index], origIndex: m.Index})
+		out = append(out, listEntry{displayName: items[m.Index], origIndex: m.Index, matchedIndexes: m.MatchedIndexes})
 	}
 	return out
 }
