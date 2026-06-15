@@ -15,12 +15,11 @@
 package kubeconfigutil
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"gopkg.in/yaml.v3"
 )
