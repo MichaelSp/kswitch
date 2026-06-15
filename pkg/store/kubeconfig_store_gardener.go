@@ -25,8 +25,8 @@ import (
 
 	gardenclient "github.com/MichaelSp/kswitch/pkg/store/gardener/copied_gardenctlv2"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
-	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/MichaelSp/kswitch/pkg/util/gotree"
+	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
 	"github.com/sirupsen/logrus"
