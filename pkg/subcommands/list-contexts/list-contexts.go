@@ -16,9 +16,9 @@ package list_contexts
 
 import (
 	"fmt"
+	"path"
 	"sort"
 
-	"github.com/becheran/wildmatch-go"
 	"github.com/sirupsen/logrus"
 
 	"github.com/MichaelSp/kswitch/pkg"
@@ -34,7 +34,7 @@ func ListContexts(pattern string, stores []storetypes.KubeconfigStore, config *t
 		return nil, fmt.Errorf("cannot list contexts: %v", err)
 	}
 
-	m := wildmatch.NewWildMatch(pattern)
+	m := pattern
 	var contexts []string
 	for discoveredKubeconfig := range *c {
 		if discoveredKubeconfig.Error != nil {
@@ -46,8 +46,16 @@ func ListContexts(pattern string, stores []storetypes.KubeconfigStore, config *t
 		if len(discoveredKubeconfig.Alias) > 0 {
 			name = discoveredKubeconfig.Alias
 		}
-		result := m.IsMatch(name)
-		if result {
+		// path.Match supports '*' and '?' wildcards over runes, matching the
+		// pattern semantics kswitch previously got from becheran/wildmatch-go.
+		// path.ErrBadPattern can only be triggered by '[' character classes,
+		// which kubeconfig context names cannot contain — log and skip.
+		matched, err := path.Match(m, name)
+		if err != nil {
+			logger.Warnf("invalid pattern %q: %v", m, err)
+			continue
+		}
+		if matched {
 			contexts = append(contexts, name)
 		}
 	}
