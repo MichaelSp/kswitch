@@ -16,6 +16,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -69,16 +70,20 @@ type Model struct {
 	height int
 }
 
+// stderrRenderer detects color support from stderr (the actual TUI output fd)
+// rather than stdout, which may be redirected by the shell wrapper function.
+var stderrRenderer = lipgloss.NewRenderer(os.Stderr)
+
 var (
-	stylePrompt   = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	styleCursor   = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	styleSelected = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-	styleDim      = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	styleCount    = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
-	styleBorder   = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	stylePreview  = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
-	styleLoading  = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
-	styleMatch    = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	stylePrompt   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	styleCursor   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	styleSelected = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	styleDim      = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	styleCount    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
+	styleBorder   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	stylePreview  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
+	styleLoading  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	styleMatch    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 )
 
 // NewModel creates an initial TUI model.
@@ -88,7 +93,7 @@ func NewModel(stores map[string]storetypes.KubeconfigStore, showPreview bool) Mo
 	ti.Focus()
 	ti.Prompt = "> "
 	ti.PromptStyle = stylePrompt
-	ti.TextStyle = lipgloss.NewStyle().Bold(true)
+	ti.TextStyle = stderrRenderer.NewStyle().Bold(true)
 
 	return Model{
 		stores:      stores,
@@ -234,7 +239,7 @@ func (m Model) renderLeft(width int) string {
 		if i == m.cursor {
 			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, it.matchedIndexes, styleSelected, styleSelected))
 		} else {
-			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, it.matchedIndexes, lipgloss.NewStyle(), styleMatch))
+			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, it.matchedIndexes, stderrRenderer.NewStyle(), styleMatch))
 		}
 	}
 
