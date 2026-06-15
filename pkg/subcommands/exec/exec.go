@@ -17,16 +17,36 @@ package exec
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-cmd/cmd"
 	"github.com/sirupsen/logrus"
-	easy "github.com/t-tomalak/logrus-easy-formatter"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	list_contexts "github.com/MichaelSp/kswitch/pkg/subcommands/list-contexts"
 	setcontext "github.com/MichaelSp/kswitch/pkg/subcommands/set-context"
 	"github.com/MichaelSp/kswitch/types"
 )
+
+// simpleFormatter is a minimal logrus formatter that supports two placeholders:
+// %time% and %msg%. It replaces the abandoned t-tomalak/logrus-easy-formatter
+// dependency while keeping identical output.
+type simpleFormatter struct {
+	TimestampFormat string
+	LogFormat       string
+}
+
+func (f *simpleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	output := f.LogFormat
+	timeFmt := f.TimestampFormat
+	if timeFmt == "" {
+		timeFmt = "2006-01-02 15:04:05"
+	}
+	output = strings.ReplaceAll(output, "%time%", entry.Time.Format(timeFmt))
+	output = strings.ReplaceAll(output, "%msg%", entry.Message)
+	output = strings.ReplaceAll(output, "%lvl%", strings.ToUpper(entry.Level.String()))
+	return []byte(output + "\n"), nil
+}
 
 func ExecuteCommand(pattern string, command []string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, showDebugLogs bool) error {
 	contexts, err := list_contexts.ListContexts(pattern, stores, config, stateDir, noIndex)
@@ -35,13 +55,13 @@ func ExecuteCommand(pattern string, command []string, stores []storetypes.Kubeco
 	}
 
 	timestampedLogger := logrus.New()
-	timestampedLogger.SetFormatter(&easy.Formatter{
+	timestampedLogger.SetFormatter(&simpleFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
 		LogFormat:       "[%time%] %msg%",
 	})
 
 	plainLogger := logrus.New()
-	plainLogger.SetFormatter(&easy.Formatter{
+	plainLogger.SetFormatter(&simpleFormatter{
 		LogFormat: "%msg%",
 	})
 
