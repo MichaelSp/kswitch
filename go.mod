@@ -19,8 +19,8 @@ require (
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/jedib0t/go-pretty/v6 v6.8.1
 	github.com/karrick/godirwalk v1.17.0
-	github.com/onsi/ginkgo/v2 v2.30.0
-	github.com/onsi/gomega v1.41.0
+	github.com/onsi/ginkgo/v2 v2.31.0
+	github.com/onsi/gomega v1.42.0
 	github.com/pkg/errors v0.9.1
 	github.com/rancher/norman v0.9.7
 	github.com/rancher/rancher/pkg/client v0.0.0-20260613014404-91d55071283d
@@ -38,7 +38,7 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice v1.0.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.3.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
