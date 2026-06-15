@@ -14,7 +14,12 @@
 
 package tui
 
-import "github.com/sahilm/fuzzy"
+import (
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/sahilm/fuzzy"
+)
 
 // filterItems returns items matching query using fuzzy matching.
 // If query is empty, all items are returned in original order.
@@ -22,6 +27,9 @@ func filterItems(query string, items []item) []item {
 	if query == "" {
 		out := make([]item, len(items))
 		copy(out, items)
+		for i := range out {
+			out[i].matchedIndexes = nil
+		}
 		return out
 	}
 
@@ -33,7 +41,54 @@ func filterItems(query string, items []item) []item {
 	matches := fuzzy.Find(query, names)
 	out := make([]item, 0, len(matches))
 	for _, m := range matches {
-		out = append(out, items[m.Index])
+		it := items[m.Index]
+		it.matchedIndexes = m.MatchedIndexes
+		out = append(out, it)
 	}
 	return out
+}
+
+// highlightMatches renders s with matched character positions highlighted using
+// hlStyle, and the rest of the text rendered with baseStyle.
+func highlightMatches(s string, indexes []int, baseStyle, hlStyle lipgloss.Style) string {
+	if len(indexes) == 0 {
+		return baseStyle.Render(s)
+	}
+
+	matched := make(map[int]bool, len(indexes))
+	for _, idx := range indexes {
+		matched[idx] = true
+	}
+
+	runes := []rune(s)
+	var sb strings.Builder
+	inMatch := false
+	segStart := 0
+
+	flush := func(end int, wasMatch bool) {
+		if segStart >= end {
+			return
+		}
+		seg := string(runes[segStart:end])
+		if wasMatch {
+			sb.WriteString(hlStyle.Render(seg))
+		} else {
+			sb.WriteString(baseStyle.Render(seg))
+		}
+	}
+
+	for i := range runes {
+		isMatch := matched[i]
+		if i == 0 {
+			inMatch = isMatch
+			continue
+		}
+		if isMatch != inMatch {
+			flush(i, inMatch)
+			segStart = i
+			inMatch = isMatch
+		}
+	}
+	flush(len(runes), inMatch)
+	return sb.String()
 }
