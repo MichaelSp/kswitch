@@ -22,12 +22,12 @@ import (
 	"time"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/util/gotree"
 	"github.com/MichaelSp/kswitch/types"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	awsekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/smithy-go/logging"
-	"github.com/disiqueira/gotree"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )

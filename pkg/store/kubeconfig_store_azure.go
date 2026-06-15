@@ -24,7 +24,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
-	"github.com/disiqueira/gotree"
+	"github.com/MichaelSp/kswitch/pkg/util/gotree"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"

@@ -23,7 +23,7 @@ import (
 
 	"github.com/MichaelSp/kswitch/pkg/store/doks"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
-	"github.com/disiqueira/gotree"
+	"github.com/MichaelSp/kswitch/pkg/util/gotree"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
