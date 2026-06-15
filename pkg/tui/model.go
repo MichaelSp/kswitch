@@ -26,11 +26,12 @@ import (
 
 // item represents a discovered kubeconfig context entry.
 type item struct {
-	displayName string // rich display name shown in the TUI list
-	contextName string // actual context name (or alias) used for kubeconfig lookup
-	path        string
-	tags        map[string]string
-	storeID     string
+	displayName    string // rich display name shown in the TUI list
+	contextName    string // actual context name (or alias) used for kubeconfig lookup
+	path           string
+	tags           map[string]string
+	storeID        string
+	matchedIndexes []int // positions in displayName that matched the query (for highlighting)
 }
 
 // itemsMsg is sent by the discovery goroutine with a batch of new items.
@@ -77,6 +78,7 @@ var (
 	styleBorder   = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
 	stylePreview  = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
 	styleLoading  = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	styleMatch    = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 )
 
 // NewModel creates an initial TUI model.
@@ -230,9 +232,9 @@ func (m Model) renderLeft(width int) string {
 		it := m.filtered[i]
 		name := truncate(it.displayName, width-3)
 		if i == m.cursor {
-			rows = append(rows, styleCursor.Render("> ")+styleSelected.Render(name))
+			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, it.matchedIndexes, styleSelected, styleSelected))
 		} else {
-			rows = append(rows, styleDim.Render("  ")+name)
+			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, it.matchedIndexes, lipgloss.NewStyle(), styleMatch))
 		}
 	}
 
