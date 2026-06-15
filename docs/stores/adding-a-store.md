@@ -1,3 +1,7 @@
+---
+title: Adding a store
+---
+
 # Adding a new kubeconfig store
 
 This guide explains how to add support for a new backing store (a cloud

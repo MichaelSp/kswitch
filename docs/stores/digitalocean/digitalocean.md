@@ -1,3 +1,7 @@
+---
+title: DigitalOcean DOKS
+---
+
 # DigitalOcean store
 `Kswitch` depends on `doctl` - the official DigitalOcean command line client - for its configuration.
 Both `doctl` as well as `Kswitch` support multiple different accounts (called `contexts` in `doctl` terms).

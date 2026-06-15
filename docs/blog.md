@@ -1,3 +1,7 @@
+---
+title: ublog
+---
+
 # The case of kswitch
 
 Managing a handful of Kubeconfig files and contexts is straightforward and well-supported by existing tools.

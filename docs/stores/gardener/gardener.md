@@ -1,3 +1,7 @@
+---
+title: Gardener
+---
+
 # Configure Gardener store
 
 Kswitch can search through multiple [Gardener](https://gardener.cloud) installations for kubeconfigs

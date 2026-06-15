@@ -1,3 +1,7 @@
+---
+title: Search index
+---
+
 # Search Index
 
 The search index is a file in the `state directory` (default: `~/.kube/switch-state/switch.<store>.<id>.index`)
@@ -11,7 +15,7 @@ Using the search index is especially useful when
 
 Compared to the example in the [hot reload feature](../README.md#hot-reload), see that all the Kubeconfig contexts are available almost instantly.
 
-![demo GIF](../resources/gifs/index-demo.gif)
+![demo GIF](/kswitch/resources/gifs/index-demo.gif)
 
 Per default, the search index is **not** used.
 

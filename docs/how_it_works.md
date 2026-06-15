@@ -1,3 +1,7 @@
+---
+title: How it works
+---
+
 # How it works
 
 `Kswitch` consists of two components:

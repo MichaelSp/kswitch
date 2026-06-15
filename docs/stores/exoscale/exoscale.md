@@ -1,3 +1,7 @@
+---
+title: Exoscale
+---
+
 # Exoscale store
 
 You need to create an IAM role with the following allowed operations:

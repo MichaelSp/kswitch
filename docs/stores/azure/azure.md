@@ -1,3 +1,7 @@
+---
+title: Azure AKS
+---
+
 # Azure store
 
 Kswitch can discover AKS clusters from Azure.

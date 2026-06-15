@@ -1,3 +1,7 @@
+---
+title: Vault
+---
+
 # Use the Vault store
 
 To use Vault as a Kubeconfig store, please first [setup Vault](setup_vault.md).

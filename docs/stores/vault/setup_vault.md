@@ -1,3 +1,7 @@
+---
+title: Setup Vault
+---
+
 # Setup Vault for `kswitch`
 
 Vault can be used as the kubeconfig store for `kswitch`.

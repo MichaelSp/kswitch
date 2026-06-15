@@ -1,3 +1,7 @@
+---
+title: Google GKE
+---
+
 # GKE store
 
 Kswitch can discover Google Kubernetes Engine (GKE) clusters with the help of a locally installed `gcloud` tool.

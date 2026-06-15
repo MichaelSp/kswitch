@@ -1,3 +1,7 @@
+---
+title: Installation
+---
+
 # Installation
 
 The kswitch installation consists of both a `kswitch` binary and a shell script which needs to be sourced.

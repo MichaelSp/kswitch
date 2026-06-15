@@ -1,3 +1,7 @@
+---
+title: Rancher
+---
+
 # Rancher store
 
 To use the Rancher store an API token is required. The token can be created in the Rancher UI.

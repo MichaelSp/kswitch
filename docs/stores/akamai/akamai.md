@@ -1,3 +1,7 @@
+---
+title: Akamai / Linode
+---
+
 # Akamai store
 
 To use the Akamai store a token should be created [on linode's website](https://cloud.linode.com/profile/tokens)

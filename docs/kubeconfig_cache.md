@@ -1,3 +1,7 @@
+---
+title: Kubeconfig cache
+---
+
 # Configure Kubeconfig stores
 
 kswitch supports multiple remote config stores. Every time kswitch is called, the kubeconfig file is downloaded again.

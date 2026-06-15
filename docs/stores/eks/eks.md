@@ -1,3 +1,7 @@
+---
+title: Amazon EKS
+---
+
 # EKS store
 
 Kswitch can discover EKS clusters from AWS.

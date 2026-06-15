@@ -1,0 +1,1 @@
+/Users/d067570/.claudel/claudel-vm/repos/com/MichaelSp/kswitch/docs/blog.md

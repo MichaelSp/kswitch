@@ -1,3 +1,7 @@
+---
+title: Cluster API (CAPI)
+---
+
 # Cluster API (capi) store
 
 To use the Cluster API (capi) store a kubeconfig file should be created for the management cluster.

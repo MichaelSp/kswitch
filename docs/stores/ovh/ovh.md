@@ -1,3 +1,7 @@
+---
+title: OVH
+---
+
 # OVH store
 
 To use the OVH store a token should be created on OVH's website. In order to create a token you should visit https://www.ovh.com/auth/api/createToken. You will get an `application key`, `application secret` and a `consumer key`.

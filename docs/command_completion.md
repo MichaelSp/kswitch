@@ -1,3 +1,7 @@
+---
+title: Command completion
+---
+
 # Command completion 
 
 **Note**: this is typically not needed, as when installing the shell function manually via [source the shell function](#source-the-shell-function), the completion script is already included.

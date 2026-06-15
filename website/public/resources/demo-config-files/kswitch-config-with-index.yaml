@@ -1,5 +1,0 @@
-kind: SwitchConfig
-version: v1alpha1
-refreshIndexAfter: 1h0m0s
-hooks: []
-kubeconfigStores: []

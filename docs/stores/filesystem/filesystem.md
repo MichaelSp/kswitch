@@ -1,3 +1,7 @@
+---
+title: Filesystem store
+---
+
 # Filesystem store
 
 Search for kubeconfig files on the local filesystem.
