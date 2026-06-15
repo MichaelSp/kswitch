@@ -18,26 +18,24 @@ import (
 	"fmt"
 
 	"github.com/rancher/norman/clientbase"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 )
 
-func NewRancherStore(store types.KubeconfigStore) (*RancherStore, error) {
-	rancherStoreConfig := &types.StoreConfigRancher{}
-	if store.Config != nil {
-		buf, err := yaml.Marshal(store.Config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process Rancher store config: %w", err)
-		}
+func init() {
+	Register(types.StoreKindRancher, func(s types.KubeconfigStore, deps Dependencies) (storetypes.KubeconfigStore, error) {
+		return NewRancherStore(s)
+	})
+}
 
-		err = yaml.Unmarshal(buf, rancherStoreConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Rancher config: %w", err)
-		}
+var _ storetypes.KubeconfigStore = (*RancherStore)(nil)
+
+func NewRancherStore(store types.KubeconfigStore) (*RancherStore, error) {
+	rancherStoreConfig, err := ParseStoreConfig[types.StoreConfigRancher](store)
+	if err != nil {
+		return nil, err
 	}
 
 	rancherAPIAddress := rancherStoreConfig.RancherAPIAddress
@@ -51,8 +49,7 @@ func NewRancherStore(store types.KubeconfigStore) (*RancherStore, error) {
 	}
 
 	return &RancherStore{
-		Logger:          logrus.New().WithField("store", types.StoreKindRancher),
-		KubeconfigStore: store,
+		BaseStore: NewBaseStore(types.StoreKindRancher, store),
 		ClientOpts: &clientbase.ClientOpts{
 			URL:      rancherAPIAddress,
 			TokenKey: rancherToken,
@@ -60,31 +57,11 @@ func NewRancherStore(store types.KubeconfigStore) (*RancherStore, error) {
 	}, nil
 }
 
-func (r *RancherStore) GetID() string {
-	id := "default"
-	if r.KubeconfigStore.ID != nil {
-		id = *r.KubeconfigStore.ID
-	}
-	return fmt.Sprintf("%s.%s", types.StoreKindRancher, id)
-}
-
 func (r *RancherStore) GetContextPrefix(path string) string {
 	if r.GetStoreConfig().ShowPrefix != nil && !*r.GetStoreConfig().ShowPrefix {
 		return ""
 	}
 	return path
-}
-
-func (r *RancherStore) GetKind() types.StoreKind {
-	return types.StoreKindRancher
-}
-
-func (r *RancherStore) GetStoreConfig() types.KubeconfigStore {
-	return r.KubeconfigStore
-}
-
-func (r *RancherStore) GetLogger() *logrus.Entry {
-	return r.Logger
 }
 
 // initClient initializes the Rancher client
@@ -161,8 +138,4 @@ func (r *RancherStore) GetKubeconfigForPath(path string, _ map[string]string) ([
 		return nil, fmt.Errorf("failed to get kubeconfig for cluster '%s': %w", path, err)
 	}
 	return []byte(kubeconfig.Config), nil
-}
-
-func (r *RancherStore) VerifyKubeconfigPaths() error {
-	return nil
 }
