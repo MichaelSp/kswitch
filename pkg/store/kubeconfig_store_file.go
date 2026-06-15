@@ -16,13 +16,13 @@ package store
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/karrick/godirwalk"
 	"github.com/sirupsen/logrus"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -92,29 +92,64 @@ func (s *FilesystemStore) searchDirectory(
 ) {
 	defer wg.Done()
 
-	if err := godirwalk.Walk(searchPath, &godirwalk.Options{
-		Callback: func(osPathname string, _ *godirwalk.Dirent) error {
-			fileName := filepath.Base(osPathname)
-			matched, err := filepath.Match(s.KubeconfigName, fileName)
-			if err != nil {
-				return err
+	if err := walkFollowSymlinks(searchPath, func(osPathname string, _ fs.DirEntry) error {
+		fileName := filepath.Base(osPathname)
+		matched, err := filepath.Match(s.KubeconfigName, fileName)
+		if err != nil {
+			return err
+		}
+		if matched {
+			channel <- storetypes.SearchResult{
+				KubeconfigPath: osPathname,
+				Error:          nil,
 			}
-			if matched {
-				channel <- storetypes.SearchResult{
-					KubeconfigPath: osPathname,
-					Error:          nil,
-				}
-			}
-			return nil
-		},
-		Unsorted:            false, // (optional) set true for faster yet non-deterministic enumeration
-		FollowSymbolicLinks: true,
+		}
+		return nil
 	}); err != nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
 			Error:          fmt.Errorf("failed to find kubeconfig files in directory: %v", err),
 		}
 	}
+}
+
+// walkFollowSymlinks walks the file tree rooted at root, following directory symlinks.
+// It mirrors the behaviour previously provided by godirwalk.Walk with
+// FollowSymbolicLinks=true and Unsorted=false. Symlink loops are guarded by
+// tracking visited canonical directory paths.
+func walkFollowSymlinks(root string, fn func(path string, d fs.DirEntry) error) error {
+	visited := map[string]struct{}{}
+	return walkFollowSymlinksInner(root, fn, visited)
+}
+
+func walkFollowSymlinksInner(root string, fn func(path string, d fs.DirEntry) error, visited map[string]struct{}) error {
+	if real, err := filepath.EvalSymlinks(root); err == nil {
+		if _, seen := visited[real]; seen {
+			return nil
+		}
+		visited[real] = struct{}{}
+	}
+
+	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		// Follow directory symlinks manually since WalkDir does not.
+		if d.Type()&fs.ModeSymlink != 0 {
+			info, statErr := os.Stat(path)
+			if statErr != nil {
+				// Broken symlink: skip silently as godirwalk did by default.
+				return nil
+			}
+			if info.IsDir() {
+				if err := walkFollowSymlinksInner(path, fn, visited); err != nil {
+					return err
+				}
+				return nil
+			}
+		}
+		return fn(path, d)
+	})
 }
 
 func (s *FilesystemStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
