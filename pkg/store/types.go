@@ -58,18 +58,18 @@ type VaultStore struct {
 
 type GardenerStore struct {
 	BaseStore
-	GardenClient              gardenclient.Client
-	Client                    client.Client
-	Config                    *types.StoreConfigGardener
-	LandscapeIdentity         string
-	LandscapeName             string
-	StateDirectory            string
-	CachePathToShoot          map[string]gardencorev1beta1.Shoot
-	PathToShootLock           sync.RWMutex
-	CachePathToManagedSeed    map[string]seedmanagementv1alpha1.ManagedSeed
-	PathToManagedSeedLock     sync.RWMutex
-	CacheCaSecretNameToSecret map[string]corev1.Secret
-	CaSecretNameToSecretLock  sync.RWMutex
+	GardenClient           gardenclient.Client
+	Client                 client.Client
+	Config                 *types.StoreConfigGardener
+	LandscapeIdentity      string
+	LandscapeName          string
+	StateDirectory         string
+	CachePathToShoot       map[string]gardencorev1beta1.Shoot
+	PathToShootLock        sync.RWMutex
+	CachePathToManagedSeed map[string]seedmanagementv1alpha1.ManagedSeed
+	PathToManagedSeedLock  sync.RWMutex
+	CacheCaNameToCACM      map[string]corev1.ConfigMap
+	CaNameToCACMLock       sync.RWMutex
 }
 
 type EKSStore struct {

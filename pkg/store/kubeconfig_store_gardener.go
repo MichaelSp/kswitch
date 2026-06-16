@@ -113,13 +113,13 @@ func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerSt
 	}
 
 	return &GardenerStore{
-		BaseStore:                NewBaseStore(types.StoreKindGardener, store),
-		Config:                   config,
-		LandscapeName:            landscapeName,
-		StateDirectory:           stateDir,
-		PathToShootLock:          sync.RWMutex{},
-		PathToManagedSeedLock:    sync.RWMutex{},
-		CaSecretNameToSecretLock: sync.RWMutex{},
+		BaseStore:             NewBaseStore(types.StoreKindGardener, store),
+		Config:                config,
+		LandscapeName:         landscapeName,
+		StateDirectory:        stateDir,
+		PathToShootLock:       sync.RWMutex{},
+		PathToManagedSeedLock: sync.RWMutex{},
+		CaNameToCACMLock:      sync.RWMutex{},
 	}, nil
 }
 
@@ -332,8 +332,8 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	var (
-		shootList  []gardencorev1beta1.Shoot
-		secretList []corev1.Secret
+		shootList []gardencorev1beta1.Shoot
+		cmList    []corev1.ConfigMap
 	)
 	for _, path := range s.KubeconfigStore.Paths {
 		var namespacesToSearch []string
@@ -343,12 +343,12 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 			shoots, err := s.GardenClient.ListShoots(ctx, &client.ListOptions{})
 			if err == nil {
 				selector := labels.SelectorFromSet(labels.Set{"gardener.cloud/role": "ca-cluster"})
-				secrets := &corev1.SecretList{}
-				if listErr := s.Client.List(ctx, secrets, &client.ListOptions{LabelSelector: selector}); listErr != nil {
-					s.Logger.Debugf("failed to list CA secrets across all namespaces: %v", listErr)
+				cms := &corev1.ConfigMapList{}
+				if listErr := s.Client.List(ctx, cms, &client.ListOptions{LabelSelector: selector}); listErr != nil {
+					s.Logger.Debugf("failed to list CA configmaps across all namespaces: %v", listErr)
 				}
 				shootList = append(shootList, shoots.Items...)
-				secretList = append(secretList, secrets.Items...)
+				cmList = append(cmList, cms.Items...)
 				break
 			}
 
@@ -385,17 +385,11 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 			}
 
 			selector := labels.SelectorFromSet(labels.Set{"gardener.cloud/role": "ca-cluster"})
-			secrets := &corev1.SecretList{}
-			if listErr := s.Client.List(ctx, secrets, &client.ListOptions{Namespace: ns, LabelSelector: selector}); listErr != nil {
-				if !apierrors.IsForbidden(listErr) {
-					channel <- storetypes.SearchResult{
-						Error: fmt.Errorf("failed to list CA secrets for namespace %q: %v", ns, listErr),
-					}
-					return
-				}
-				s.Logger.Debugf("skipping CA secrets for namespace %q: no list permission", ns)
+			cms := &corev1.ConfigMapList{}
+			if listErr := s.Client.List(ctx, cms, &client.ListOptions{Namespace: ns, LabelSelector: selector}); listErr != nil {
+				s.Logger.Debugf("skipping CA configmaps for namespace %q: %v", ns, listErr)
 			} else {
-				secretList = append(secretList, secrets.Items...)
+				cmList = append(cmList, cms.Items...)
 			}
 
 			shootList = append(shootList, shoots.Items...)
@@ -414,9 +408,9 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	// for memoization
-	s.CacheCaSecretNameToSecret = make(map[string]corev1.Secret, len(secretList))
-	for _, secret := range secretList {
-		s.writeCacheCaSecretNameToSecretLock(fmt.Sprintf("%s:%s", secret.Namespace, secret.Name), secret)
+	s.CacheCaNameToCACM = make(map[string]corev1.ConfigMap, len(cmList))
+	for _, cm := range cmList {
+		s.writeCacheCaNameToCACMLock(fmt.Sprintf("%s:%s", cm.Namespace, cm.Name), cm)
 	}
 
 	s.sendKubeconfigPaths(channel, shootList, managedSeeds.Items)
@@ -616,10 +610,10 @@ func (s *GardenerStore) GetKubeconfigForPath(path string, _ map[string]string) (
 		s.Logger.Debugf("Getting kubeconfig for %s (%s/%s)", resource, namespace, name)
 
 		shoot, _ := s.readFromCachePathToShoot(path)
-		caClusterSecretName := fmt.Sprintf("%s:%s.%s", namespace, name, gardenclient.ShootProjectSecretSuffixCACluster)
-		caSecret, _ := s.readFromCacheCaSecretNameToSecretLock(caClusterSecretName)
+		caCMName := fmt.Sprintf("%s:%s.%s", namespace, name, gardenclient.ShootProjectSecretSuffixCACluster)
+		cachedCACM, _ := s.readFromCacheCaNameToCACMLock(caCMName)
 
-		clientConfig, err = s.GardenClient.GetShootClientConfig(ctx, namespace, name, shoot, caSecret)
+		clientConfig, err = s.GardenClient.GetShootClientConfig(ctx, namespace, name, shoot, cachedCACM)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Shoot kubeconfig: %w", err)
 		}
@@ -887,15 +881,15 @@ func (s *GardenerStore) readFromCachePathToManagedSeed(key string) (seedmanageme
 	return managedSeed, ok
 }
 
-func (s *GardenerStore) writeCacheCaSecretNameToSecretLock(key string, value corev1.Secret) {
-	s.CaSecretNameToSecretLock.Lock()
-	defer s.CaSecretNameToSecretLock.Unlock()
-	s.CacheCaSecretNameToSecret[key] = value
+func (s *GardenerStore) writeCacheCaNameToCACMLock(key string, value corev1.ConfigMap) {
+	s.CaNameToCACMLock.Lock()
+	defer s.CaNameToCACMLock.Unlock()
+	s.CacheCaNameToCACM[key] = value
 }
 
-func (s *GardenerStore) readFromCacheCaSecretNameToSecretLock(key string) (corev1.Secret, bool) {
-	s.CaSecretNameToSecretLock.RLock()
-	defer s.CaSecretNameToSecretLock.RUnlock()
-	secret, ok := s.CacheCaSecretNameToSecret[key]
-	return secret, ok
+func (s *GardenerStore) readFromCacheCaNameToCACMLock(key string) (corev1.ConfigMap, bool) {
+	s.CaNameToCACMLock.RLock()
+	defer s.CaNameToCACMLock.RUnlock()
+	cm, ok := s.CacheCaNameToCACM[key]
+	return cm, ok
 }

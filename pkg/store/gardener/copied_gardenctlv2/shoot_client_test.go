@@ -36,20 +36,20 @@ var _ = Describe("GetShootClientConfig address filtering", func() {
 	)
 
 	var (
-		ctx      context.Context
-		shoot    gardencorev1beta1.Shoot
-		caSecret corev1.Secret
+		ctx   context.Context
+		shoot gardencorev1beta1.Shoot
+		caCM  corev1.ConfigMap
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		caSecret = corev1.Secret{
+		caCM = corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      shootName + ".ca-cluster",
 				Namespace: shootNamespace,
 			},
-			Data: map[string][]byte{
-				"ca.crt": []byte(caData),
+			Data: map[string]string{
+				"ca.crt": caData,
 			},
 		}
 		shoot = gardencorev1beta1.Shoot{
@@ -77,8 +77,8 @@ var _ = Describe("GetShootClientConfig address filtering", func() {
 
 	getShootConfig := func(addresses []gardencorev1beta1.ShootAdvertisedAddress) *clientcmdapi.Config {
 		shoot.Status.AdvertisedAddresses = addresses
-		client := buildClient(&shoot, &caSecret)
-		cc, err := client.GetShootClientConfig(ctx, shootNamespace, shootName, shoot, caSecret)
+		client := buildClient(&shoot, &caCM)
+		cc, err := client.GetShootClientConfig(ctx, shootNamespace, shootName, shoot, caCM)
 		Expect(err).NotTo(HaveOccurred())
 		raw, err := cc.RawConfig()
 		Expect(err).NotTo(HaveOccurred())
