@@ -119,6 +119,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/digitalocean/doctl v1.161.0 h1:YjGL5v0f+4KZGcgC/vFcMlIkZqutrLXCPqNA1kVrRD0=
 github.com/digitalocean/doctl v1.161.0/go.mod h1:qJ6TiscVwYkwdKbsmkf8z3TcSuxxYOQ8zEi5GgQ1QkY=
+github.com/digitalocean/doctl v1.162.0 h1:XmywFr3TaLyCfQEakbtbgGtKNHBfIpIk3160TxU2SjQ=
+github.com/digitalocean/doctl v1.162.0/go.mod h1:EjxwhswOPy5mu5pPZ1qADdNtyjyvEQ0BPTRS5wAhWMU=
 github.com/digitalocean/godo v1.195.0 h1:khMlHpzi3VCfgZZnRcNSzLmXodk/3MIcjuuJTCG1jiQ=
 github.com/digitalocean/godo v1.195.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/distribution/reference v0.6.0 h1:0IXCQ5g4/QMHHkarYzh5l+u8T3t73zM5QvfrDyIgxBk=
