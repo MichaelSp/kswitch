@@ -76,35 +76,56 @@ func TestParseSanitizedKubeconfig(t *testing.T) {
 }
 
 func TestGetContextsNamesFromKubeconfig(t *testing.T) {
-	t.Run("with prefix", func(t *testing.T) {
+	t.Run("with prefix - returns only current-context when set", func(t *testing.T) {
 		names, err := GetContextsNamesFromKubeconfig([]byte(validKubeconfig), "myprefix")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		expected := []string{"myprefix/ctx1", "myprefix/ctx2"}
+		// validKubeconfig has current-context: ctx1, so only that context is returned
+		expected := []string{"myprefix/ctx1"}
 		if len(names) != len(expected) {
 			t.Fatalf("expected %d names, got %d (%v)", len(expected), len(names), names)
 		}
-		for i, n := range names {
-			if n != expected[i] {
-				t.Errorf("name[%d] = %q, want %q", i, n, expected[i])
-			}
+		if names[0] != expected[0] {
+			t.Errorf("name[0] = %q, want %q", names[0], expected[0])
 		}
 	})
 
-	t.Run("without prefix", func(t *testing.T) {
+	t.Run("without prefix - returns only current-context when set", func(t *testing.T) {
 		names, err := GetContextsNamesFromKubeconfig([]byte(validKubeconfig), "")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		expected := []string{"ctx1", "ctx2"}
+		// validKubeconfig has current-context: ctx1, so only that context is returned
+		expected := []string{"ctx1"}
 		if len(names) != len(expected) {
 			t.Fatalf("expected %d names, got %d (%v)", len(expected), len(names), names)
 		}
-		for i, n := range names {
-			if n != expected[i] {
-				t.Errorf("name[%d] = %q, want %q", i, n, expected[i])
-			}
+		if names[0] != expected[0] {
+			t.Errorf("name[0] = %q, want %q", names[0], expected[0])
+		}
+	})
+
+	t.Run("no current-context - returns all contexts", func(t *testing.T) {
+		noCurrentCtxKubeconfig := `apiVersion: v1
+kind: Config
+contexts:
+- name: ctx1
+  context:
+    cluster: cluster1
+    user: user1
+- name: ctx2
+  context:
+    cluster: cluster2
+    user: user2
+current-context: ""
+`
+		names, err := GetContextsNamesFromKubeconfig([]byte(noCurrentCtxKubeconfig), "p")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(names) != 2 {
+			t.Fatalf("expected 2 names when no current-context, got %d (%v)", len(names), names)
 		}
 	})
 
