@@ -36,9 +36,9 @@ var _ = Describe("GetShootClientConfig address filtering", func() {
 	)
 
 	var (
-		ctx    context.Context
-		shoot  gardencorev1beta1.Shoot
-		caCM   corev1.ConfigMap
+		ctx   context.Context
+		shoot gardencorev1beta1.Shoot
+		caCM  corev1.ConfigMap
 	)
 
 	BeforeEach(func() {

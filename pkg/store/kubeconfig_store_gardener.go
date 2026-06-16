@@ -113,13 +113,13 @@ func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerSt
 	}
 
 	return &GardenerStore{
-		BaseStore:         NewBaseStore(types.StoreKindGardener, store),
-		Config:            config,
-		LandscapeName:     landscapeName,
-		StateDirectory:    stateDir,
-		PathToShootLock:   sync.RWMutex{},
+		BaseStore:             NewBaseStore(types.StoreKindGardener, store),
+		Config:                config,
+		LandscapeName:         landscapeName,
+		StateDirectory:        stateDir,
+		PathToShootLock:       sync.RWMutex{},
 		PathToManagedSeedLock: sync.RWMutex{},
-		CaNameToCACMLock:  sync.RWMutex{},
+		CaNameToCACMLock:      sync.RWMutex{},
 	}, nil
 }
 
