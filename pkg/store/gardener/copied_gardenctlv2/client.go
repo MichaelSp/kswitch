@@ -63,7 +63,7 @@ type Client interface {
 	// ListShoots returns all Gardener shoot resources, filtered by a list option
 	ListShoots(ctx context.Context, opts ...client.ListOption) (*gardencorev1beta1.ShootList, error)
 	// GetShootClientConfig returns the client config for a shoot
-	GetShootClientConfig(ctx context.Context, namespace, name string, memoizedShoot gardencorev1beta1.Shoot, memoizedCASecret corev1.Secret) (clientcmd.ClientConfig, error)
+	GetShootClientConfig(ctx context.Context, namespace, name string, memoizedShoot gardencorev1beta1.Shoot, memoizedCACM corev1.ConfigMap) (clientcmd.ClientConfig, error)
 
 	// GetSecretBinding returns a Gardener secretbinding resource
 	GetSecretBinding(ctx context.Context, namespace, name string) (*gardencorev1beta1.SecretBinding, error) //nolint:staticcheck
@@ -286,7 +286,7 @@ func (g *clientImpl) GetSeedClientConfig(ctx context.Context, name string) (clie
 	if shoot, err := g.GetShootOfManagedSeed(ctx, name); err != nil {
 		return nil, err
 	} else if shoot != nil {
-		return g.GetShootClientConfig(ctx, "garden", shoot.Name, gardencorev1beta1.Shoot{}, corev1.Secret{})
+		return g.GetShootClientConfig(ctx, "garden", shoot.Name, gardencorev1beta1.Shoot{}, corev1.ConfigMap{})
 	}
 
 	key := types.NamespacedName{Name: name}

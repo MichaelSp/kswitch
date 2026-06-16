@@ -50,15 +50,21 @@ func ParseSanitizedKubeconfig(data []byte) (*types.KubeConfig, error) {
 }
 
 // getContextNames gets all the context names from the kubeconfig file
-// and sets the parent folder name to each context in the kubeconfig file
+// and sets the parent folder name to each context in the kubeconfig file.
+// When the kubeconfig has a current-context set, only that context is returned —
+// this avoids surfacing secondary contexts (e.g. wildcard-tls-seed-bound) that
+// are generated alongside the primary endpoint but may not be reachable.
 func getContextNames(config *types.KubeConfig, prefix string) []string {
-	var contextNames []string
-
 	// add a trailing slash if prefix is set (for path-like formatting)
 	if len(prefix) != 0 {
 		prefix = fmt.Sprintf("%s/", prefix)
 	}
 
+	if config.CurrentContext != "" {
+		return []string{fmt.Sprintf("%s%s", prefix, config.CurrentContext)}
+	}
+
+	var contextNames []string
 	for _, context := range config.Contexts {
 		contextNames = append(contextNames, fmt.Sprintf("%s%s", prefix, context.Name))
 	}

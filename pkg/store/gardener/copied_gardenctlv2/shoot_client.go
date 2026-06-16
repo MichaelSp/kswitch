@@ -199,7 +199,7 @@ func (k *shootKubeconfigRequest) generate(legacy bool) (*clientcmdapi.Config, er
 	return config, nil
 }
 
-func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name string, shoot gardencorev1beta1.Shoot, caClusterSecret corev1.Secret) (clientcmd.ClientConfig, error) {
+func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name string, shoot gardencorev1beta1.Shoot, memoizedCACM corev1.ConfigMap) (clientcmd.ClientConfig, error) {
 	if len(g.name) == 0 {
 		return nil, errors.New("garden name must not be empty")
 	}
@@ -217,17 +217,16 @@ func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name s
 		return nil, errors.New("no advertised addresses listed in the Shoot status for the Shoot Kube API server")
 	}
 
-	// fetch cluster ca
-	caClusterSecretName := fmt.Sprintf("%s.%s", name, ShootProjectSecretSuffixCACluster)
-	if caClusterSecret.Name == "" {
-		if err := g.c.Get(ctx, types.NamespacedName{Namespace: namespace, Name: caClusterSecretName}, &caClusterSecret); err != nil {
-			return nil, err
+	// fetch cluster CA from the public ConfigMap (<shoot>.ca-cluster)
+	caClusterName := fmt.Sprintf("%s.%s", name, ShootProjectSecretSuffixCACluster)
+	var caCert []byte
+	if memoizedCACM.Name == "" {
+		cm := &corev1.ConfigMap{}
+		if err := g.c.Get(ctx, types.NamespacedName{Namespace: namespace, Name: caClusterName}, cm); err == nil {
+			caCert = []byte(cm.Data[DataKeyCertificateCA])
 		}
-	}
-
-	caCert, ok := caClusterSecret.Data[DataKeyCertificateCA]
-	if !ok || len(caCert) == 0 {
-		return nil, fmt.Errorf("%s of secret %s is empty", DataKeyCertificateCA, caClusterSecretName)
+	} else {
+		caCert = []byte(memoizedCACM.Data[DataKeyCertificateCA])
 	}
 
 	kubeconfigRequest := shootKubeconfigRequest{
@@ -256,6 +255,13 @@ func (g *clientImpl) GetShootClientConfig(ctx context.Context, namespace, name s
 	// have certificate-authority-data set in the kubeconfig.
 	publicCertNames := map[string]bool{
 		"wildcard-tls-seed-bound": true,
+	}
+
+	// When no CA cert is available (secret was inaccessible), only include the external
+	// address. wildcard-tls-seed-bound uses an environment-specific wildcard cert that may
+	// not be trusted by the system root CA pool, making it unreliable without the shoot CA.
+	if len(caCert) == 0 {
+		excludedNames["wildcard-tls-seed-bound"] = true
 	}
 
 	for _, address := range shoot.Status.AdvertisedAddresses {

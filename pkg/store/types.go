@@ -68,8 +68,8 @@ type GardenerStore struct {
 	PathToShootLock           sync.RWMutex
 	CachePathToManagedSeed    map[string]seedmanagementv1alpha1.ManagedSeed
 	PathToManagedSeedLock     sync.RWMutex
-	CacheCaSecretNameToSecret map[string]corev1.Secret
-	CaSecretNameToSecretLock  sync.RWMutex
+	CacheCaNameToCACM  map[string]corev1.ConfigMap
+	CaNameToCACMLock   sync.RWMutex
 }
 
 type EKSStore struct {
