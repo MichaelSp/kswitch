@@ -14,17 +14,17 @@ type fakeStore struct {
 	id string
 }
 
-func (f *fakeStore) GetID() string                          { return f.id }
-func (f *fakeStore) GetKind() types.StoreKind               { return types.StoreKind("fake") }
-func (f *fakeStore) GetContextPrefix(path string) string    { return "" }
-func (f *fakeStore) VerifyKubeconfigPaths() error           { return nil }
+func (f *fakeStore) GetID() string                       { return f.id }
+func (f *fakeStore) GetKind() types.StoreKind            { return types.StoreKind("fake") }
+func (f *fakeStore) GetContextPrefix(path string) string { return "" }
+func (f *fakeStore) VerifyKubeconfigPaths() error        { return nil }
 func (f *fakeStore) StartSearch(channel chan storetypes.SearchResult) {
 	close(channel)
 }
 func (f *fakeStore) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
 	return nil, nil
 }
-func (f *fakeStore) GetLogger() *logrus.Entry         { return logrus.NewEntry(logrus.New()) }
+func (f *fakeStore) GetLogger() *logrus.Entry              { return logrus.NewEntry(logrus.New()) }
 func (f *fakeStore) GetStoreConfig() types.KubeconfigStore { return types.KubeconfigStore{} }
 
 type flushableStore struct {
