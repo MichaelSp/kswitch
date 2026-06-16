@@ -19,16 +19,16 @@ import (
 )
 
 type mockStore struct {
-	id              string
-	kind            types.StoreKind
-	contextPrefix   string
-	verifyErr       error
-	verifyCalls     int
-	getCalls        int
-	getKubeconfig   []byte
-	getErr          error
-	lastPath        string
-	lastTags        map[string]string
+	id            string
+	kind          types.StoreKind
+	contextPrefix string
+	verifyErr     error
+	verifyCalls   int
+	getCalls      int
+	getKubeconfig []byte
+	getErr        error
+	lastPath      string
+	lastTags      map[string]string
 }
 
 func (m *mockStore) GetID() string                            { return m.id }

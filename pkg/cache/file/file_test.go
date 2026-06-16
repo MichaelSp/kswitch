@@ -25,10 +25,10 @@ type mockStore struct {
 	getKubeconfigCt int
 }
 
-func (m *mockStore) GetID() string                          { return m.id }
-func (m *mockStore) GetKind() types.StoreKind               { return m.kind }
-func (m *mockStore) GetContextPrefix(path string) string    { return "" }
-func (m *mockStore) VerifyKubeconfigPaths() error           { return nil }
+func (m *mockStore) GetID() string                               { return m.id }
+func (m *mockStore) GetKind() types.StoreKind                    { return m.kind }
+func (m *mockStore) GetContextPrefix(path string) string         { return "" }
+func (m *mockStore) VerifyKubeconfigPaths() error                { return nil }
 func (m *mockStore) StartSearch(ch chan storetypes.SearchResult) {}
 func (m *mockStore) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
 	m.getKubeconfigCt++
@@ -37,7 +37,7 @@ func (m *mockStore) GetKubeconfigForPath(path string, tags map[string]string) ([
 	}
 	return []byte(minimalKubeconfigYAML), nil
 }
-func (m *mockStore) GetLogger() *logrus.Entry           { return logrus.NewEntry(logrus.New()) }
+func (m *mockStore) GetLogger() *logrus.Entry              { return logrus.NewEntry(logrus.New()) }
 func (m *mockStore) GetStoreConfig() types.KubeconfigStore { return types.KubeconfigStore{} }
 
 func TestNew_NilCacheConfig(t *testing.T) {
