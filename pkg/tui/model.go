@@ -27,12 +27,13 @@ import (
 
 // item represents a discovered kubeconfig context entry.
 type item struct {
-	displayName    string // rich display name shown in the TUI list
+	displayName    string // primary display name shown in the TUI list
+	dimSuffix      string // optional "(…)" suffix rendered dimmer
 	contextName    string // actual context name (or alias) used for kubeconfig lookup
 	path           string
 	tags           map[string]string
 	storeID        string
-	matchedIndexes []int // positions in displayName that matched the query (for highlighting)
+	matchedIndexes []int // positions in displayName+dimSuffix that matched the query (for highlighting)
 }
 
 // itemsMsg is sent by the discovery goroutine with a batch of new items.
@@ -55,9 +56,10 @@ type Model struct {
 	input textinput.Model
 	query string
 
-	allItems []item
-	filtered []item
-	cursor   int
+	allItems   []item
+	filtered   []item
+	cursor     int
+	viewOffset int // index of the bottom-most visible item (fzf-style: cursor sits at bottom)
 
 	previewContent string
 	previewForPath string // path the current preview belongs to
@@ -75,15 +77,16 @@ type Model struct {
 var stderrRenderer = lipgloss.NewRenderer(os.Stderr)
 
 var (
-	stylePrompt   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	styleCursor   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	styleSelected = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-	styleDim      = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	styleCount    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
-	styleBorder   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	stylePreview  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
-	styleLoading  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
-	styleMatch    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	stylePrompt    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	styleCursor    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	styleSelected  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	styleDim       = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	styleDimSuffix = stderrRenderer.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "240", Dark: "245"})
+	styleCount     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
+	styleBorder    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	stylePreview   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
+	styleLoading   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	styleMatch     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 )
 
 // NewModel creates an initial TUI model.
@@ -221,23 +224,54 @@ func (m Model) View() string {
 func (m Model) renderLeft(width int) string {
 	lh := m.listHeight()
 
-	// fzf-style: cursor (best match) sits at the bottom, less-relevant items
-	// above it. Items with higher indices in filtered[] are displayed higher up.
-	// Window: show items [cursor .. cursor+lh-1], rendered top-to-bottom in
-	// reverse order so cursor lands on the bottom row.
-	start := m.cursor
+	// fzf-style: items rendered top-to-bottom in reverse index order so the
+	// lowest-index (best match) item is at the bottom. viewOffset is the index
+	// of the bottom-most visible item; it only scrolls when the cursor leaves
+	// the visible window.
+	start := m.viewOffset
 	end := min(start+lh, len(m.filtered))
 
 	// build rows in reverse (highest index first = topmost row)
 	rows := make([]string, 0, lh)
 	for i := end - 1; i >= start; i-- {
 		it := m.filtered[i]
-		name := truncate(it.displayName, width-3)
-		if i == m.cursor {
-			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, it.matchedIndexes, styleSelected, styleSelected))
-		} else {
-			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, it.matchedIndexes, stderrRenderer.NewStyle(), styleMatch))
+		primaryW := width - 3
+		if it.dimSuffix != "" {
+			// reserve space for " suffix" — suffix rendered after primary
+			primaryW -= len([]rune(it.dimSuffix)) + 1
+			if primaryW < 1 {
+				primaryW = 1
+			}
 		}
+		name := truncate(it.displayName, primaryW)
+
+		// split matchedIndexes: those within primary vs those in the suffix
+		primaryLen := len([]rune(it.displayName))
+		var primaryIdx, suffixIdx []int
+		for _, idx := range it.matchedIndexes {
+			if idx <= primaryLen {
+				primaryIdx = append(primaryIdx, idx)
+			} else {
+				// +1 for the space separator between primary and suffix
+				suffixIdx = append(suffixIdx, idx-primaryLen-1)
+			}
+		}
+
+		var row string
+		if i == m.cursor {
+			row = styleCursor.Render("> ") +
+				highlightMatches(name, primaryIdx, styleSelected, styleSelected)
+			if it.dimSuffix != "" {
+				row += " " + highlightMatches(it.dimSuffix, suffixIdx, styleDimSuffix, styleSelected)
+			}
+		} else {
+			row = styleDim.Render("  ") +
+				highlightMatches(name, primaryIdx, stderrRenderer.NewStyle(), styleMatch)
+			if it.dimSuffix != "" {
+				row += " " + highlightMatches(it.dimSuffix, suffixIdx, styleDimSuffix, styleMatch)
+			}
+		}
+		rows = append(rows, row)
 	}
 
 	// Pad at the top so items are bottom-aligned when fewer than lh exist
@@ -301,11 +335,27 @@ func (m *Model) moveCursor(delta int) {
 	}
 	m.cursor += delta
 	m.clampCursor()
+	m.scrollIntoView()
+}
+
+// scrollIntoView adjusts viewOffset so the cursor is visible without
+// scrolling more than necessary.
+func (m *Model) scrollIntoView() {
+	lh := m.listHeight()
+	// cursor below the visible window → scroll up (increase offset)
+	if m.cursor < m.viewOffset {
+		m.viewOffset = m.cursor
+	}
+	// cursor above the visible window → scroll down (decrease offset)
+	if m.cursor >= m.viewOffset+lh {
+		m.viewOffset = m.cursor - lh + 1
+	}
 }
 
 func (m *Model) clampCursor() {
 	if len(m.filtered) == 0 {
 		m.cursor = 0
+		m.viewOffset = 0
 		return
 	}
 	if m.cursor < 0 {
@@ -314,11 +364,17 @@ func (m *Model) clampCursor() {
 	if m.cursor >= len(m.filtered) {
 		m.cursor = len(m.filtered) - 1
 	}
+	// keep viewOffset sane after list shrinks (e.g. filter change)
+	maxOffset := max(len(m.filtered)-m.listHeight(), 0)
+	if m.viewOffset > maxOffset {
+		m.viewOffset = maxOffset
+	}
 }
 
 func (m *Model) refilter() {
 	m.filtered = filterItems(m.query, m.allItems)
 	m.cursor = 0
+	m.viewOffset = 0
 }
 
 // deleteWord removes the last word from the textinput (Alt+Backspace / ctrl+w).

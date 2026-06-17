@@ -40,6 +40,7 @@ type listModel struct {
 	items         []string
 	filtered      []listEntry
 	cursor        int
+	viewOffset    int // bottom-most visible index (fzf-style)
 	width         int
 	height        int
 	Aborted       bool
@@ -117,6 +118,7 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.query = v
 		m.filtered = filterStringItems(v, m.items)
 		m.cursor = 0
+		m.viewOffset = 0
 	}
 	return m, cmd
 }
@@ -127,8 +129,9 @@ func (m listModel) View() string {
 	}
 	lh := max(m.height-2, 1)
 
-	// fzf-style: cursor at bottom, higher-index items above.
-	start := max(m.cursor, 0)
+	// fzf-style: viewOffset is the bottom-most visible index; only scrolls
+	// when cursor leaves the visible window.
+	start := m.viewOffset
 	end := min(start+lh, len(m.filtered))
 
 	rows := make([]string, 0, lh)
@@ -163,6 +166,13 @@ func (m *listModel) moveCursor(delta int) {
 	if m.cursor >= len(m.filtered) {
 		m.cursor = len(m.filtered) - 1
 	}
+	lh := max(m.height-2, 1)
+	if m.cursor < m.viewOffset {
+		m.viewOffset = m.cursor
+	}
+	if m.cursor >= m.viewOffset+lh {
+		m.viewOffset = m.cursor - lh + 1
+	}
 }
 
 func (m *listModel) deleteWord() {
@@ -178,6 +188,7 @@ func (m *listModel) deleteWord() {
 	m.query = nv
 	m.filtered = filterStringItems(nv, m.items)
 	m.cursor = 0
+	m.viewOffset = 0
 }
 
 func filterStringItems(query string, items []string) []listEntry {

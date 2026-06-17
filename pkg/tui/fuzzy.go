@@ -23,6 +23,8 @@ import (
 
 // filterItems returns items matching query using fuzzy matching.
 // If query is empty, all items are returned in original order.
+// Matching runs on the full search string (primary + suffix) so users can
+// search by either the display name or the technical name in parentheses.
 func filterItems(query string, items []item) []item {
 	if query == "" {
 		out := make([]item, len(items))
@@ -35,7 +37,11 @@ func filterItems(query string, items []item) []item {
 
 	names := make([]string, len(items))
 	for i, it := range items {
-		names[i] = it.displayName
+		if it.dimSuffix != "" {
+			names[i] = it.displayName + " " + it.dimSuffix
+		} else {
+			names[i] = it.displayName
+		}
 	}
 
 	matches := fuzzy.Find(query, names)
