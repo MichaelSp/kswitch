@@ -28,14 +28,14 @@ import (
 
 // stubStore is a minimal KubeconfigStore for testing.
 type stubStore struct {
-	kind      types.StoreKind
+	kind        types.StoreKind
 	kubeconfigs map[string][]byte // path → kubeconfig bytes
 }
 
-func (s *stubStore) GetID() string                        { return string(s.kind) + ".default" }
-func (s *stubStore) GetKind() types.StoreKind             { return s.kind }
-func (s *stubStore) GetContextPrefix(_ string) string     { return string(s.kind) }
-func (s *stubStore) VerifyKubeconfigPaths() error         { return nil }
+func (s *stubStore) GetID() string                              { return string(s.kind) + ".default" }
+func (s *stubStore) GetKind() types.StoreKind                   { return s.kind }
+func (s *stubStore) GetContextPrefix(_ string) string           { return string(s.kind) }
+func (s *stubStore) VerifyKubeconfigPaths() error               { return nil }
 func (s *stubStore) StartSearch(_ chan storetypes.SearchResult) {}
 func (s *stubStore) GetLogger() *logrus.Entry {
 	return logrus.WithField("store", s.kind)
@@ -110,7 +110,7 @@ func TestDeduplicateKindContexts_DropFilesystemDuplicate(t *testing.T) {
 	fs := fsStore(map[string][]byte{"~/.kube/config": kc}) // same cluster, different path
 
 	contexts := []DiscoveredContext{
-		dc(fs, "~/.kube/config", "my-cluster"),  // filesystem copy — should be dropped
+		dc(fs, "~/.kube/config", "my-cluster"),    // filesystem copy — should be dropped
 		dc(kind, "my-cluster", "kind/my-cluster"), // kind copy — should survive
 	}
 
