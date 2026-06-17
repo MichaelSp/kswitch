@@ -21,8 +21,6 @@ import (
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -63,7 +61,9 @@ func makeKubeconfig(t *testing.T, server, ca, contextName string) []byte {
 		},
 	}
 	b, err := yaml.Marshal(kc)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("marshal kubeconfig: %v", err)
+	}
 	return b
 }
 
@@ -87,6 +87,15 @@ func contextNames(contexts []DiscoveredContext) []string {
 	return names
 }
 
+func containsName(contexts []DiscoveredContext, name string) bool {
+	for _, c := range contexts {
+		if c.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 func TestDeduplicateKindContexts_NoDuplicate(t *testing.T) {
 	kc := makeKubeconfig(t, "https://127.0.0.1:6443", "ca-abc", "my-cluster")
 	fs := fsStore(map[string][]byte{"some-other": makeKubeconfig(t, "https://10.0.0.1:6443", "ca-xyz", "other")})
@@ -98,7 +107,9 @@ func TestDeduplicateKindContexts_NoDuplicate(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	assert.Len(t, result, 2)
+	if len(result) != 2 {
+		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
 }
 
 func TestDeduplicateKindContexts_DropFilesystemDuplicate(t *testing.T) {
@@ -115,8 +126,12 @@ func TestDeduplicateKindContexts_DropFilesystemDuplicate(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	require.Len(t, result, 1)
-	assert.Equal(t, "kind/my-cluster", result[0].Name)
+	if len(result) != 1 {
+		t.Fatalf("expected 1 context, got %d: %v", len(result), contextNames(result))
+	}
+	if result[0].Name != "kind/my-cluster" {
+		t.Errorf("expected kind/my-cluster, got %q", result[0].Name)
+	}
 }
 
 func TestDeduplicateKindContexts_KindOrderDoesNotMatter(t *testing.T) {
@@ -134,8 +149,12 @@ func TestDeduplicateKindContexts_KindOrderDoesNotMatter(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	require.Len(t, result, 1)
-	assert.Equal(t, "kind/my-cluster", result[0].Name)
+	if len(result) != 1 {
+		t.Fatalf("expected 1 context, got %d: %v", len(result), contextNames(result))
+	}
+	if result[0].Name != "kind/my-cluster" {
+		t.Errorf("expected kind/my-cluster, got %q", result[0].Name)
+	}
 }
 
 func TestDeduplicateKindContexts_NoKindStore(t *testing.T) {
@@ -150,7 +169,9 @@ func TestDeduplicateKindContexts_NoKindStore(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	assert.Len(t, result, 2)
+	if len(result) != 2 {
+		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
 }
 
 func TestDeduplicateKindContexts_MultipleKindClusters(t *testing.T) {
@@ -177,7 +198,14 @@ func TestDeduplicateKindContexts_MultipleKindClusters(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	assert.ElementsMatch(t, []string{"cluster-c", "kind/cluster-a", "kind/cluster-b"}, contextNames(result))
+	if len(result) != 3 {
+		t.Fatalf("expected 3 contexts, got %d: %v", len(result), contextNames(result))
+	}
+	for _, want := range []string{"cluster-c", "kind/cluster-a", "kind/cluster-b"} {
+		if !containsName(result, want) {
+			t.Errorf("expected %q in result, got %v", want, contextNames(result))
+		}
+	}
 }
 
 func TestDeduplicateKindContexts_KubeconfigFetchError(t *testing.T) {
@@ -193,5 +221,7 @@ func TestDeduplicateKindContexts_KubeconfigFetchError(t *testing.T) {
 	}
 
 	result := deduplicateKindContexts(contexts)
-	assert.Len(t, result, 2)
+	if len(result) != 2 {
+		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
 }

@@ -23,8 +23,6 @@ import (
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // fakeKindBinary writes a shell script that emulates a subset of `kind`
@@ -32,7 +30,6 @@ import (
 func fakeKindBinary(t *testing.T, clusters []string, kubeconfigContents map[string]string) string {
 	t.Helper()
 
-	// Build the cluster list output
 	var clusterListBuilder strings.Builder
 	for _, c := range clusters {
 		clusterListBuilder.WriteString(c)
@@ -40,7 +37,6 @@ func fakeKindBinary(t *testing.T, clusters []string, kubeconfigContents map[stri
 	}
 	clusterList := clusterListBuilder.String()
 
-	// Build per-cluster kubeconfig case branches
 	var caseBranchBuilder strings.Builder
 	for name, kc := range kubeconfigContents {
 		caseBranchBuilder.WriteString("    " + name + ")\n      echo '" + kc + "'\n      ;;\n")
@@ -74,7 +70,9 @@ esac
 
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "kind")
-	require.NoError(t, os.WriteFile(bin, []byte(script), 0o755))
+	if err := os.WriteFile(bin, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake kind binary: %v", err)
+	}
 	return bin
 }
 
@@ -87,34 +85,43 @@ func newKindStoreWithBinary(t *testing.T, binary string) *KindStore {
 		},
 	}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewKindStore: %v", err)
+	}
 	return s
 }
 
 func TestNewKindStore_DefaultBinary(t *testing.T) {
 	store := types.KubeconfigStore{Kind: types.StoreKindKind}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
-	assert.Equal(t, "kind", s.Config.KindBinary)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if s.Config.KindBinary != "kind" {
+		t.Errorf("KindBinary = %q, want %q", s.Config.KindBinary, "kind")
+	}
 }
 
 func TestNewKindStore_CustomBinary(t *testing.T) {
 	store := types.KubeconfigStore{
-		Kind: types.StoreKindKind,
-		Config: types.StoreConfigKind{
-			KindBinary: "/usr/local/bin/kind",
-		},
+		Kind:   types.StoreKindKind,
+		Config: types.StoreConfigKind{KindBinary: "/usr/local/bin/kind"},
 	}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
-	assert.Equal(t, "/usr/local/bin/kind", s.Config.KindBinary)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if s.Config.KindBinary != "/usr/local/bin/kind" {
+		t.Errorf("KindBinary = %q, want %q", s.Config.KindBinary, "/usr/local/bin/kind")
+	}
 }
 
 func TestKindStore_GetContextPrefix(t *testing.T) {
 	bin := fakeKindBinary(t, nil, nil)
 	s := newKindStoreWithBinary(t, bin)
-
-	assert.Equal(t, "kind", s.GetContextPrefix("anything"))
+	if got := s.GetContextPrefix("anything"); got != "kind" {
+		t.Errorf("GetContextPrefix() = %q, want %q", got, "kind")
+	}
 }
 
 func TestKindStore_GetContextPrefix_ShowPrefixFalse(t *testing.T) {
@@ -125,8 +132,12 @@ func TestKindStore_GetContextPrefix_ShowPrefixFalse(t *testing.T) {
 		Config:     types.StoreConfigKind{KindBinary: fakeKindBinary(t, nil, nil)},
 	}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
-	assert.Equal(t, "", s.GetContextPrefix("anything"))
+	if err != nil {
+		t.Fatalf("NewKindStore: %v", err)
+	}
+	if got := s.GetContextPrefix("anything"); got != "" {
+		t.Errorf("GetContextPrefix() = %q, want empty string", got)
+	}
 }
 
 func TestKindStore_StartSearch_MultipleClusters(t *testing.T) {
@@ -143,13 +154,19 @@ func TestKindStore_StartSearch_MultipleClusters(t *testing.T) {
 		results = append(results, r)
 	}
 
-	require.Len(t, results, 3)
-	assert.Equal(t, "cluster-a", results[0].KubeconfigPath)
-	assert.Equal(t, "cluster-b", results[1].KubeconfigPath)
-	assert.Equal(t, "cluster-c", results[2].KubeconfigPath)
-	for _, r := range results {
-		assert.NoError(t, r.Error)
-		assert.Equal(t, r.KubeconfigPath, r.Tags["name"])
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
+	}
+	for i, want := range clusters {
+		if results[i].KubeconfigPath != want {
+			t.Errorf("results[%d].KubeconfigPath = %q, want %q", i, results[i].KubeconfigPath, want)
+		}
+		if results[i].Error != nil {
+			t.Errorf("results[%d].Error = %v, want nil", i, results[i].Error)
+		}
+		if results[i].Tags["name"] != want {
+			t.Errorf("results[%d].Tags[name] = %q, want %q", i, results[i].Tags["name"], want)
+		}
 	}
 }
 
@@ -165,7 +182,9 @@ func TestKindStore_StartSearch_NoClusters(t *testing.T) {
 	for r := range ch {
 		results = append(results, r)
 	}
-	assert.Empty(t, results)
+	if len(results) != 0 {
+		t.Errorf("expected 0 results, got %d: %v", len(results), results)
+	}
 }
 
 func TestKindStore_StartSearch_BinaryNotFound(t *testing.T) {
@@ -174,7 +193,9 @@ func TestKindStore_StartSearch_BinaryNotFound(t *testing.T) {
 		Config: types.StoreConfigKind{KindBinary: "/nonexistent/kind"},
 	}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewKindStore: %v", err)
+	}
 
 	ch := make(chan storetypes.SearchResult, 10)
 	s.StartSearch(ch)
@@ -184,8 +205,12 @@ func TestKindStore_StartSearch_BinaryNotFound(t *testing.T) {
 	for r := range ch {
 		results = append(results, r)
 	}
-	require.Len(t, results, 1)
-	assert.Error(t, results[0].Error)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 error result, got %d", len(results))
+	}
+	if results[0].Error == nil {
+		t.Error("expected error, got nil")
+	}
 }
 
 func TestKindStore_GetKubeconfigForPath(t *testing.T) {
@@ -196,8 +221,12 @@ func TestKindStore_GetKubeconfigForPath(t *testing.T) {
 	s := newKindStoreWithBinary(t, bin)
 
 	got, err := s.GetKubeconfigForPath("my-cluster", map[string]string{"name": "my-cluster"})
-	require.NoError(t, err)
-	assert.Contains(t, string(got), "apiVersion: v1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(string(got), "apiVersion: v1") {
+		t.Errorf("kubeconfig does not contain expected content, got: %s", got)
+	}
 }
 
 func TestKindStore_GetKubeconfigForPath_UsesTagName(t *testing.T) {
@@ -209,8 +238,12 @@ func TestKindStore_GetKubeconfigForPath_UsesTagName(t *testing.T) {
 
 	// path differs from tag name — tag should win
 	got, err := s.GetKubeconfigForPath("some-path", map[string]string{"name": "tag-cluster"})
-	require.NoError(t, err)
-	assert.Contains(t, string(got), "apiVersion: v1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(string(got), "apiVersion: v1") {
+		t.Errorf("kubeconfig does not contain expected content, got: %s", got)
+	}
 }
 
 func TestKindStore_GetKubeconfigForPath_UnknownCluster(t *testing.T) {
@@ -220,7 +253,9 @@ func TestKindStore_GetKubeconfigForPath_UnknownCluster(t *testing.T) {
 	s := newKindStoreWithBinary(t, bin)
 
 	_, err := s.GetKubeconfigForPath("missing", map[string]string{"name": "missing"})
-	assert.Error(t, err)
+	if err == nil {
+		t.Error("expected error for unknown cluster, got nil")
+	}
 }
 
 func TestSplitLines(t *testing.T) {
@@ -234,7 +269,16 @@ func TestSplitLines(t *testing.T) {
 		{"\n\n", nil},
 	}
 	for _, tc := range cases {
-		assert.Equal(t, tc.want, splitLines(tc.input))
+		got := splitLines(tc.input)
+		if len(got) != len(tc.want) {
+			t.Errorf("splitLines(%q) = %v, want %v", tc.input, got, tc.want)
+			continue
+		}
+		for i := range got {
+			if got[i] != tc.want[i] {
+				t.Errorf("splitLines(%q)[%d] = %q, want %q", tc.input, i, got[i], tc.want[i])
+			}
+		}
 	}
 }
 
@@ -246,13 +290,14 @@ func TestKindStore_Integration(t *testing.T) {
 
 	store := types.KubeconfigStore{Kind: types.StoreKindKind}
 	s, err := NewKindStore(store)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewKindStore: %v", err)
+	}
 
 	ch := make(chan storetypes.SearchResult, 100)
 	s.StartSearch(ch)
 	close(ch)
 
-	// just verify no panic and no hard error
 	for r := range ch {
 		if r.Error != nil {
 			t.Logf("search error (may be benign): %v", r.Error)
