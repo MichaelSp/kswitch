@@ -87,7 +87,7 @@ func SwitchToControlplane(stores []storetypes.KubeconfigStore, kubeconfigPathFro
 					if gardenerStore.GetStoreConfig().Required != nil && !*gardenerStore.GetStoreConfig().Required {
 						continue
 					}
-					return nil, fmt.Errorf("failed to initialize Gardener store with ID %q: %v", kubeconfigStore.GetID(), err)
+					return nil, fmt.Errorf("failed to initialize Gardener store with ID %q: %w", kubeconfigStore.GetID(), err)
 				}
 			}
 
@@ -105,24 +105,24 @@ func SwitchToControlplane(stores []storetypes.KubeconfigStore, kubeconfigPathFro
 
 	kubeconfigBytes, seedName, err := targetStore.GetControlplaneKubeconfigForShoot(clusterName, project)
 	if err != nil {
-		return nil, fmt.Errorf("gardener store returned an error obtaining the kubeconfig for the Shoot's Seed cluster: %v", err)
+		return nil, fmt.Errorf("gardener store returned an error obtaining the kubeconfig for the Shoot's Seed cluster: %w", err)
 	}
 
 	// append to history
 	kubeconfig, err = kubeconfigutil.NewKubeconfig(kubeconfigBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse obtained Seed kubeconfig: %v", err)
+		return nil, fmt.Errorf("failed to parse obtained Seed kubeconfig: %w", err)
 	}
 
 	tempKubeconfigPath, err := kubeconfig.WriteKubeconfigFile()
 	if err != nil {
-		return nil, fmt.Errorf("failed to write temporary kubeconfig file: %v", err)
+		return nil, fmt.Errorf("failed to write temporary kubeconfig file: %w", err)
 	}
 
 	// get namespace for current context
 	ns, err := kubeconfig.NamespaceOfContext(kubeconfig.GetCurrentContext())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get namespace of current context: %v", err)
+		return nil, fmt.Errorf("failed to get namespace of current context: %w", err)
 	}
 
 	seedPath := gardenerstore.GetSeedIdentifier(targetStore.LandscapeName, *seedName)

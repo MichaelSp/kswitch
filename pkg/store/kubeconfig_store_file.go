@@ -93,7 +93,7 @@ func (s *FilesystemStore) searchDirectory(
 	}); err != nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
-			Error:          fmt.Errorf("failed to find kubeconfig files in directory: %v", err),
+			Error:          fmt.Errorf("failed to find kubeconfig files in directory: %w", err),
 		}
 	}
 }
@@ -170,7 +170,7 @@ func (s *FilesystemStore) VerifyKubeconfigPaths() error {
 		if os.IsNotExist(err) {
 			continue
 		} else if err != nil {
-			return fmt.Errorf("failed to read from the configured kubeconfig directory %q: %v", path, err)
+			return fmt.Errorf("failed to read from the configured kubeconfig directory %q: %w", path, err)
 		}
 
 		if info.IsDir() {

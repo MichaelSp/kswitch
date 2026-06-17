@@ -33,7 +33,7 @@ func UnsetCurrentContext() error {
 	}
 
 	if _, err := kubeconfig.WriteKubeconfigFile(); err != nil {
-		return fmt.Errorf("failed to write temporary kubeconfig file: %v", err)
+		return fmt.Errorf("failed to write temporary kubeconfig file: %w", err)
 	}
 
 	return nil

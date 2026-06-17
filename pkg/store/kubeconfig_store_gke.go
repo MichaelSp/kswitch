@@ -59,7 +59,7 @@ func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error
 
 	binaryPath, err := getGcloudBinaryPath()
 	if err != nil {
-		return nil, fmt.Errorf("gcloud must be installaed when useing the GKE store: %v", err)
+		return nil, fmt.Errorf("gcloud must be installaed when useing the GKE store: %w", err)
 	}
 	gcloudBinaryPath = binaryPath
 
@@ -104,7 +104,7 @@ func (s *GKEStore) initialize() error {
 		// gcloud auth application-default login
 		_, err_exec := exec.Command(gcloudBinaryPath, "auth", "application-default", "login").Output()
 		if err_exec != nil {
-			return fmt.Errorf("failed to acquire missing credentials via gcloud: %v: Failed to create client: %v", err_exec, err)
+			return fmt.Errorf("failed to acquire missing credentials via gcloud: %w: Failed to create client: %w", err_exec, err)
 		}
 
 		s.Logger.Infof("Sucessfully obtained application default credentials.")
@@ -158,7 +158,7 @@ func (s *GKEStore) initialize() error {
 		// gcloud auth application-default login
 		_, errExec := exec.Command(gcloudBinaryPath, "auth", "application-default", "login").Output()
 		if errExec != nil {
-			return fmt.Errorf("failed to list Google Cloud projects probably due to permission issues. Also failed to acquire application-default credentials via gcloud OIDC authentication flow: %v: %v", errExec, err)
+			return fmt.Errorf("failed to list Google Cloud projects probably due to permission issues. Also failed to acquire application-default credentials via gcloud OIDC authentication flow: %w: %w", errExec, err)
 		}
 
 		s.Logger.Infof("Sucessfully obtained application default credentials.")
@@ -354,7 +354,7 @@ func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byt
 func getGcloudBinaryPath() (string, error) {
 	path, err := exec.LookPath("gcloud")
 	if err != nil {
-		return "", fmt.Errorf("unable to find gcloud on the system. Is it installed?: %v", err)
+		return "", fmt.Errorf("unable to find gcloud on the system. Is it installed?: %w", err)
 	}
 	return path, nil
 }

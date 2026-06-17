@@ -73,7 +73,7 @@ func (s *AzureStore) InitializeAzureStore() error {
 func (s *AzureStore) initialize() error {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
-		return fmt.Errorf("obtaining Azure credentials failed: %v", err)
+		return fmt.Errorf("obtaining Azure credentials failed: %w", err)
 	}
 
 	var options *arm.ClientOptions
@@ -91,7 +91,7 @@ func (s *AzureStore) initialize() error {
 
 	client, err := armcontainerservice.NewManagedClustersClient(*s.Config.SubscriptionID, cred, options)
 	if err != nil {
-		return fmt.Errorf("creating AKS client failed: %v", err)
+		return fmt.Errorf("creating AKS client failed: %w", err)
 	}
 	s.AksClient = client
 

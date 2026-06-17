@@ -31,7 +31,7 @@ func GetContextsNamesFromKubeconfig(kubeconfigBytes []byte, contextPrefix string
 	// parse into struct that does not contain the credentials
 	config, err := ParseSanitizedKubeconfig(kubeconfigBytes)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse Kubeconfig: %v", err)
+		return nil, fmt.Errorf("could not parse Kubeconfig: %w", err)
 	}
 
 	return getContextNames(config, contextPrefix), nil
@@ -44,7 +44,7 @@ func ParseSanitizedKubeconfig(data []byte) (*types.KubeConfig, error) {
 	// unmarshal in a form that does not include the credentials
 	err := yaml.Unmarshal(data, &config)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal kubeconfig: %v", err)
+		return nil, fmt.Errorf("could not unmarshal kubeconfig: %w", err)
 	}
 	return &config, nil
 }

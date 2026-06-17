@@ -121,7 +121,7 @@ func RemoveAlias(aliasToRemove, stateDir string) error {
 
 	a.Content.ContextToAliasMapping = newAliases
 	if err := a.WriteAllAliases(); err != nil {
-		return fmt.Errorf("failed to write aliases: %v", err)
+		return fmt.Errorf("failed to write aliases: %w", err)
 	}
 	fmt.Printf("Removed alias %q. There are now %d alias(es) defined. \n", aliasToRemove, len(newAliases))
 

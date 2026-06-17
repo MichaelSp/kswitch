@@ -57,7 +57,7 @@ func (a *Alias) loadFromFile() error {
 
 	bytes, err := os.ReadFile(a.aliasFilepath)
 	if err != nil {
-		return fmt.Errorf("failed to read alias file from %q. File corrupt?: %v", a.aliasFilepath, err)
+		return fmt.Errorf("failed to read alias file from %q. File corrupt?: %w", a.aliasFilepath, err)
 	}
 
 	existingAliases := types.ContextAlias{}
@@ -67,7 +67,7 @@ func (a *Alias) loadFromFile() error {
 
 	err = yaml.Unmarshal(bytes, &existingAliases)
 	if err != nil {
-		return fmt.Errorf("could not unmarshal index file with path '%s': %v", a.aliasFilepath, err)
+		return fmt.Errorf("could not unmarshal index file with path '%s': %w", a.aliasFilepath, err)
 	}
 	a.Content = existingAliases
 	return nil

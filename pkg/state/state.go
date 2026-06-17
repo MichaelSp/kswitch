@@ -47,7 +47,7 @@ func GetHookState(log *logrus.Entry, hookStateFilepath string) (*types.HookState
 
 	err = yaml.Unmarshal(bytes, &state)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal hook state file with path '%s': %v", hookStateFilepath, err)
+		return nil, fmt.Errorf("could not unmarshal hook state file with path '%s': %w", hookStateFilepath, err)
 	}
 
 	return state, nil

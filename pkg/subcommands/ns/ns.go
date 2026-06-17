@@ -60,7 +60,7 @@ func SwitchToNamespace(targetNamespace, kubeconfigPathFromFlag string, checkExis
 	if checkExistence {
 		c, err := getClient(kubeconfigPath)
 		if err != nil {
-			return fmt.Errorf("failed to retrieve current namespaces: %v", err)
+			return fmt.Errorf("failed to retrieve current namespaces: %w", err)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -71,7 +71,7 @@ func SwitchToNamespace(targetNamespace, kubeconfigPathFromFlag string, checkExis
 			if apierrors.IsNotFound(err) {
 				return fmt.Errorf("namespace %q not found", targetNamespace)
 			}
-			return fmt.Errorf("failed to find namespace %q: %v", targetNamespace, err)
+			return fmt.Errorf("failed to find namespace %q: %w", targetNamespace, err)
 		}
 	}
 
@@ -81,17 +81,17 @@ func SwitchToNamespace(targetNamespace, kubeconfigPathFromFlag string, checkExis
 	}
 
 	if err := kubeconfig.SetNamespaceForCurrentContext(targetNamespace); err != nil {
-		return fmt.Errorf("failed to set namespace %q: %v", targetNamespace, err)
+		return fmt.Errorf("failed to set namespace %q: %w", targetNamespace, err)
 	}
 
 	// this updates the actual kubeconfif file (does not create a new tmp. kubeconfig to set namespace)
 	if _, err := kubeconfig.WriteKubeconfigFile(); err != nil {
-		return fmt.Errorf("failed to write kubeconfig file: %v", err)
+		return fmt.Errorf("failed to write kubeconfig file: %w", err)
 	}
 
 	kswitchContext := kubeconfig.GetKswitchContext()
 	if err := historyutil.AppendToHistory(kswitchContext, targetNamespace); err != nil {
-		return fmt.Errorf("failed to write namespace history: %v", err)
+		return fmt.Errorf("failed to write namespace history: %w", err)
 	}
 
 	return nil
@@ -177,11 +177,11 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 	logger.Debugf("setting namespace %q to kubeconfig with path %q", selectedNamespace, kubeconfigPath)
 
 	if err := kubeconfig.SetNamespaceForCurrentContext(selectedNamespace); err != nil {
-		return fmt.Errorf("failed to set namespace %q: %v", selectedNamespace, err)
+		return fmt.Errorf("failed to set namespace %q: %w", selectedNamespace, err)
 	}
 
 	if _, err := kubeconfig.WriteKubeconfigFile(); err != nil {
-		return fmt.Errorf("failed to write kubeconfig file: %v", err)
+		return fmt.Errorf("failed to write kubeconfig file: %w", err)
 	}
 
 	if len(kswitchContext) == 0 {
@@ -189,7 +189,7 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 	}
 
 	if err := historyutil.AppendToHistory(kswitchContext, selectedNamespace); err != nil {
-		return fmt.Errorf("failed to write namespace history: %v", err)
+		return fmt.Errorf("failed to write namespace history: %w", err)
 	}
 
 	return cache.Write(allNamespaces)
@@ -305,7 +305,7 @@ func getClient(kubeconfigPath string) (client.Client, error) {
 
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create rest config: %v", err)
+		return nil, fmt.Errorf("unable to create rest config: %w", err)
 	}
 
 	// increase QPS and Burst to avoid rate limiting, these values are the same as kubectl uses
@@ -316,7 +316,7 @@ func getClient(kubeconfigPath string) (client.Client, error) {
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create kubernetes client: %v", err)
+		return nil, fmt.Errorf("unable to create kubernetes client: %w", err)
 	}
 	return client, nil
 }

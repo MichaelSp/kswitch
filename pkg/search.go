@@ -160,7 +160,7 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 					}
 
 					resultChannel <- DiscoveredContext{
-						Error: fmt.Errorf("store %q returned an error during the search: %v", store.GetID(), channelResult.Error),
+						Error: fmt.Errorf("store %q returned an error during the search: %w", store.GetID(), channelResult.Error),
 					}
 					continue
 				}
@@ -178,7 +178,7 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				if err != nil {
 					store.GetLogger().Debugf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err)
 					resultChannel <- DiscoveredContext{
-						Error: fmt.Errorf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err),
+						Error: fmt.Errorf("failed to get kubeconfig context names for kubeconfig with path %q: %w", channelResult.KubeconfigPath, err),
 					}
 					// do not throw Error, try to parse the other files
 					continue

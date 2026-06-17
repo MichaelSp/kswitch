@@ -50,7 +50,7 @@ func LoadCurrentKubeconfig() (*Kubeconfig, error) {
 func NewKubeconfigForPath(path string) (*Kubeconfig, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read kubeconfig file: %v", err)
+		return nil, fmt.Errorf("failed to read kubeconfig file: %w", err)
 	}
 	return New(bytes, path, false)
 }
@@ -97,19 +97,19 @@ func (k *Kubeconfig) SetContext(currentContext, originalContextBeforeAlias strin
 		}
 
 		if err := k.ModifyContextName(originalContextBeforeAlias, currentContext); err != nil {
-			return fmt.Errorf("failed to set currentContext on selected kubeconfig: %v", err)
+			return fmt.Errorf("failed to set currentContext on selected kubeconfig: %w", err)
 		}
 	}
 
 	if err := k.ModifyCurrentContext(currentContext); err != nil {
-		return fmt.Errorf("failed to set current context on selected kubeconfig: %v", err)
+		return fmt.Errorf("failed to set current context on selected kubeconfig: %w", err)
 	}
 	return nil
 }
 
 func (k *Kubeconfig) SetKswitchContext(context string) error {
 	if err := k.ModifyKswitchContext(context); err != nil {
-		return fmt.Errorf("failed to set switch context on selected kubeconfig: %v", err)
+		return fmt.Errorf("failed to set switch context on selected kubeconfig: %w", err)
 	}
 	return nil
 }
@@ -118,19 +118,19 @@ func (k *Kubeconfig) SetKswitchContext(context string) error {
 // Only relevant to the Gardener store
 func (k *Kubeconfig) SetGardenerStoreMetaInformation(landscapeIdentity, clusterType, project, name string) error {
 	if err := k.ModifyGardenerLandscapeIdentity(landscapeIdentity); err != nil {
-		return fmt.Errorf("failed to set Gardener meta information (Landscape Identity): %v", err)
+		return fmt.Errorf("failed to set Gardener meta information (Landscape Identity): %w", err)
 	}
 
 	if err := k.ModifyGardenerClusterType(clusterType); err != nil {
-		return fmt.Errorf("failed to set Gardener meta information (Cluster Type): %v", err)
+		return fmt.Errorf("failed to set Gardener meta information (Cluster Type): %w", err)
 	}
 
 	if err := k.ModifyGardenerProject(project); err != nil {
-		return fmt.Errorf("failed to set Gardener meta information (project name): %v", err)
+		return fmt.Errorf("failed to set Gardener meta information (project name): %w", err)
 	}
 
 	if err := k.ModifyGardenerClusterName(name); err != nil {
-		return fmt.Errorf("failed to set Gardener meta information (Shoot/Seed name): %v", err)
+		return fmt.Errorf("failed to set Gardener meta information (Shoot/Seed name): %w", err)
 	}
 	return nil
 }
@@ -142,7 +142,7 @@ func (k *Kubeconfig) SetNamespaceForCurrentContext(namespace string) error {
 	}
 
 	if err := k.SetNamespace(currentContext, namespace); err != nil {
-		return fmt.Errorf("failed to set namespace %q: %v", namespace, err)
+		return fmt.Errorf("failed to set namespace %q: %w", namespace, err)
 	}
 
 	return nil
@@ -170,7 +170,7 @@ func (k *Kubeconfig) WriteKubeconfigFile() (string, error) {
 	} else {
 		file, err = os.OpenFile(k.path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 		if err != nil {
-			return "", fmt.Errorf("failed to open existing kubeconfig file: %v", err)
+			return "", fmt.Errorf("failed to open existing kubeconfig file: %w", err)
 		}
 	}
 

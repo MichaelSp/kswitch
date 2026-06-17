@@ -52,7 +52,7 @@ func GetStoreConfig(store types.KubeconfigStore) (*types.StoreConfigGardener, er
 	storeConfig := &types.StoreConfigGardener{}
 	buf, err := yaml.Marshal(store.Config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal store config: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal store config: %w", err)
 	}
 
 	err = yaml.Unmarshal(buf, storeConfig)
@@ -76,14 +76,14 @@ func GetGardenClient(config *types.StoreConfigGardener) (client.Client, error) {
 
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create rest config: %v", err)
+		return nil, fmt.Errorf("unable to create rest config: %w", err)
 	}
 
 	k8sclient, err := client.New(restConfig, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create garden client: %v", err)
+		return nil, fmt.Errorf("unable to create garden client: %w", err)
 	}
 	return k8sclient, nil
 }

@@ -168,7 +168,7 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 
 	config, err := switchconfig.LoadConfigFromFile(util.ExpandEnv(configPath))
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read switch config file: %v", err)
+		return nil, nil, fmt.Errorf("failed to read switch config file: %w", err)
 	}
 
 	if config != nil {

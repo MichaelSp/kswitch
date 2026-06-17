@@ -31,7 +31,7 @@ var logger = logrus.New()
 func ListContexts(pattern string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]string, error) {
 	c, err := pkg.DoSearch(stores, config, stateDir, noIndex)
 	if err != nil {
-		return nil, fmt.Errorf("cannot list contexts: %v", err)
+		return nil, fmt.Errorf("cannot list contexts: %w", err)
 	}
 
 	m := pattern

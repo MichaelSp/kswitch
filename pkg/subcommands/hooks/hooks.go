@@ -203,7 +203,7 @@ func executeHook(log *logrus.Entry, hook types.Hook) error {
 
 	err = cmd.Start()
 	if err != nil {
-		return fmt.Errorf("error running hook %q: %+v", hook.Name, err)
+		return fmt.Errorf("error running hook %q: %+w", hook.Name, err)
 	}
 
 	// print the output of the subprocess
@@ -213,7 +213,7 @@ func executeHook(log *logrus.Entry, hook types.Hook) error {
 		log.Info(m)
 	}
 	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("error waiting for hook %q: %+v", hook.Name, err)
+		return fmt.Errorf("error waiting for hook %q: %+w", hook.Name, err)
 	}
 	return nil
 }

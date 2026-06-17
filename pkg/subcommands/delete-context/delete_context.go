@@ -32,7 +32,7 @@ func DeleteContext(desiredContext string) error {
 	}
 
 	if _, err := kubeconfig.WriteKubeconfigFile(); err != nil {
-		return fmt.Errorf("failed to write kubeconfig file: %v", err)
+		return fmt.Errorf("failed to write kubeconfig file: %w", err)
 	}
 
 	return nil

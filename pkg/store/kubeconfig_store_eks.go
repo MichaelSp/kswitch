@@ -132,7 +132,7 @@ func (s *EKSStore) StartSearch(channel chan storetypes.SearchResult) {
 	defer cancel()
 
 	if err := s.InitializeEKSStore(); err != nil {
-		err := fmt.Errorf("failed to initialize store. This is most likely a problem with your provided aws credentials: %v", err)
+		err := fmt.Errorf("failed to initialize store. This is most likely a problem with your provided aws credentials: %w", err)
 		channel <- storetypes.SearchResult{
 			Error: err,
 		}

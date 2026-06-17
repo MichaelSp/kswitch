@@ -52,7 +52,7 @@ func loadDoctlConfigFromFile(configPath string) (*DoctlConfig, error) {
 
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal doctl config at '%s': %v", configPath, err)
+		return nil, fmt.Errorf("could not unmarshal doctl config at '%s': %w", configPath, err)
 	}
 	return config, nil
 }

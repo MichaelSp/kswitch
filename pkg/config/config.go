@@ -54,7 +54,7 @@ func LoadConfigFromFile(filepath string) (*types.Config, error) {
 		if err == nil && oldConfig != nil {
 			return MigrateConfig(*oldConfig, filepath)
 		}
-		return nil, fmt.Errorf("could not unmarshal config with path '%s': %v", filepath, err)
+		return nil, fmt.Errorf("could not unmarshal config with path '%s': %w", filepath, err)
 	}
 	return config, nil
 }

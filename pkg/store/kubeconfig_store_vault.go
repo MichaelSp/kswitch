@@ -248,7 +248,7 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 	s.Logger.Debugf("vault: getting secret for path %q", secretsPath)
 	secret, err := s.Client.Logical().Read(secretsPath)
 	if err != nil {
-		return nil, fmt.Errorf("could not read secret with path '%s': %v", secretsPath, err)
+		return nil, fmt.Errorf("could not read secret with path '%s': %w", secretsPath, err)
 	}
 
 	if secret == nil {
@@ -272,7 +272,7 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 			if matched {
 				bytes, err := getBytesFromSecretValue(data)
 				if err != nil {
-					return nil, fmt.Errorf("cannot read kubeconfig from %q: %v", secretsPath, err)
+					return nil, fmt.Errorf("cannot read kubeconfig from %q: %w", secretsPath, err)
 				}
 				if len(bytes) == 0 {
 					s.Logger.Debugf("vault: data is empty from %q", secretsPath)
@@ -285,11 +285,11 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 		if secret.Data["data"] == nil {
 			return nil, fmt.Errorf("cannot read kubeconfig from %q: secret is empty", secretsPath)
 		}
-		value, ok := secret.Data["data"].(map[string]interface{})[s.VaultKeyKubeconfig]
+		value, ok := secret.Data["data"].(map[string]any)[s.VaultKeyKubeconfig]
 		if ok {
 			bytes, err := getBytesFromSecretValue(value)
 			if err != nil {
-				return nil, fmt.Errorf("cannot read kubeconfig from %q: %v", secretsPath, err)
+				return nil, fmt.Errorf("cannot read kubeconfig from %q: %w", secretsPath, err)
 			}
 			return bytes, nil
 		}

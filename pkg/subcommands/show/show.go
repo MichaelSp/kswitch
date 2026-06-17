@@ -24,7 +24,7 @@ import (
 func Show(desiredName string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]byte, error) {
 	c, err := pkg.DoSearch(stores, config, stateDir, noIndex)
 	if err != nil {
-		return nil, fmt.Errorf("cannot list contexts: %v", err)
+		return nil, fmt.Errorf("cannot list contexts: %w", err)
 	}
 
 	for discoveredContext := range *c {
@@ -41,7 +41,7 @@ func Show(desiredName string, stores []storetypes.KubeconfigStore, config *types
 			store := *discoveredContext.Store
 			kubeconfigData, err := store.GetKubeconfigForPath(discoveredContext.Path, discoveredContext.Tags)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get kubeconfig: %v", err)
+				return nil, fmt.Errorf("failed to get kubeconfig: %w", err)
 			}
 			return kubeconfigData, nil
 		}

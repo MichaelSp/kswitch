@@ -87,7 +87,7 @@ func SwitchToHistory(stores []storetypes.KubeconfigStore, config *types.Config, 
 
 	context, ns, err := util.ParseHistoryEntry(history[idx])
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to set namespace: %v", err)
+		return nil, nil, fmt.Errorf("failed to set namespace: %w", err)
 	}
 
 	// TODO: only switch context if the current context is not already set
@@ -117,11 +117,11 @@ func setNamespace(ns string, tmpKubeconfigFile string) error {
 	}
 
 	if err := kubeconfig.SetNamespaceForCurrentContext(ns); err != nil {
-		return fmt.Errorf("failed to set namespace %q: %v", ns, err)
+		return fmt.Errorf("failed to set namespace %q: %w", ns, err)
 	}
 
 	if _, err := kubeconfig.WriteKubeconfigFile(); err != nil {
-		return fmt.Errorf("failed to write namespace to kubeconfig %q: %v", ns, err)
+		return fmt.Errorf("failed to write namespace to kubeconfig %q: %w", ns, err)
 	}
 
 	return nil
@@ -148,7 +148,7 @@ func SetPreviousContext(stores []storetypes.KubeconfigStore, config *types.Confi
 
 	context, ns, err := util.ParseHistoryEntry(history[position])
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to set previous context: %v", err)
+		return nil, nil, fmt.Errorf("failed to set previous context: %w", err)
 	}
 
 	tmpKubeconfigFile, _, err := setcontext.SetContext(*context, stores, config, stateDir, noIndex, false)
@@ -178,7 +178,7 @@ func SetLastContext(stores []storetypes.KubeconfigStore, config *types.Config, s
 
 	context, ns, err := util.ParseHistoryEntry(history[0])
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to set previous context: %v", err)
+		return nil, nil, fmt.Errorf("failed to set previous context: %w", err)
 	}
 
 	tmpKubeconfigFile, _, err := setcontext.SetContext(*context, stores, config, stateDir, noIndex, false)

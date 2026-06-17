@@ -86,14 +86,14 @@ func (s *CapiStore) getCapiClient() (client.Client, error) {
 
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create rest config: %v", err)
+		return nil, fmt.Errorf("unable to create rest config: %w", err)
 	}
 
 	k8sClient, err := client.New(restConfig, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create client: %v", err)
+		return nil, fmt.Errorf("unable to create client: %w", err)
 	}
 	return k8sClient, nil
 }

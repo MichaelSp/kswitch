@@ -94,7 +94,7 @@ func getLastLineWithSeek(filepath string) (string, error) {
 	fileHandle, err := os.Open(filepath)
 
 	if err != nil {
-		return "", fmt.Errorf("cannot open file: %v", err)
+		return "", fmt.Errorf("cannot open file: %w", err)
 	}
 	defer func() { _ = fileHandle.Close() }()
 

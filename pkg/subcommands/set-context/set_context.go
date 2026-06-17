@@ -66,7 +66,7 @@ func SetContext(desiredContext string, stores []storetypes.KubeconfigStore, conf
 
 			kubeconfig, err := kubeconfigutil.NewKubeconfig(kubeconfigData)
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to parse kubeconfig: %v", err)
+				return nil, nil, fmt.Errorf("failed to parse kubeconfig: %w", err)
 			}
 
 			originalContextBeforeAlias := ""
@@ -84,14 +84,14 @@ func SetContext(desiredContext string, stores []storetypes.KubeconfigStore, conf
 
 			tempKubeconfigPath, err := kubeconfig.WriteKubeconfigFile()
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to write temporary kubeconfig file: %v", err)
+				return nil, nil, fmt.Errorf("failed to write temporary kubeconfig file: %w", err)
 			}
 
 			if appendToHistory {
 				// get namespace for current context
 				ns, err := kubeconfig.NamespaceOfContext(kubeconfig.GetCurrentContext())
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed to get namespace of current context: %v", err)
+					return nil, nil, fmt.Errorf("failed to get namespace of current context: %w", err)
 				}
 
 				if err := historyutil.AppendToHistory(desiredContext, ns); err != nil {

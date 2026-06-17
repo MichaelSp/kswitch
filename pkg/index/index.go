@@ -92,7 +92,7 @@ func (i *SearchIndex) loadFromFile() (*types.Index, error) {
 
 	bytes, err := os.ReadFile(i.indexFilepath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read index file from %q. File corrupt?: %v", i.indexFilepath, err)
+		return nil, fmt.Errorf("failed to read index file from %q. File corrupt?: %w", i.indexFilepath, err)
 	}
 
 	index := &types.Index{}
@@ -102,7 +102,7 @@ func (i *SearchIndex) loadFromFile() (*types.Index, error) {
 
 	err = yaml.Unmarshal(bytes, &index)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal index file with path '%s': %v", i.indexFilepath, err)
+		return nil, fmt.Errorf("could not unmarshal index file with path '%s': %w", i.indexFilepath, err)
 	}
 	return index, nil
 }
@@ -111,7 +111,7 @@ func (i *SearchIndex) loadFromFile() (*types.Index, error) {
 func (i *SearchIndex) ShouldBeUsed(config *types.Config, storeLocalRefreshIndexAfter *time.Duration) (bool, error) {
 	indexState, err := i.getIndexState()
 	if err != nil {
-		return false, fmt.Errorf("failed to get index state: %v", err)
+		return false, fmt.Errorf("failed to get index state: %w", err)
 	}
 
 	// do not read from existing index if there is no index state file
@@ -220,7 +220,7 @@ func (i *SearchIndex) getIndexState() (*types.IndexState, error) {
 
 	err = yaml.Unmarshal(bytes, &state)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal index state file with path '%s': %v", i.indexStateFilepath, err)
+		return nil, fmt.Errorf("could not unmarshal index state file with path '%s': %w", i.indexStateFilepath, err)
 	}
 
 	return state, nil

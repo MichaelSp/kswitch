@@ -166,7 +166,7 @@ func (s *GardenerStore) initialize() error {
 				Kubeconfig: s.Config.GardenerAPIKubeconfigPath,
 			},
 		}}); err != nil {
-			return fmt.Errorf("failed to write Gardenlogin config: %v", err)
+			return fmt.Errorf("failed to write Gardenlogin config: %w", err)
 		}
 	} else {
 		// if already exists, check if contains an entry with the specified landscape identity
@@ -189,7 +189,7 @@ func (s *GardenerStore) initialize() error {
 				Kubeconfig: s.Config.GardenerAPIKubeconfigPath,
 			})
 			if err := writeGardenloginConfig(gardenloginConfigPath, gardenloginConfig); err != nil {
-				return fmt.Errorf("failed to write Gardenlogin config: %v", err)
+				return fmt.Errorf("failed to write Gardenlogin config: %w", err)
 			}
 		}
 	}
@@ -197,7 +197,7 @@ func (s *GardenerStore) initialize() error {
 	// Also maintain the gardenctl-v2 config at the default location
 	gardenctlV2ConfigPath := os.ExpandEnv(defaultGardenctlV2ConfigPath)
 	if err := ensureGardenctlV2Config(gardenctlV2ConfigPath, s.LandscapeIdentity, s.Config.GardenerAPIKubeconfigPath); err != nil {
-		return fmt.Errorf("failed to write gardenctl-v2 config: %v", err)
+		return fmt.Errorf("failed to write gardenctl-v2 config: %w", err)
 	}
 
 	return nil
@@ -217,7 +217,7 @@ func getGardenloginConfig(path string) (*GardenloginConfig, error) {
 
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal Gardenlogin config file with path '%s': %v", path, err)
+		return nil, fmt.Errorf("could not unmarshal Gardenlogin config file with path '%s': %w", path, err)
 	}
 	return config, nil
 }
@@ -289,7 +289,7 @@ func getGardenctlV2Config(path string) (*GardenctlV2Config, error) {
 	if err := json.Unmarshal(data, config); err != nil {
 		// gardenctl-v2 also supports YAML (it uses sigs.k8s.io/yaml which accepts both)
 		if yamlErr := yaml.Unmarshal(data, config); yamlErr != nil {
-			return nil, fmt.Errorf("could not parse gardenctl-v2 config file %q: %v", path, err)
+			return nil, fmt.Errorf("could not parse gardenctl-v2 config file %q: %w", path, err)
 		}
 	}
 	return config, nil
@@ -322,7 +322,7 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 	defer cancel()
 
 	if err := s.InitializeGardenerStore(); err != nil {
-		err := fmt.Errorf("failed to initialize store. This is most likely a problem with your provided kubeconfig: %v", err)
+		err := fmt.Errorf("failed to initialize store. This is most likely a problem with your provided kubeconfig: %w", err)
 		channel <- storetypes.SearchResult{
 			Error: err,
 		}
@@ -357,7 +357,7 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 
 			if !apierrors.IsForbidden(err) {
 				channel <- storetypes.SearchResult{
-					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %v", path, err),
+					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %w", path, err),
 				}
 				return
 			}
@@ -382,7 +382,7 @@ func (s *GardenerStore) StartSearch(channel chan storetypes.SearchResult) {
 					continue
 				}
 				channel <- storetypes.SearchResult{
-					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %v", ns, err),
+					Error: fmt.Errorf("failed to call list Shoots from the Gardener API for namespace %q: %w", ns, err),
 				}
 				return
 			}
@@ -552,7 +552,7 @@ func (s *GardenerStore) GetControlplaneKubeconfigForShoot(shootName, project str
 	for _, name := range contextNames {
 		if strings.HasSuffix(name, "-internal") {
 			if err := config.RemoveContext(name); err != nil {
-				return nil, nil, fmt.Errorf("unable to remove internal kubeconfig context: %v", err)
+				return nil, nil, fmt.Errorf("unable to remove internal kubeconfig context: %w", err)
 			}
 			break
 		}
@@ -647,7 +647,7 @@ func (s *GardenerStore) GetKubeconfigForPath(path string, _ map[string]string) (
 	for _, name := range contextNames {
 		if strings.HasSuffix(name, "-internal") {
 			if err := config.RemoveContext(name); err != nil {
-				return nil, fmt.Errorf("unable to remove internal kubeconfig context: %v", err)
+				return nil, fmt.Errorf("unable to remove internal kubeconfig context: %w", err)
 			}
 			break
 		}
@@ -833,7 +833,7 @@ func (s *GardenerStore) createGardenKubeconfigAlias(gardenKubeconfigPath string)
 	// get context name from the virtual garden kubeconfig
 	contexts, err := util.GetContextsNamesFromKubeconfig(bytes, s.GetContextPrefix(gardenKubeconfigPath))
 	if err != nil {
-		return fmt.Errorf("failed to get kubeconfig context names for path %q: %v", gardenKubeconfigPath, err)
+		return fmt.Errorf("failed to get kubeconfig context names for path %q: %w", gardenKubeconfigPath, err)
 	}
 
 	if len(contexts) == 0 {

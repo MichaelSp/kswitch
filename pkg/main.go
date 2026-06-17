@@ -129,7 +129,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 	kubeconfig, err := kubeconfigutil.NewKubeconfig(kubeconfigData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse selected kubeconfig. Please check if this file is a valid kubeconfig: %v", err)
+		return nil, nil, fmt.Errorf("failed to parse selected kubeconfig. Please check if this file is a valid kubeconfig: %w", err)
 	}
 
 	contextForHistory := selectedContext
@@ -148,7 +148,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 	tempKubeconfigPath, err := kubeconfig.WriteKubeconfigFile()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to write temporary kubeconfig file: %v", err)
+		return nil, nil, fmt.Errorf("failed to write temporary kubeconfig file: %w", err)
 	}
 
 	ns, err := kubeconfig.NamespaceOfContext(kubeconfig.GetCurrentContext())
