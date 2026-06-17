@@ -24,7 +24,7 @@ import (
 type StoreKind string
 
 // ValidStoreKinds contains all valid store kinds
-var ValidStoreKinds = sets.NewString(string(StoreKindVault), string(StoreKindFilesystem), string(StoreKindGardener), string(StoreKindGKE), string(StoreKindAzure), string(StoreKindEKS), string(StoreKindExoscale), string(StoreKindRancher), string(StoreKindOVH), string(StoreKindScaleway), string(StoreKindDigitalOcean), string(StoreKindAkamai), string(StoreKindCapi), string(StoreKindPlugin))
+var ValidStoreKinds = sets.NewString(string(StoreKindVault), string(StoreKindFilesystem), string(StoreKindGardener), string(StoreKindGKE), string(StoreKindAzure), string(StoreKindEKS), string(StoreKindExoscale), string(StoreKindRancher), string(StoreKindOVH), string(StoreKindScaleway), string(StoreKindDigitalOcean), string(StoreKindAkamai), string(StoreKindCapi), string(StoreKindPlugin), string(StoreKindKind))
 
 // ValidConfigVersions contains all valid config versions
 var ValidConfigVersions = sets.NewString("v1alpha1")
@@ -58,6 +58,8 @@ const (
 	StoreKindCapi StoreKind = "capi"
 	// StoreKindPlugin is an identifier for the Plugin store
 	StoreKindPlugin StoreKind = "plugin"
+	// StoreKindKind is an identifier for the kind (Kubernetes IN Docker) store
+	StoreKindKind StoreKind = "kind"
 )
 
 type Config struct {
@@ -287,4 +289,11 @@ type StoreConfigCapi struct {
 type StoreConfigPlugin struct {
 	CmdPath string   `yaml:"cmdPath"`
 	Args    []string `yaml:"args"`
+}
+
+type StoreConfigKind struct {
+	// KindBinary is the path to the kind binary.
+	// Defaults to "kind" (resolved from PATH).
+	// + optional
+	KindBinary string `yaml:"kindBinary"`
 }
