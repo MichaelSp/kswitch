@@ -29,7 +29,7 @@ require (
 	k8s.io/apimachinery v0.36.2
 	k8s.io/client-go v0.36.2
 	k8s.io/klog/v2 v2.140.0
-	k8s.io/utils v0.0.0-20260507154919-ff6756f316d2
+	k8s.io/utils v0.0.0-20260507154919-ff6756f316d2 // indirect
 	sigs.k8s.io/controller-runtime v0.24.1
 )
 
@@ -47,6 +47,7 @@ require (
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
+	go.uber.org/goleak v1.3.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af

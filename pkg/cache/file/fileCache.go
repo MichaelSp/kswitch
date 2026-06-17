@@ -77,7 +77,7 @@ type fileCache struct {
 	logger   *logrus.Entry
 }
 
-func unmarshalFileCacheCfg(cfg interface{}) (fileCacheCfg, error) {
+func unmarshalFileCacheCfg(cfg any) (fileCacheCfg, error) {
 	var fileCacheCfg fileCacheCfg
 	if cfg == nil {
 		return fileCacheCfg, fmt.Errorf("cache is not configured")

@@ -145,7 +145,7 @@ func (s *VaultStore) recursivePathTraversal(wg *sync.WaitGroup, ctx context.Cont
 		return
 	}
 
-	keysRawSlice, ok := keysRaw.([]interface{})
+	keysRawSlice, ok := keysRaw.([]any)
 	if !ok {
 		s.Logger.Errorf("unexpected list response type %T at %q", keysRaw, secretPath)
 		return
@@ -217,7 +217,7 @@ func (s *VaultStore) StartSearch(channel chan storetypes.SearchResult) {
 	wg.Wait()
 }
 
-func getBytesFromSecretValue(v interface{}) ([]byte, error) {
+func getBytesFromSecretValue(v any) ([]byte, error) {
 	data, ok := v.(string)
 	if !ok {
 		return nil, fmt.Errorf("failed to marshal value into string")

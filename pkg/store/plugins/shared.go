@@ -56,7 +56,7 @@ func (p *StorePlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) erro
 	return nil
 }
 
-func (p *StorePlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
+func (p *StorePlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (any, error) {
 	return &GRPCClient{client: kubeconfigstorev1.NewKubeconfigStoreServiceClient(c)}, nil
 }
 

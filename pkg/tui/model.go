@@ -226,10 +226,7 @@ func (m Model) renderLeft(width int) string {
 	// Window: show items [cursor .. cursor+lh-1], rendered top-to-bottom in
 	// reverse order so cursor lands on the bottom row.
 	start := m.cursor
-	end := start + lh
-	if end > len(m.filtered) {
-		end = len(m.filtered)
-	}
+	end := min(start+lh, len(m.filtered))
 
 	// build rows in reverse (highest index first = topmost row)
 	rows := make([]string, 0, lh)
@@ -271,10 +268,7 @@ func (m Model) renderRight(width int) string {
 	}
 
 	lines := strings.Split(m.previewContent, "\n")
-	maxLines := m.height - 1
-	if maxLines < 1 {
-		maxLines = 1
-	}
+	maxLines := max(m.height-1, 1)
 	if len(lines) > maxLines {
 		lines = lines[:maxLines]
 	}
@@ -295,10 +289,9 @@ func (m Model) renderRight(width int) string {
 // listHeight returns the number of rows available for the item list.
 // Layout: listHeight rows + 1 separator + 1 input = m.height
 func (m Model) listHeight() int {
-	h := m.height - 2 // subtract separator and input line
-	if h < 1 {
-		h = 1
-	}
+	h := max(
+		// subtract separator and input line
+		m.height-2, 1)
 	return h
 }
 

@@ -129,11 +129,11 @@ func (d *DigitalOceanStore) getDoClient(accessToken string) (*godo.Client, error
 		}
 
 		if d.Config.HttpRetryWaitMax > 0 {
-			retryConfig.RetryWaitMax = godo.PtrTo(float64(d.Config.HttpRetryWaitMax))
+			retryConfig.RetryWaitMax = new(float64(d.Config.HttpRetryWaitMax))
 		}
 
 		if d.Config.HttpRetryWaitMin > 0 {
-			retryConfig.RetryWaitMin = godo.PtrTo(float64(d.Config.HttpRetryWaitMin))
+			retryConfig.RetryWaitMin = new(float64(d.Config.HttpRetryWaitMin))
 		}
 		args = append(args, godo.WithRetryAndBackoffs(retryConfig))
 	}

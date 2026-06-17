@@ -20,9 +20,6 @@ import (
 	"github.com/MichaelSp/kswitch/types"
 )
 
-func ptrStr(s string) *string { return &s }
-func ptrBool(b bool) *bool    { return &b }
-
 func TestBaseStore_GetID(t *testing.T) {
 	tests := []struct {
 		name string
@@ -31,7 +28,7 @@ func TestBaseStore_GetID(t *testing.T) {
 		want string
 	}{
 		{"no id falls back to default", types.StoreKindEKS, nil, "eks.default"},
-		{"explicit id is used", types.StoreKindEKS, ptrStr("prod"), "eks.prod"},
+		{"explicit id is used", types.StoreKindEKS, new("prod"), "eks.prod"},
 		{"different kind", types.StoreKindVault, nil, "vault.default"},
 	}
 	for _, tt := range tests {
@@ -91,7 +88,7 @@ func TestParseStoreConfig(t *testing.T) {
 // TestGetContextPrefix_ShowPrefix locks the behaviour of the showPrefix option,
 // including the two stores (capi, akamai) that previously ignored it.
 func TestGetContextPrefix_ShowPrefix(t *testing.T) {
-	hidden := types.KubeconfigStore{ShowPrefix: ptrBool(false)}
+	hidden := types.KubeconfigStore{ShowPrefix: new(false)}
 
 	t.Run("capi honours showPrefix=false", func(t *testing.T) {
 		s := &CapiStore{BaseStore: NewBaseStore(types.StoreKindCapi, hidden)}

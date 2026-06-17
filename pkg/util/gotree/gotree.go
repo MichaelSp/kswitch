@@ -20,6 +20,8 @@
 // so existing tests and user-facing displays remain unchanged.
 package gotree
 
+import "strings"
+
 const (
 	newLine      = "\n"
 	emptySpace   = "    "
@@ -65,13 +67,13 @@ func (t *tree) Print() string {
 }
 
 func printText(text string, spaces []bool) string {
-	var result string
+	var result strings.Builder
 	last := true
 	for _, space := range spaces {
 		if space {
-			result += emptySpace
+			result.WriteString(emptySpace)
 		} else {
-			result += continueItem
+			result.WriteString(continueItem)
 		}
 		last = space
 	}
@@ -79,18 +81,18 @@ func printText(text string, spaces []bool) string {
 	if last {
 		indicator = lastItem
 	}
-	return result + indicator + text + newLine
+	return result.String() + indicator + text + newLine
 }
 
 func printItems(items []Tree, spaces []bool) string {
-	var result string
+	var result strings.Builder
 	for i, f := range items {
 		last := i == len(items)-1
-		result += printText(f.Text(), spaces)
+		result.WriteString(printText(f.Text(), spaces))
 		if len(f.Items()) > 0 {
 			spacesChild := append(spaces, last)
-			result += printItems(f.Items(), spacesChild)
+			result.WriteString(printItems(f.Items(), spacesChild))
 		}
 	}
-	return result
+	return result.String()
 }

@@ -21,7 +21,6 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/ptr"
 
 	"github.com/MichaelSp/kswitch/pkg/config/validation"
 	"github.com/MichaelSp/kswitch/types"
@@ -176,13 +175,13 @@ var _ = Describe("ValidateConfig", func() {
 					Kind:              types.StoreKindVault,
 					RefreshIndexAfter: &minute,
 					Paths:             []string{"ab"},
-					ID:                ptr.To("id-one"),
+					ID:                new("id-one"),
 				},
 				{
 					Kind:              types.StoreKindVault,
 					RefreshIndexAfter: &minute,
 					Paths:             []string{"ab"},
-					ID:                ptr.To("id-two"),
+					ID:                new("id-two"),
 				},
 			},
 		}
@@ -220,14 +219,14 @@ var _ = Describe("ValidateConfig", func() {
 						Kind: types.StoreKindGardener,
 						Config: types.StoreConfigGardener{
 							GardenerAPIKubeconfigPath: "my-path-to-gardener-kubeconfig",
-							LandscapeName:             ptr.To("dev"),
+							LandscapeName:             new("dev"),
 						},
 					},
 					{
 						Kind: types.StoreKindGardener,
 						Config: types.StoreConfigGardener{
 							GardenerAPIKubeconfigPath: "my-path-to-gardener-kubeconfig",
-							LandscapeName:             ptr.To("canary"),
+							LandscapeName:             new("canary"),
 						},
 					},
 				},
@@ -355,7 +354,7 @@ var _ = Describe("ValidateConfig", func() {
 						Kind: types.StoreKindGardener,
 						Config: types.StoreConfigGardener{
 							GardenerAPIKubeconfigPath: "xy",
-							LandscapeName:             ptr.To(""),
+							LandscapeName:             new(""),
 						},
 					},
 				},
@@ -380,7 +379,7 @@ var _ = Describe("ValidateConfig", func() {
 					{
 						Name: "my-hooks",
 						Type: types.HookTypeExecutable,
-						Path: ptr.To("my-path"),
+						Path: new("my-path"),
 					},
 				},
 			}

@@ -17,6 +17,7 @@ package kswitch
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/bombsimon/logrusr/v4"
@@ -28,7 +29,6 @@ import (
 	"github.com/MichaelSp/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"k8s.io/utils/ptr"
 
 	switchconfig "github.com/MichaelSp/kswitch/pkg/config"
 	"github.com/MichaelSp/kswitch/pkg/config/validation"
@@ -252,11 +252,11 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 	// this is optional, so don't care about errors
 	if !digitalOceanStoreAddedViaConfig {
 		doStore, _ := store.NewDigitalOceanStore(types.KubeconfigStore{
-			ID:   ptr.To("doDefaultStore"),
+			ID:   new("doDefaultStore"),
 			Kind: types.StoreKindDigitalOcean,
 			// for users with outdated `doctl` configs, don't show errors if they have no explicitly enabled the DO backing store
-			Required:   ptr.To(false),
-			ShowPrefix: ptr.To(true),
+			Required:   new(false),
+			ShowPrefix: new(true),
 		})
 		if doStore != nil {
 			// we found a valid `doctl` config, hence add Digital Ocean as a backing store with default configuration
@@ -289,9 +289,9 @@ func getStoreFromFlagAndEnv(config *types.Config) *types.KubeconfigStore {
 
 	kubeconfigPathFromEnv := os.Getenv("KUBECONFIG")
 
-	pathsFromEnv := strings.Split(kubeconfigPathFromEnv, linuxEnvKubeconfigSeperator)
+	pathsFromEnv := strings.SplitSeq(kubeconfigPathFromEnv, linuxEnvKubeconfigSeperator)
 
-	for _, path := range pathsFromEnv {
+	for path := range pathsFromEnv {
 		if !isDuplicatePath(config.KubeconfigStores, path) && !strings.HasSuffix(path, ".tmp") && path != "" {
 			// the KUBECONFIG env sets a unique, non kswitch set, env variable to a kubeconfig.
 			paths = append(paths, util.ExpandEnv(path))
@@ -304,11 +304,11 @@ func getStoreFromFlagAndEnv(config *types.Config) *types.KubeconfigStore {
 	}
 
 	return &types.KubeconfigStore{
-		ID:             ptr.To("env-and-flag"),
+		ID:             new("env-and-flag"),
 		Kind:           types.StoreKind(storageBackend),
-		KubeconfigName: ptr.To(kubeconfigName),
+		KubeconfigName: new(kubeconfigName),
 		Paths:          paths,
-		ShowPrefix:     ptr.To(false),
+		ShowPrefix:     new(false),
 	}
 }
 
@@ -341,10 +341,8 @@ func isDuplicatePath(kubeconfigStores []types.KubeconfigStore, newPath string) b
 	// O(n square) operation
 	// but fortunately it is highly unlikely that there are many stores and paths configured
 	for _, store := range kubeconfigStores {
-		for _, path := range store.Paths {
-			if path == newPath {
-				return true
-			}
+		if slices.Contains(store.Paths, newPath) {
+			return true
 		}
 	}
 	return false

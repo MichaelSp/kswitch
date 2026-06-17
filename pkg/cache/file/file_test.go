@@ -53,7 +53,7 @@ func TestNew_NilCacheConfig(t *testing.T) {
 func TestNew_MissingPath(t *testing.T) {
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{},
+		Config: map[string]any{},
 	}
 	_, err := New(&mockStore{id: "test"}, ccfg)
 	if err == nil {
@@ -80,7 +80,7 @@ func TestNew_CreatesNonExistingDir(t *testing.T) {
 	cachePath := filepath.Join(tmp, "subdir", "cache")
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{"path": cachePath},
+		Config: map[string]any{"path": cachePath},
 	}
 	store, err := New(&mockStore{id: "test"}, ccfg)
 	if err != nil {
@@ -106,7 +106,7 @@ func TestGetKubeconfigForPath_CacheMissThenHit(t *testing.T) {
 	}
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{"path": tmp},
+		Config: map[string]any{"path": tmp},
 	}
 	store, err := New(upstream, ccfg)
 	if err != nil {
@@ -168,7 +168,7 @@ func TestGetKubeconfigForPath_UpstreamError(t *testing.T) {
 	}
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{"path": tmp},
+		Config: map[string]any{"path": tmp},
 	}
 	store, err := New(upstream, ccfg)
 	if err != nil {
@@ -193,7 +193,7 @@ func TestFlush_DeletesOnlyMatchingSuffix(t *testing.T) {
 	upstream := &mockStore{id: "store-a", kind: types.StoreKindFilesystem}
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{"path": tmp},
+		Config: map[string]any{"path": tmp},
 	}
 	storeIface, err := New(upstream, ccfg)
 	if err != nil {
@@ -255,7 +255,7 @@ func TestPassthroughs(t *testing.T) {
 	upstream := &mockStore{id: "pass-1", kind: types.StoreKindFilesystem}
 	ccfg := &types.Cache{
 		Kind:   "filesystem",
-		Config: map[string]interface{}{"path": tmp},
+		Config: map[string]any{"path": tmp},
 	}
 	store, err := New(upstream, ccfg)
 	if err != nil {

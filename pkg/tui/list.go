@@ -125,20 +125,11 @@ func (m listModel) View() string {
 	if m.width == 0 {
 		return ""
 	}
-	lh := m.height - 2
-	if lh < 1 {
-		lh = 1
-	}
+	lh := max(m.height-2, 1)
 
 	// fzf-style: cursor at bottom, higher-index items above.
-	start := m.cursor
-	if start < 0 {
-		start = 0
-	}
-	end := start + lh
-	if end > len(m.filtered) {
-		end = len(m.filtered)
-	}
+	start := max(m.cursor, 0)
+	end := min(start+lh, len(m.filtered))
 
 	rows := make([]string, 0, lh)
 	for i := end - 1; i >= start; i-- {

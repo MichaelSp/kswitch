@@ -15,8 +15,6 @@
 package migration
 
 import (
-	"k8s.io/utils/ptr"
-
 	"github.com/MichaelSp/kswitch/types"
 )
 
@@ -34,13 +32,13 @@ func ConvertConfiguration(old types.ConfigOld) types.Config {
 	}
 
 	filesystemStore := types.KubeconfigStore{
-		ID:    ptr.To("default"),
+		ID:    new("default"),
 		Kind:  types.StoreKindFilesystem,
 		Paths: []string{},
 	}
 
 	vaultStore := types.KubeconfigStore{
-		ID:    ptr.To("default"),
+		ID:    new("default"),
 		Kind:  types.StoreKindVault,
 		Paths: []string{},
 	}
