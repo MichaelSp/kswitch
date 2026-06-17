@@ -77,16 +77,16 @@ type Model struct {
 var stderrRenderer = lipgloss.NewRenderer(os.Stderr)
 
 var (
-	stylePrompt     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	styleCursor     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	styleSelected   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-	styleDim        = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	styleDimSuffix  = stderrRenderer.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "240", Dark: "245"})
-	styleCount      = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
-	styleBorder     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	stylePreview    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
-	styleLoading    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
-	styleMatch      = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	stylePrompt    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	styleCursor    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	styleSelected  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	styleDim       = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	styleDimSuffix = stderrRenderer.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "240", Dark: "245"})
+	styleCount     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
+	styleBorder    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
+	stylePreview   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
+	styleLoading   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	styleMatch     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 )
 
 // NewModel creates an initial TUI model.
