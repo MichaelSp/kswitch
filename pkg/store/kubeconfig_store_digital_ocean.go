@@ -28,7 +28,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/MichaelSp/kswitch/types"
-	"github.com/digitalocean/doctl/do"
 	"github.com/digitalocean/godo"
 )
 
@@ -89,14 +88,14 @@ func (d *DigitalOceanStore) InitializeDigitalOceanStore() error {
 }
 
 func (d *DigitalOceanStore) initialize() error {
-	contextToKubernetesService := make(map[string]do.KubernetesService)
+	contextToClient := make(map[string]*godo.Client)
 	accessToken := d.Config.DefaultAuthContextAccessToken
 	defaultContextClient, err := d.getDoClient(accessToken)
 	if err != nil {
 		return fmt.Errorf("failed to intialize the client for the default digital ocean account/context (context: %s): %w", d.Config.DefaultContextName, err)
 	}
 
-	contextToKubernetesService[d.Config.DefaultContextName] = do.NewKubernetesService(defaultContextClient)
+	contextToClient[d.Config.DefaultContextName] = defaultContextClient
 	d.Logger.Debugf("Created digital ocean client for context: %s", d.Config.DefaultContextName)
 
 	// if there are multiple contexts configured
@@ -106,11 +105,36 @@ func (d *DigitalOceanStore) initialize() error {
 			return fmt.Errorf("failed to intialize digital ocean client (context: %s): %w", d.Config.DefaultContextName, err)
 		}
 
-		contextToKubernetesService[doctlContextName] = do.NewKubernetesService(doClient)
+		contextToClient[doctlContextName] = doClient
 		d.Logger.Debugf("Created digital ocean client for context: %s", doctlContextName)
 	}
-	d.ContextToKubernetesService = contextToKubernetesService
+	d.ContextToClient = contextToClient
 	return nil
+}
+
+// listAllKubernetesClusters pages through every DOKS cluster reachable by the
+// client. doctl's KubernetesService.List handled pagination internally; calling
+// godo directly means we walk the page links ourselves.
+func listAllKubernetesClusters(ctx context.Context, client *godo.Client) ([]*godo.KubernetesCluster, error) {
+	var clusters []*godo.KubernetesCluster
+	opt := &godo.ListOptions{PerPage: 200}
+	for {
+		page, resp, err := client.Kubernetes.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+		clusters = append(clusters, page...)
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+		currentPage, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, err
+		}
+		opt.Page = currentPage + 1
+	}
+	return clusters, nil
 }
 
 // getDoClient creates the digital ocean client for a given access token
@@ -156,16 +180,16 @@ func (d *DigitalOceanStore) StartSearch(channel chan storetypes.SearchResult) {
 	}
 
 	wgResultChannel := sync.WaitGroup{}
-	wgResultChannel.Add(len(d.ContextToKubernetesService))
+	wgResultChannel.Add(len(d.ContextToClient))
 
-	for doctlContextName, doSvc := range d.ContextToKubernetesService {
+	for doctlContextName, doClient := range d.ContextToClient {
 		// parallelize.
-		go func(resultChannel chan storetypes.SearchResult, doctlCtxName string, svc do.KubernetesService) {
+		go func(resultChannel chan storetypes.SearchResult, doctlCtxName string, client *godo.Client) {
 			// reading from this context is finished, decrease wait counter
 			defer wgResultChannel.Done()
 
 			d.Logger.Debugf("Digital Ocean: Start listing clusters for context %q", doctlCtxName)
-			clusters, err := svc.List()
+			clusters, err := listAllKubernetesClusters(context.Background(), client)
 			if err != nil {
 				channel <- storetypes.SearchResult{
 					Error: fmt.Errorf("error listing DOKS clusters for context %s: %w", doctlCtxName, err),
@@ -201,7 +225,7 @@ func (d *DigitalOceanStore) StartSearch(channel chan storetypes.SearchResult) {
 		}(
 			channel,
 			doctlContextName,
-			doSvc,
+			doClient,
 		)
 	}
 
@@ -269,12 +293,17 @@ func (d *DigitalOceanStore) GetKubeconfigForPath(path string, tags map[string]st
 
 	d.Logger.Debugf("Digital Ocean: GetKubeconfigForPath (context: %s, region: %s, DOKS cluster name: %s, DOKS cluster ID: %s)", doctlContextName, region, name, clusterID)
 
-	kubeconfigBytes, err := d.ContextToKubernetesService[doctlContextName].GetKubeConfig(clusterID, nil)
+	client, ok := d.ContextToClient[doctlContextName]
+	if !ok {
+		return nil, fmt.Errorf("failed to GetKubeconfigForPath: %s. No Digital Ocean client for context %q", path, doctlContextName)
+	}
+
+	config, _, err := client.Kubernetes.GetKubeConfig(context.Background(), clusterID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain kubeconfig for DOKS cluster (context: %s, region: %s, DOKS cluster name: %s, cluster_id: %s): %w", doctlContextName, region, name, clusterID, err)
 	}
 
-	return kubeconfigBytes, nil
+	return config.KubeconfigYAML, nil
 }
 
 // ParseIdentifier takes a kubeconfig identifier and

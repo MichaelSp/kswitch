@@ -23,7 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	eks "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/digitalocean/doctl/do"
+	"github.com/digitalocean/godo"
 	exoscale "github.com/exoscale/egoscale/v3"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
@@ -134,8 +134,8 @@ type ScalewayStore struct {
 type DigitalOceanStore struct {
 	BaseStore
 	lazyInit
-	ContextToKubernetesService map[string]do.KubernetesService
-	Config                     doks.DoctlConfig
+	ContextToClient map[string]*godo.Client
+	Config          doks.DoctlConfig
 }
 
 type AkamaiStore struct {
