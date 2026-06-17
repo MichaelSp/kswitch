@@ -18,6 +18,8 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+
+	"go.uber.org/goleak"
 )
 
 func TestClusterCache_GetSet(t *testing.T) {
@@ -37,11 +39,13 @@ func TestClusterCache_GetSet(t *testing.T) {
 // that `go test -race` fails loudly if the locking ever regresses. This mirrors
 // the real usage: StartSearch writing while previews/fetches read.
 func TestClusterCache_ConcurrentAccess(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	c := newClusterCache[string, int]()
 	const n = 200
 
 	var wg sync.WaitGroup
-	for i := 0; i < n; i++ {
+	for i := range n {
 		wg.Add(2)
 		go func(i int) {
 			defer wg.Done()

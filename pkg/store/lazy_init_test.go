@@ -19,25 +19,27 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+
+	"go.uber.org/goleak"
 )
 
 // TestLazyInit_RunsOnceConcurrently is the property that makes publish-after-init
 // correct: under `go test -race` it proves init runs exactly once even when many
 // goroutines call ensure simultaneously, and that done() flips only after.
 func TestLazyInit_RunsOnceConcurrently(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var l lazyInit
 	var calls atomic.Int32
 
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 50 {
+		wg.Go(func() {
 			_ = l.ensure(func() error {
 				calls.Add(1)
 				return nil
 			})
-		}()
+		})
 	}
 	wg.Wait()
 
