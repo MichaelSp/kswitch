@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      # Required to upload release assets
+      # Required to upload release assets and push the version bump commit
       contents: write
     steps:
       - name: Checkout
@@ -42,6 +42,20 @@ jobs:
         with:
           # goreleaser needs the full tag history to generate changelogs
           fetch-depth: 0
+
+      - name: Update version in installation docs
+        run: |
+          VERSION="${{ github.ref_name }}"
+          # Strip leading 'v' so docs show bare semver (e.g. 0.6.0)
+          VERSION="${VERSION#v}"
+          sed -i "s/VERSION=[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/VERSION=${VERSION}/g" \
+            docs/installation.md \
+            website/src/content/docs/installation.md
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/installation.md website/src/content/docs/installation.md
+          git diff --cached --quiet || git commit -m "docs: bump installation version to ${VERSION}"
+          git push
 
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
