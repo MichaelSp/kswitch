@@ -68,6 +68,12 @@ func New(kubeconfigData []byte, path string, useTmpFile bool) (*Kubeconfig, erro
 		return nil, err
 	}
 
+	// yaml.Unmarshal returns no error for empty or comment-only input, leaving
+	// Content empty; indexing [0] in that case would panic.
+	if len(n.Content) == 0 {
+		return nil, fmt.Errorf("kubeconfig at %q is empty or not a valid YAML document", path)
+	}
+
 	k := &Kubeconfig{
 		rootNode:   n.Content[0],
 		path:       path,

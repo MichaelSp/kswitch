@@ -285,7 +285,11 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 		if secret.Data["data"] == nil {
 			return nil, fmt.Errorf("cannot read kubeconfig from %q: secret is empty", secretsPath)
 		}
-		value, ok := secret.Data["data"].(map[string]any)[s.VaultKeyKubeconfig]
+		dataMap, ok := secret.Data["data"].(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("cannot read kubeconfig from %q: unexpected data type %T", secretsPath, secret.Data["data"])
+		}
+		value, ok := dataMap[s.VaultKeyKubeconfig]
 		if ok {
 			bytes, err := getBytesFromSecretValue(value)
 			if err != nil {

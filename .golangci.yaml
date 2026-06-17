@@ -4,11 +4,17 @@ linters:
   enable:
     - errcheck
     - errorlint
+    - forcetypeassert
     - govet
     - ineffassign
     - modernize
     - staticcheck
     - unused
+  settings:
+    govet:
+      # nilness catches guaranteed nil dereferences and impossible nil comparisons.
+      enable:
+        - nilness
 
 formatters:
   enable:

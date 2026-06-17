@@ -130,7 +130,10 @@ func TestGetSearchPreview_PreviewerDelegated(t *testing.T) {
 	upstream := &mockStorePreviewer{previewValue: "preview-data"}
 	c := newCache(t, upstream)
 
-	mc := c.(*memoryCache)
+	mc, ok := c.(*memoryCache)
+	if !ok {
+		t.Fatalf("expected *memoryCache, got %T", c)
+	}
 	preview, err := mc.GetSearchPreview("/p", map[string]string{"a": "b"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
