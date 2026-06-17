@@ -155,3 +155,8 @@ type PluginStore struct {
 	Config *types.StoreConfigPlugin
 	Client plugins.Store
 }
+
+type KindStore struct {
+	BaseStore
+	Config *types.StoreConfigKind
+}
