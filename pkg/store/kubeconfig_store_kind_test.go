@@ -18,6 +18,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -32,16 +33,19 @@ func fakeKindBinary(t *testing.T, clusters []string, kubeconfigContents map[stri
 	t.Helper()
 
 	// Build the cluster list output
-	clusterList := ""
+	var clusterListBuilder strings.Builder
 	for _, c := range clusters {
-		clusterList += c + "\n"
+		clusterListBuilder.WriteString(c)
+		clusterListBuilder.WriteByte('\n')
 	}
+	clusterList := clusterListBuilder.String()
 
 	// Build per-cluster kubeconfig case branches
-	caseBranches := ""
+	var caseBranchBuilder strings.Builder
 	for name, kc := range kubeconfigContents {
-		caseBranches += "    " + name + ")\n      echo '" + kc + "'\n      ;;\n"
+		caseBranchBuilder.WriteString("    " + name + ")\n      echo '" + kc + "'\n      ;;\n")
 	}
+	caseBranches := caseBranchBuilder.String()
 
 	script := `#!/bin/sh
 case "$1" in
