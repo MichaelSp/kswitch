@@ -44,10 +44,7 @@ const (
 
 var (
 	kubeconfigPathFromEnv = os.Getenv("KUBECONFIG")
-	cache                 *NamespaceCache
 	logger                = logrus.New()
-
-	allNamespaces []string
 )
 
 // SwitchToNamespace takes a target namespace and - given that the namespace exists - sets it on the current kubeconfig file
@@ -100,8 +97,6 @@ func SwitchToNamespace(targetNamespace, kubeconfigPathFromFlag string, checkExis
 // SwitchNamespace retrieves all available namespaces (either via API call or from local cache)
 // Then sets the selected namespace on the current kubeconfig file (does not create a new tmp. kubeconfig to set namespace)
 func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) error {
-	cachedNamespaces := sets.NewString()
-
 	kubeconfigPath, err := getKubeconfigPath(kubeconfigPathFromFlag)
 	if err != nil {
 		return err
@@ -114,64 +109,33 @@ func SwitchNamespace(kubeconfigPathFromFlag, stateDir string, noIndex bool) erro
 
 	kswitchContext := kubeconfig.GetKswitchContext()
 
+	var cache *NamespaceCache
 	if len(kswitchContext) > 0 && !noIndex {
 		cache, err = NewNamespaceCache(stateDir, kswitchContext)
 		if err != nil {
+			// caching is best-effort; GetContent/Write are nil-safe.
 			logger.Warnf("failed to use namespace cache: %v", err)
+			cache = nil
 		}
-		allNamespaces = cache.GetContent()
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+	allNamespaces := cache.GetContent()
 
-		cachedNamespaces.Insert(allNamespaces...)
-
-		client, err := getClient(kubeconfigPath)
-		if err != nil {
-			logger.Warnf("failed to retrieve current namespaces: %v", err)
-			return
-		}
-
-		// list all the namespaces
-		list := &corev1.NamespaceList{}
-		if err := client.List(ctx, list); err != nil {
-			logger.Warnf("failed to retrieve current namespaces: %v", err)
-			return
-		}
-
-		realNs := sets.NewString()
-		for _, namespace := range list.Items {
-			realNs.Insert(namespace.Name)
-		}
-
-		n := 0
-		// filter array in place
-		for _, namespaceInCache := range allNamespaces {
-			// this overwrites the index in the array which contains a namespace that is in the cache,
-			// but not in the cluster
-			if realNs.Has(namespaceInCache) {
-				allNamespaces[n] = namespaceInCache
-				n++
-			}
-		}
-		// update the slice-internal array pointer to point only to the potentially shorter range of values
-		allNamespaces = allNamespaces[:n]
-
-		// add namespaces that are not in the cached maespace list
-		for _, ns := range realNs.List() {
-			if !cachedNamespaces.Has(ns) {
-				allNamespaces = append(allNamespaces, ns)
-			}
-		}
-	}()
+	// Refresh the namespace list from the live cluster before displaying it. This used
+	// to run in a goroutine that mutated the slice concurrently with the TUI reading it
+	// (a data race that could corrupt the slice or panic on selection). Doing it
+	// synchronously keeps the displayed list, the selection, and the cache write
+	// consistent. Cluster errors are non-fatal: we fall back to the cached list.
+	allNamespaces = refreshNamespacesFromCluster(kubeconfigPath, allNamespaces)
 
 	idx, err := tui.RunList(allNamespaces, nil)
 	if err != nil {
 		return err
 	}
 
+	if idx < 0 || idx >= len(allNamespaces) {
+		return fmt.Errorf("invalid namespace selection")
+	}
 	selectedNamespace := allNamespaces[idx]
 
 	logger.Debugf("setting namespace %q to kubeconfig with path %q", selectedNamespace, kubeconfigPath)
@@ -214,13 +178,17 @@ func ListNamespaces(kubeconfigPathFromFlag, stateDir string, noIndex bool) ([]st
 		return nil, nil
 	}
 
+	var cache *NamespaceCache
 	if len(kswitchContext) > 0 && !noIndex {
 		cache, err = NewNamespaceCache(stateDir, kswitchContext)
 		if err != nil {
+			// caching is best-effort; GetContent/Write are nil-safe.
 			logger.Warnf("failed to use namespace cache: %v", err)
+			cache = nil
 		}
-		allNamespaces = cache.GetContent()
 	}
+
+	allNamespaces := cache.GetContent()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -275,6 +243,54 @@ func ListNamespaces(kubeconfigPathFromFlag, stateDir string, noIndex bool) ([]st
 		return nil, err
 	}
 	return allNamespaces, nil
+}
+
+// refreshNamespacesFromCluster lists namespaces from the live cluster and reconciles them
+// with the cached list: cached namespaces that no longer exist are dropped, and newly
+// discovered namespaces are appended. On any error it logs a warning and returns the
+// cached list unchanged, so the caller can still operate on stale-but-usable data.
+func refreshNamespacesFromCluster(kubeconfigPath string, cached []string) []string {
+	// capture the originally-cached namespaces before filtering, so we can tell which
+	// cluster namespaces are genuinely new.
+	cachedSet := sets.New[string](cached...)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cl, err := getClient(kubeconfigPath)
+	if err != nil {
+		logger.Warnf("failed to retrieve current namespaces: %v", err)
+		return cached
+	}
+
+	list := &corev1.NamespaceList{}
+	if err := cl.List(ctx, list); err != nil {
+		logger.Warnf("failed to retrieve current namespaces: %v", err)
+		return cached
+	}
+
+	realNs := sets.NewString()
+	for _, namespace := range list.Items {
+		realNs.Insert(namespace.Name)
+	}
+
+	// keep only cached namespaces that still exist in the cluster (filter in place)
+	n := 0
+	for _, namespaceInCache := range cached {
+		if realNs.Has(namespaceInCache) {
+			cached[n] = namespaceInCache
+			n++
+		}
+	}
+	cached = cached[:n]
+
+	// append namespaces that exist in the cluster but were not in the cache
+	for _, ns := range realNs.List() {
+		if !cachedSet.Has(ns) {
+			cached = append(cached, ns)
+		}
+	}
+	return cached
 }
 
 func getKubeconfigPath(kubeconfigPathFromFlag string) (string, error) {

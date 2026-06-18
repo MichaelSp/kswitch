@@ -63,7 +63,7 @@ func (i *NamespaceCache) HasContent() bool {
 }
 
 func (i *NamespaceCache) GetContent() []string {
-	if i.content == nil {
+	if i == nil || i.content == nil {
 		return []string{}
 	}
 	return i.content
@@ -91,6 +91,12 @@ func (i *NamespaceCache) loadFromFile() ([]string, error) {
 }
 
 func (i *NamespaceCache) Write(toWrite []string) error {
+	// a nil cache means caching is disabled (e.g. the cache failed to initialize);
+	// writing is a no-op rather than a nil-pointer dereference.
+	if i == nil {
+		return nil
+	}
+
 	// creates or truncate/clean the existing file
 	file, err := os.Create(i.cacheFilepath)
 	if err != nil {

@@ -293,15 +293,28 @@ func (s *GKEStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byt
 	if s.Config.PreferredEndpoint == nil {
 		endpoint = cluster.Endpoint
 	} else {
+		// ControlPlaneEndpointsConfig and its sub-objects are optional (omitempty) pointers
+		// on the GKE API response; dereferencing them unconditionally panics when the
+		// cluster does not expose the requested endpoint type.
+		epConfig := cluster.ControlPlaneEndpointsConfig
 		switch *s.Config.PreferredEndpoint {
 		case types.GkeDnsEndpoint:
-			endpoint = cluster.ControlPlaneEndpointsConfig.DnsEndpointConfig.Endpoint
+			if epConfig == nil || epConfig.DnsEndpointConfig == nil {
+				return nil, fmt.Errorf("DNS endpoint not available for GKE cluster %q", clusterName)
+			}
+			endpoint = epConfig.DnsEndpointConfig.Endpoint
 			// DNS Endpoint certificate is not signed this Certificate Authority
 			certificate = ""
 		case types.GkePrivateEndpoint:
-			endpoint = cluster.ControlPlaneEndpointsConfig.IpEndpointsConfig.PrivateEndpoint
+			if epConfig == nil || epConfig.IpEndpointsConfig == nil {
+				return nil, fmt.Errorf("private endpoint not available for GKE cluster %q", clusterName)
+			}
+			endpoint = epConfig.IpEndpointsConfig.PrivateEndpoint
 		case types.GkePublicEndpoint:
-			endpoint = cluster.ControlPlaneEndpointsConfig.IpEndpointsConfig.PublicEndpoint
+			if epConfig == nil || epConfig.IpEndpointsConfig == nil {
+				return nil, fmt.Errorf("public endpoint not available for GKE cluster %q", clusterName)
+			}
+			endpoint = epConfig.IpEndpointsConfig.PublicEndpoint
 		default:
 			endpoint = cluster.Endpoint
 		}
