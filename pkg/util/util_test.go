@@ -76,33 +76,29 @@ func TestParseSanitizedKubeconfig(t *testing.T) {
 }
 
 func TestGetContextsNamesFromKubeconfig(t *testing.T) {
-	t.Run("with prefix - returns only current-context when set", func(t *testing.T) {
+	t.Run("with prefix - returns all contexts regardless of current-context", func(t *testing.T) {
 		names, err := GetContextsNamesFromKubeconfig([]byte(validKubeconfig), "myprefix")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		// validKubeconfig has current-context: ctx1, so only that context is returned
-		expected := []string{"myprefix/ctx1"}
-		if len(names) != len(expected) {
-			t.Fatalf("expected %d names, got %d (%v)", len(expected), len(names), names)
+		if len(names) != 2 {
+			t.Fatalf("expected 2 names, got %d (%v)", len(names), names)
 		}
-		if names[0] != expected[0] {
-			t.Errorf("name[0] = %q, want %q", names[0], expected[0])
+		if names[0] != "myprefix/ctx1" || names[1] != "myprefix/ctx2" {
+			t.Errorf("unexpected names: %v", names)
 		}
 	})
 
-	t.Run("without prefix - returns only current-context when set", func(t *testing.T) {
+	t.Run("without prefix - returns all contexts regardless of current-context", func(t *testing.T) {
 		names, err := GetContextsNamesFromKubeconfig([]byte(validKubeconfig), "")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		// validKubeconfig has current-context: ctx1, so only that context is returned
-		expected := []string{"ctx1"}
-		if len(names) != len(expected) {
-			t.Fatalf("expected %d names, got %d (%v)", len(expected), len(names), names)
+		if len(names) != 2 {
+			t.Fatalf("expected 2 names, got %d (%v)", len(names), names)
 		}
-		if names[0] != expected[0] {
-			t.Errorf("name[0] = %q, want %q", names[0], expected[0])
+		if names[0] != "ctx1" || names[1] != "ctx2" {
+			t.Errorf("unexpected names: %v", names)
 		}
 	})
 
@@ -125,7 +121,7 @@ current-context: ""
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if len(names) != 2 {
-			t.Fatalf("expected 2 names when no current-context, got %d (%v)", len(names), names)
+			t.Fatalf("expected 2 names, got %d (%v)", len(names), names)
 		}
 	})
 

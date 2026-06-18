@@ -17,6 +17,7 @@ package kswitch
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"slices"
 	"strings"
 
@@ -265,6 +266,34 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 				return nil, nil, err
 			}
 			stores = append(stores, s)
+		}
+	}
+
+	// auto-enable the kind store when the `kind` binary is available in PATH and
+	// not already explicitly configured — kind takes precedence over filesystem
+	// entries for the same cluster via deduplicateKindContexts.
+	kindConfigured := false
+	for _, sc := range config.KubeconfigStores {
+		if sc.Kind == types.StoreKindKind {
+			kindConfigured = true
+			break
+		}
+	}
+	if !kindConfigured {
+		if _, err := exec.LookPath("kind"); err == nil {
+			kindStore, err := store.NewKindStore(types.KubeconfigStore{
+				ID:         new("kindDefaultStore"),
+				Kind:       types.StoreKindKind,
+				Required:   new(false),
+				ShowPrefix: new(true),
+			})
+			if kindStore != nil && err == nil {
+				s, err := cache.New("memory", kindStore, nil)
+				if err != nil {
+					return nil, nil, err
+				}
+				stores = append(stores, s)
+			}
 		}
 	}
 
