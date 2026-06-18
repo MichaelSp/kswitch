@@ -16,10 +16,10 @@ Download the kswitch binary
 OS=linux                        # Pick the right os: linux, darwin (intel only)
 VERSION=0.5.0                   # Pick the current version.
 
-curl -L -o /usr/local/bin/kswitch https://github.com/danielfoehrKn/kswitch/releases/download/${VERSION}/kswitch_${OS}_amd64
+curl -L -o /usr/local/bin/kswitch https://github.com/MichaelSp/kswitch/releases/download/${VERSION}/kswitch_${OS}_amd64
 chmod +x /usr/local/bin/kswitch
 ```
-If you are using Windows, go to the release webpage using you browser and download the windows binary: <https://github.com/danielfoehrKn/kswitch/releases/>\
+If you are using Windows, go to the release webpage using you browser and download the windows binary: <https://github.com/MichaelSp/kswitch/releases/>\
 Then copy it to a folder available in your path. To add a folder to your path, you can use the ``Environment Variables`` tool for the Windows' PowerToys: <https://learn.microsoft.com/en-us/windows/powertoys/environment-variables>\
 If you need to add a folder to the path for the current powershell session, you can run ``$env:Path += ';C:\myfolder'``
 

@@ -23,53 +23,54 @@ import (
 )
 
 // FormatDisplayName builds a human-readable display name for the TUI list.
+// Returns the primary name and an optional dim suffix (the "(…)" part).
 //
 // For Gardener contexts the format is:
 //
-//	gardener/<landscape>/<namespace>/<shoot-name> (alias-or-context)
+//	primary: gardener/<landscape>/<namespace>/<shoot-name>
+//	suffix:  (alias-or-context)
 //
 // For all other store kinds the raw contextName is returned (with the alias
 // appended in parentheses when it differs).
-func FormatDisplayName(storeKind types.StoreKind, path, contextName, alias string) string {
+func FormatDisplayName(storeKind types.StoreKind, path, contextName, alias string) (primary, suffix string) {
 	if storeKind == types.StoreKindGardener {
-		if display, ok := formatGardener(path, contextName, alias); ok {
-			return display
+		if p, s, ok := formatGardener(path, contextName, alias); ok {
+			return p, s
 		}
 	}
 
 	// Generic fallback: show context name; if it has an alias that differs,
 	// append it so users can still search by either name.
 	if alias != "" && alias != contextName {
-		return fmt.Sprintf("%s (%s)", alias, contextName)
+		return alias, fmt.Sprintf("(%s)", contextName)
 	}
-	return contextName
+	return contextName, ""
 }
 
 // formatGardener parses a Gardener identifier and returns the pretty display.
-// Returns (display, true) on success or ("", false) if the path cannot be parsed.
-func formatGardener(path, contextName, alias string) (string, bool) {
+// Returns (primary, suffix, true) on success or ("", "", false) if unparseable.
+func formatGardener(path, contextName, alias string) (primary, suffix string, ok bool) {
 	landscape, resource, name, namespace, _, err := gardenerstore.ParseIdentifier(path)
 	if err != nil {
-		return "", false
+		return "", "", false
 	}
 
-	var suffix string
+	var primary_ string
 	switch resource {
 	case gardenerstore.GardenerResourceShoot:
-		suffix = fmt.Sprintf("%s/%s/%s/%s", "gardener", landscape, namespace, name)
+		primary_ = fmt.Sprintf("%s/%s/%s/%s", "gardener", landscape, namespace, name)
 	case gardenerstore.GardenerResourceSeed:
-		suffix = fmt.Sprintf("%s/%s/garden/%s", "gardener", landscape, name)
+		primary_ = fmt.Sprintf("%s/%s/garden/%s", "gardener", landscape, name)
 	default:
-		return "", false
+		return "", "", false
 	}
 
 	// Collect all "other names" the user might know this cluster by.
-	// These are appended in parentheses to aid fuzzy search and recognition.
 	others := collectOtherNames(name, contextName, alias)
 	if len(others) > 0 {
-		return fmt.Sprintf("%s (%s)", suffix, strings.Join(others, ", ")), true
+		return primary_, fmt.Sprintf("(%s)", strings.Join(others, ", ")), true
 	}
-	return suffix, true
+	return primary_, "", true
 }
 
 // collectOtherNames returns the names that differ from the primary display name

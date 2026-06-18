@@ -59,8 +59,8 @@ Future plans are to act as an authentication helper for Kubeconfig files
 to inject the credentials from the backing store
 and to support more storage backends on top of Vault and the local filesystem.
 
-This should not be a long ramble, so I invite you to check out [kswitch on Github](https://github.com/danielfoehrKn/kswitch) 
-with more information or head straight to the [installation section](https://github.com/danielfoehrKn/kswitch#installation).
+This should not be a long ramble, so I invite you to check out [kswitch on Github](https://github.com/MichaelSp/kswitch) 
+with more information or head straight to the [installation section](https://github.com/MichaelSp/kswitch#installation).
 Of course contributions are more than welcome.
 Cheers,
 Daniel

@@ -56,9 +56,10 @@ func Run(
 	go func() {
 		var batch []item
 		for ci := range itemCh {
-			display := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias)
+			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias)
 			batch = append(batch, item{
-				displayName: display,
+				displayName: primary,
+				dimSuffix:   suffix,
 				contextName: ci.ContextName,
 				path:        ci.Path,
 				tags:        ci.Tags,
