@@ -81,7 +81,7 @@ var (
 	styleCursor    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
 	styleSelected  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 	styleDim       = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	styleDimSuffix = stderrRenderer.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "240", Dark: "245"})
+	styleDimSuffix = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
 	styleCount     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
 	styleBorder    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
 	stylePreview   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
