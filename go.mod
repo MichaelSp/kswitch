@@ -39,7 +39,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/digitalocean/godo v1.195.0
-	github.com/exoscale/egoscale/v3 v3.1.38
+	github.com/exoscale/egoscale/v3 v3.1.40
 	github.com/gardener/gardener/pkg/apis v1.144.1
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.1.0
