@@ -39,9 +39,23 @@ builds:
 # name_template matches the original release asset naming: kswitch_{os}_{arch}
 # (goreleaser automatically appends .exe for windows)
 archives:
-  - formats:
+  - id: binary
+    formats:
       - binary
     name_template: "kswitch_{{ .Os }}_{{ .Arch }}"
+  # tar.gz archives for macOS/Linux, used by the Homebrew formula
+  - id: homebrew
+    formats:
+      - tar.gz
+    name_template: "kswitch_{{ .Os }}_{{ .Arch }}"
+    builds_info:
+      group: root
+      owner: root
+    files:
+      - src: LICENSE
+      - src: README.md
+    ids:
+      - kswitch
 
 checksum:
   name_template: checksums.txt
@@ -51,6 +65,19 @@ release:
   # Upload switch.sh alongside the binaries
   extra_files:
     - glob: hack/switch/switch.sh
+
+homebrew_casks:
+  - ids:
+      - homebrew
+    repository:
+      owner: MichaelSp
+      name: homebrew-kswitch
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    homepage: "https://github.com/MichaelSp/kswitch"
+    description: "A kubectl context switcher"
+    license: "Apache-2.0"
 
 snapshot:
   version_template: "{{ .Tag }}-next"
