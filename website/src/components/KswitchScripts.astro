@@ -1,0 +1,49 @@
+---
+// KswitchScripts.astro — landing page interactivity
+---
+
+<script is:inline>
+(function() {
+  function initReveal() {
+    var reveals = document.querySelectorAll('.reveal');
+    // Large rootMargin: show anything within 600px of viewport (covers most of the page on load)
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '600px 0px 600px 0px', threshold: 0 });
+
+    reveals.forEach(function(el) { observer.observe(el); });
+
+    // Fallback: also force-reveal everything after a short delay
+    // (catches any observer timing issues)
+    setTimeout(function() {
+      document.querySelectorAll('.reveal:not(.visible)').forEach(function(el) {
+        el.classList.add('visible');
+      });
+    }, 400);
+  }
+
+  // Install tabs
+  window.showTab = function(id, btn) {
+    document.querySelectorAll('.install-block').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    var block = document.getElementById('tab-' + id);
+    if (block) block.classList.add('active');
+    if (btn) btn.classList.add('active');
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReveal);
+  } else {
+    initReveal();
+  }
+})();
+</script>

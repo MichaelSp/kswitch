@@ -1,12 +1,601 @@
-/* kswitch brand accent */
+/* ─── kswitch 2026 dark theme ─── */
+
+/* Fonts */
+@import url('https://fonts.bunny.net/css?family=inter:400,500,600,700&family=jetbrains-mono:400,500');
+
+/* ─── CSS custom properties ─── */
 :root {
-  --sl-color-accent-low: #1a2456;
-  --sl-color-accent: #4f6ef7;
-  --sl-color-accent-high: #a0b0ff;
+  --bg-base:        #0a0a0f;
+  --bg-surface:     #111118;
+  --bg-elevated:    #1a1a2a;
+  --border:         #1e1e30;
+  --border-subtle:  #252545;
+  --border-glow:    rgba(79, 142, 247, 0.35);
+
+  --accent:         #4f8ef7;
+  --accent-dim:     rgba(79, 142, 247, 0.12);
+  --accent-alt:     #7c3aed;
+  --accent-green:   #34d399;
+
+  --text-primary:   #f0f0f5;
+  --text-secondary: #8888a8;
+  --text-muted:     #454560;
+  --text-code:      #7dd3fc;
+
+  /* Starlight overrides */
+  --sl-color-accent-low:  #1a1a3e;
+  --sl-color-accent:      #4f8ef7;
+  --sl-color-accent-high: #a0c0ff;
+
+  --sl-color-bg:          var(--bg-base);
+  --sl-color-bg-nav:      var(--bg-surface);
+  --sl-color-bg-sidebar:  var(--bg-surface);
+  --sl-color-hairline:    var(--border);
+  --sl-color-text:        var(--text-primary);
+  --sl-color-text-accent: var(--accent);
+  --sl-color-gray-1:      #f0f0f5;
+  --sl-color-gray-2:      #c0c0d8;
+  --sl-color-gray-3:      #8888a8;
+  --sl-color-gray-4:      #454560;
+  --sl-color-gray-5:      #2a2a40;
+  --sl-color-gray-6:      #1a1a2a;
+  --sl-font:              'Inter', system-ui, sans-serif;
+  --sl-font-mono:         'JetBrains Mono', monospace;
+
+  /* Animated angle for spinning border */
+  --angle: 0deg;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
 :root[data-theme='light'] {
-  --sl-color-accent-low: #dde4ff;
-  --sl-color-accent: #3a55d4;
+  --sl-color-accent-low:  #dde4ff;
+  --sl-color-accent:      #3a55d4;
   --sl-color-accent-high: #1a2456;
+}
+
+/* ─── Global base ─── */
+html, body {
+  background: var(--bg-base) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Dot-grid background texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+}
+
+/* Hero glow orb */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  width: 700px;
+  height: 700px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(79, 142, 247, 0.09) 0%,
+    rgba(124, 58, 237, 0.05) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+  animation: orb-pulse 10s ease-in-out infinite;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+  50%       { opacity: 1;   transform: translateX(-50%) scale(1.12); }
+}
+
+/* ─── Landing hero (index page) ─── */
+.hero-section {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2.5rem 1.5rem 3rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(79, 142, 247, 0.55);
+  background: rgba(79, 142, 247, 0.18);
+  color: #b8d0ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+  animation: fade-up 0.5s ease both;
+}
+
+.hero-title,
+.hero-title p {
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: var(--text-primary);
+  margin: 0 0 1.25rem;
+  animation: fade-up 0.5s ease 0.1s both;
+}
+/* Reset <p> default margin inside hero-title */
+.hero-title p { margin-bottom: 0; }
+
+.hero-title .accent-blue  { color: #6aabff; }
+.hero-title .accent-green { color: var(--accent-green); }
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
+  animation: fade-up 0.5s ease 0.2s both;
+}
+
+/* CTA buttons */
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 3.5rem;
+  animation: fade-up 0.5s ease 0.3s both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 0 20px rgba(79, 142, 247, 0.3);
+}
+.btn-primary:hover {
+  background: #6aa0ff;
+  box-shadow: 0 0 30px rgba(79, 142, 247, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, transform 0.15s;
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* ─── Demo GIF pair ─── */
+.demo-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto 4rem;
+  animation: fade-up 0.6s ease 0.35s both;
+}
+
+@media (max-width: 640px) {
+  .demo-pair { grid-template-columns: 1fr; }
+}
+
+.demo-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,255,0.06);
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.demo-item:hover {
+  box-shadow: 0 8px 48px rgba(79, 142, 247, 0.15), 0 0 1px rgba(255,255,255,0.1);
+  transform: translateY(-3px);
+}
+
+/* Spinning glow border on demo items */
+.demo-item::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 60%,
+    rgba(79, 142, 247, 0.6),
+    transparent 80%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-spin 6s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes border-spin {
+  to { --angle: 360deg; }
+}
+
+.demo-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.demo-label {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0.75rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: rgba(10, 10, 15, 0.8);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  z-index: 3;
+}
+
+/* ─── Feature cards ─── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  max-width: 960px;
+  margin: 0 auto 4rem;
+}
+
+.feature-card {
+  background: var(--bg-surface);
+  padding: 1.75rem 1.5rem;
+  transition: background 0.2s;
+}
+.feature-card:hover { background: var(--bg-elevated); }
+
+.feature-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.feature-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ─── Install section ─── */
+.install-section {
+  max-width: 760px;
+  margin: 0 auto 5rem;
+  text-align: center;
+}
+
+.install-section h2 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.install-section p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.install-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 0.35rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sl-font);
+  transition: all 0.15s;
+}
+.tab-btn.active,
+.tab-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--border-glow);
+  color: var(--accent);
+}
+
+.install-block {
+  display: none;
+  text-align: left;
+}
+.install-block.active { display: block; }
+
+/* ─── Terminal / code overrides ─── */
+pre, code {
+  font-family: var(--sl-font-mono) !important;
+}
+
+/* Styled pre blocks (not Starlight expressive code) */
+.terminal-demo {
+  background: #0d1117;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.85rem;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(79, 142, 247, 0.04);
+  text-align: left;
+}
+
+.terminal-demo .dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+.terminal-demo .dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+}
+.terminal-demo .dot-r { background: #ff5f57; }
+.terminal-demo .dot-y { background: #ffbd2e; }
+.terminal-demo .dot-g { background: #28c840; }
+
+.terminal-demo .prompt  { color: #4ade80; }
+.terminal-demo .cmd     { color: var(--text-primary); }
+.terminal-demo .out     { color: var(--text-code); }
+.terminal-demo .success { color: var(--accent-green); }
+.terminal-demo .dim     { color: var(--text-muted); }
+
+/* Typewriter animation on hero terminal lines */
+.type-line {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  animation: type-in 1.2s steps(35) forwards;
+}
+.type-line:nth-child(2) { animation-delay: 1.4s; }
+.type-line:nth-child(3) { animation-delay: 2.6s; }
+
+@keyframes type-in { to { width: 100%; } }
+
+.cursor::after {
+  content: '▊';
+  color: var(--accent);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ─── Scroll-reveal ─── */
+/* Sections animate in with a gentle fade-up. No JS required for initial
+   in-viewport items — they get the CSS animation directly. JS adds .visible
+   for elements that scroll in later. */
+.reveal {
+  animation: fade-up 0.7s ease both;
+}
+/* Stagger each reveal section slightly */
+.reveal:nth-of-type(2) { animation-delay: 0.1s; }
+.reveal:nth-of-type(3) { animation-delay: 0.2s; }
+.reveal:nth-of-type(4) { animation-delay: 0.3s; }
+/* .visible class kept for JS compatibility but not needed for visibility */
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ─── Section title pattern ─── */
+.section-eyebrow {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+/* ─── Provider logos strip ─── */
+.providers-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  max-width: 700px;
+  margin: 0 auto 4rem;
+}
+
+.provider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: border-color 0.15s, color 0.15s;
+}
+.provider-pill:hover {
+  border-color: var(--border-glow);
+  color: var(--text-primary);
+}
+
+/* ─── Starlight nav / sidebar tweaks ─── */
+.sl-sidebar-state-persist {
+  background: var(--bg-surface) !important;
+}
+
+header.header {
+  background: rgba(10, 10, 15, 0.88) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* Sidebar active item glow */
+[aria-current='page'] {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
+  border-right: 2px solid var(--accent);
+}
+
+/* Content area */
+.content-panel {
+  background: var(--bg-base) !important;
+}
+
+/* On the splash/landing page, remove the content-panel top padding
+   so the hero sits close to the nav */
+.sl-markdown-content:first-child,
+.content-panel:last-of-type {
+  padding-top: 0 !important;
+}
+
+/* ─── Splash page: hide the auto-injected h1 title panel ─── */
+.content-panel:first-of-type:has(> .sl-container > h1:only-child) {
+  display: none !important;
+}
+main > .content-panel:first-child > .sl-container > h1 {
+  display: none;
+}
+main > .content-panel:first-child:not(:has(.sl-markdown-content)) {
+  display: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+/* Kill the hairline separator Starlight puts between content panels */
+.main-pane > .content-panel + .content-panel {
+  border-top: none !important;
+}
+main > div > .content-panel:first-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+/* ─── Starlight splash overrides that break our heading colors ─── */
+/* Starlight sets h1/h2/h3 to dark colors in splash template — force white */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.install-section h2,
+.section-title {
+  color: var(--text-primary) !important;
+}
+
+/* Kill empty paragraphs MDX generates from JSX whitespace expressions */
+.sl-markdown-content p:empty,
+.hero-section p:empty {
+  display: none;
+}
+/* Hero subtitle: the MDX paragraph split creates an empty p before the real one */
+.hero-section > p:first-of-type:empty { display: none; }
+.hero-subtitle { color: var(--text-secondary); }
+/* The actual subtitle paragraph follows hero-subtitle class */
+.hero-section p + p:not(.hero-subtitle) {
+  color: var(--text-secondary);
+  max-width: 580px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+}
+
+/* Inline code */
+:not(pre) > code {
+  background: rgba(79, 142, 247, 0.1) !important;
+  color: var(--text-code) !important;
+  border: 1px solid rgba(79, 142, 247, 0.15) !important;
+  border-radius: 4px !important;
+  padding: 0.1em 0.4em !important;
+  font-size: 0.875em !important;
+}
+
+/* Code blocks */
+.expressive-code {
+  border-radius: 10px !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35) !important;
+}
+
+/* ─── Animations ─── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

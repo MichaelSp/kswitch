@@ -2,56 +2,131 @@
 title: kswitch
 description: The kubectx for operators — single pane of glass for all your kubeconfig files.
 template: splash
-hero:
-  tagline: The kubectx for operators. Fuzzy search, terminal isolation, history, and 14+ cloud providers — built for large-scale Kubernetes.
-  image:
-    file: ../../assets/banner.png
-  actions:
-    - text: Get started
-      link: /kswitch/installation/
-      icon: right-arrow
-      variant: primary
-    - text: View on GitHub
-      link: https://github.com/MichaelSp/kswitch
-      icon: external
-      variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import KswitchScripts from '../../components/KswitchScripts.astro'
 
-## Highlights
+<section class="hero-section">
+  <span class="hero-badge">Open Source · Apache 2.0 · CLI Tool</span>
+  <h1 class="hero-title">Switch Kubernetes contexts<br/>at the <span class="accent-blue">speed of thought</span></h1>
+  <p class="hero-subtitle"><strong>kswitch</strong> is the kubectx for operators — fuzzy search across 14+ cloud providers, terminal isolation, history navigation, and hooks. Built for large-scale Kubernetes.</p>
+  <div class="hero-ctas">
+    <a href="/kswitch/installation/" class="btn-primary">Get started →</a>
+    <a href="https://github.com/MichaelSp/kswitch" class="btn-ghost">GitHub ↗</a>
+  </div>
+</section>
 
-<CardGrid stagger>
-  <Card title="Unified fuzzy search" icon="magnifier">
-    Search all contexts across every provider and kubeconfig file in one instant fuzzy search. Hot-reload adds new kubeconfigs on the fly.
-  </Card>
-  <Card title="Terminal window isolation" icon="laptop">
-    Each terminal targets a different cluster independently. kswitch never modifies the original kubeconfig — a temporary copy is used per terminal.
-  </Card>
-  <Card title="History navigation" icon="list-format">
-    Every `{context, namespace}` tuple is recorded. Jump back with `kswitch .` or step through history with `kswitch -`.
-  </Card>
-  <Card title="Context aliases" icon="pencil">
-    Give human-friendly names to cryptic generated context names without modifying the underlying kubeconfig file.
-  </Card>
-  <Card title="Search index cache" icon="rocket">
-    Local index for instant results across massive directories or slow remote stores like Vault. Configure refresh intervals per store.
-  </Card>
-  <Card title="Extensible hooks" icon="setting">
-    Run arbitrary executables before search — sync kubeconfigs from Git, refresh tokens, rotate credentials. Fully composable.
-  </Card>
-</CardGrid>
+<div class="demo-pair reveal">
+  <div class="demo-item">
+    <img src="/kswitch/kswitch-switch-demo.gif" alt="kswitch context switching demo" loading="lazy" />
+    <span class="demo-label">$ switch — fuzzy context search</span>
+  </div>
+  <div class="demo-item">
+    <img src="/kswitch/kswitch-namespace-demo.gif" alt="kswitch namespace switch demo" loading="lazy" />
+    <span class="demo-label">$ switch ns — namespace switch</span>
+  </div>
+</div>
 
-## Supported providers
+<section class="reveal" style="max-width:960px;margin:0 auto 4rem;text-align:center">
+  <span class="section-eyebrow">Features</span>
+  <p class="section-title">Everything operators need</p>
 
-Amazon EKS · Azure AKS · Google GKE · Gardener · Hashicorp Vault · Local filesystem · DigitalOcean · Rancher · Exoscale · OVH · Akamai / Linode · Cluster API (CAPI) · Scaleway (coming soon)
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Instant fuzzy search</div>
+      <div class="feature-desc">Search all contexts across every provider and kubeconfig in one keystroke. Hot-reload adds new files on the fly.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖥</div>
+      <div class="feature-title">Terminal isolation</div>
+      <div class="feature-desc">Each terminal window targets a different cluster independently — kswitch never touches the original kubeconfig.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📜</div>
+      <div class="feature-title">History navigation</div>
+      <div class="feature-desc">Every context+namespace tuple is recorded. Jump back with <code>switch .</code> or step through with <code>switch -</code>.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏷</div>
+      <div class="feature-title">Context aliases</div>
+      <div class="feature-desc">Give human-friendly names to cryptic generated context names without modifying the underlying kubeconfig.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗄</div>
+      <div class="feature-title">Search index cache</div>
+      <div class="feature-desc">Local index for instant results across massive directories or slow remote stores like Vault.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔌</div>
+      <div class="feature-title">Extensible hooks</div>
+      <div class="feature-desc">Run arbitrary executables before search — sync from Git, refresh tokens, rotate credentials.</div>
+    </div>
+  </div>
+</section>
 
-## Quick install
+<section class="reveal" style="max-width:960px;margin:0 auto 4rem;text-align:center">
+  <span class="section-eyebrow">Supported providers</span>
+  <p class="section-title" style="margin-bottom:1.5rem">14+ cloud providers, one search</p>
 
-```sh
-brew install kswitch
-echo 'source <(kswitch init zsh)' >> ~/.zshrc
-source ~/.zshrc
-```
+  <div class="providers-strip">
+    <span class="provider-pill">Amazon EKS</span>
+    <span class="provider-pill">Azure AKS</span>
+    <span class="provider-pill">Google GKE</span>
+    <span class="provider-pill">Gardener</span>
+    <span class="provider-pill">Hashicorp Vault</span>
+    <span class="provider-pill">Filesystem</span>
+    <span class="provider-pill">DigitalOcean</span>
+    <span class="provider-pill">Rancher</span>
+    <span class="provider-pill">Exoscale</span>
+    <span class="provider-pill">OVH</span>
+    <span class="provider-pill">Akamai / Linode</span>
+    <span class="provider-pill">Cluster API</span>
+    <span class="provider-pill">Scaleway</span>
+  </div>
 
-Then just type `switch` to start switching contexts.
+  <p style="font-size:0.85rem;color:var(--text-muted);margin-top:1rem">
+    Missing your provider? <a href="https://github.com/MichaelSp/kswitch/blob/main/docs/stores/adding-a-store.md" style="color:var(--accent)">Contributions welcome →</a>
+  </p>
+</section>
+
+<section class="install-section reveal">
+  <span class="section-eyebrow">Install</span>
+  <h2>Get running in 30 seconds</h2>
+  <p>
+    Choose your platform — then see the <a href="/kswitch/installation/" style="color:var(--accent)">full installation guide</a> for shell completion and advanced options.
+  </p>
+
+  <div class="install-tabs">
+    <button class="tab-btn active" onclick="window.showTab('mac', this)">macOS</button>
+    <button class="tab-btn" onclick="window.showTab('linux', this)">Linux</button>
+    <button class="tab-btn" onclick="window.showTab('win', this)">Windows</button>
+  </div>
+
+  <div id="tab-mac" class="install-block active terminal-demo">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div><span class="prompt">$ </span><span class="cmd">brew install kswitch</span></div>
+    <div style="margin-top:0.5rem"><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init zsh)' &gt;&gt; ~/.zshrc</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">source ~/.zshrc</span></div>
+    <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>switch</strong> to start</span></div>
+  </div>
+
+  <div id="tab-linux" class="install-block terminal-demo">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div><span class="prompt">$ </span><span class="cmd">curl -L -o /usr/local/bin/kswitch https://github.com/MichaelSp/kswitch/releases/latest/download/kswitch_linux_amd64</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">chmod +x /usr/local/bin/kswitch</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init bash)' &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc</span></div>
+    <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>switch</strong> to start</span></div>
+  </div>
+
+  <div id="tab-win" class="install-block terminal-demo">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div><span class="dim"># Download the binary from GitHub Releases and place it in your PATH</span></div>
+    <div style="margin-top:0.5rem"><span class="prompt">PS&gt; </span><span class="cmd">kswitch init powershell &gt;&gt; $PROFILE</span></div>
+    <div><span class="prompt">PS&gt; </span><span class="cmd">. $PROFILE</span></div>
+    <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>kswitch</strong> to start</span></div>
+    <div style="margin-top:0.4rem"><a href="https://github.com/MichaelSp/kswitch/releases/latest" style="color:var(--accent);font-size:0.85rem">Download Windows binary →</a></div>
+  </div>
+</section>
+
+<KswitchScripts />
