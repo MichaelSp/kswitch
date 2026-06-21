@@ -127,6 +127,8 @@ github.com/gardener/gardener-extension-provider-openstack v1.55.3 h1:DXqsJ/EBMEw
 github.com/gardener/gardener-extension-provider-openstack v1.55.3/go.mod h1:dnr5KBhzIAX5BRJa0HbqY4EPDwBLFz93Zh2o8Iwf3BM=
 github.com/gardener/gardener/pkg/apis v1.144.1 h1:T6btvkERhtN9XdrkFVH7GrAeTq7uY78HHzwW/t846sg=
 github.com/gardener/gardener/pkg/apis v1.144.1/go.mod h1:we6hJ8r80nL1rkXzVnOQwey4q77pQXHN3pvoBgeak8g=
+github.com/gardener/gardener/pkg/apis v1.144.2 h1:Wgwt+0GUzRy3unkIrfzaY5UgpzPbonwlPNDvpRf25nI=
+github.com/gardener/gardener/pkg/apis v1.144.2/go.mod h1:we6hJ8r80nL1rkXzVnOQwey4q77pQXHN3pvoBgeak8g=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gkampitakis/ciinfo v0.3.2 h1:JcuOPk8ZU7nZQjdUhctuhQofk7BGHuIy0c9Ez8BNhXs=
