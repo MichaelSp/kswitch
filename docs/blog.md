@@ -23,7 +23,7 @@ or need to be synchronized from a remote system.
 `kswitch` offers
 - Convenience features (terminal window isolation, context history, [context aliasing](https://github.com/MichaelSp/kswitch#alias), [improved search experience](https://github.com/MichaelSp/kswitch#improved-search-experience), sanitized Kubeconfig preview);
 - advanced search capabilities (search index, hot reload, unified search over all kubeconfig stores);
-- as well as custom integration points with external systems (see [hooks](https://MichaelSp.github.io/kswitch/hooks/)).
+- as well as custom integration points with external systems (see [hooks](/kswitch/hooks/)).
 
 To not break existing setups, `kswitch` is a drop-in replacement for _kubectx_.
 You can just set an alias.
@@ -60,7 +60,7 @@ to inject the credentials from the backing store
 and to support more storage backends on top of Vault and the local filesystem.
 
 This should not be a long ramble, so I invite you to check out [kswitch on Github](https://github.com/MichaelSp/kswitch) 
-with more information or head straight to the [installation section](https://github.com/MichaelSp/kswitch#installation).
+with more information or head straight to the [installation section](/kswitch/installation/).
 Of course contributions are more than welcome.
 Cheers,
 Daniel

@@ -38,6 +38,9 @@
     var block = document.getElementById('tab-' + id);
     if (block) block.classList.add('active');
     if (btn) btn.classList.add('active');
+    // Show/hide Windows download footer
+    var dlFooter = document.getElementById('tab-win-dl');
+    if (dlFooter) dlFooter.style.display = (id === 'win') ? 'flex' : 'none';
   };
 
   if (document.readyState === 'loading') {

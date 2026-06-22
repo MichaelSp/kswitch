@@ -42,6 +42,11 @@
   --sl-font:              'Inter', system-ui, sans-serif;
   --sl-font-mono:         'JetBrains Mono', monospace;
 
+  /* hero badge defaults (dark theme) */
+  --hero-badge-color:  #b8d0ff;
+  --hero-badge-bg:     rgba(79, 142, 247, 0.18);
+  --hero-badge-border: rgba(79, 142, 247, 0.55);
+
   /* Animated angle for spinning border */
   --angle: 0deg;
 }
@@ -69,6 +74,11 @@
   --text-secondary: #4a4a6a;
   --text-muted:     #9090b0;
   --text-code:      #1d4ed8;
+
+  /* hero badge: override hardcoded light-blue for readable dark-on-light */
+  --hero-badge-color: #1a2456;
+  --hero-badge-bg:    rgba(58, 85, 212, 0.1);
+  --hero-badge-border: rgba(58, 85, 212, 0.45);
 
   --sl-color-accent-low:  #dde4ff;
   --sl-color-accent:      #3a55d4;
@@ -151,9 +161,9 @@ body::after {
   gap: 0.5rem;
   padding: 0.3rem 1rem;
   border-radius: 9999px;
-  border: 1px solid rgba(79, 142, 247, 0.55);
-  background: rgba(79, 142, 247, 0.18);
-  color: #b8d0ff;
+  border: 1px solid var(--hero-badge-border);
+  background: var(--hero-badge-bg);
+  color: var(--hero-badge-color);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -259,6 +269,8 @@ body::after {
   background: var(--bg-surface);
   box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,255,0.06);
   transition: box-shadow 0.25s, transform 0.25s;
+  display: flex;
+  flex-direction: column;
 }
 .demo-item:hover {
   box-shadow: 0 8px 48px rgba(79, 142, 247, 0.15), 0 0 1px rgba(255,255,255,0.1);
@@ -297,17 +309,12 @@ body::after {
 }
 
 .demo-label {
-  position: absolute;
-  bottom: 0.6rem;
-  left: 0.75rem;
   font-family: var(--sl-font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  background: rgba(10, 10, 15, 0.8);
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  backdrop-filter: blur(4px);
-  z-index: 3;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* ─── Feature cards ─── */
@@ -316,7 +323,7 @@ body::after {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1px;
   background: var(--border);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 14px;
   overflow: hidden;
   max-width: 960px;
@@ -327,6 +334,7 @@ body::after {
   background: var(--bg-surface);
   padding: 1.75rem 1.5rem;
   transition: background 0.2s;
+  border-top: 1px solid var(--border-subtle);
 }
 .feature-card:hover { background: var(--bg-elevated); }
 
@@ -370,25 +378,44 @@ body::after {
 .install-tabs {
   display: flex;
   justify-content: center;
+  align-items: flex-end;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
+.install-tabs {
+  align-items: flex-end;
+}
+
 .tab-btn {
-  padding: 0.35rem 1rem;
-  border-radius: 6px;
+  padding: 0.3rem 1rem;
+  border-radius: 6px 6px 0 0;
   border: 1px solid var(--border-subtle);
+  border-bottom: none;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 500;
+  line-height: 1.4;
   cursor: pointer;
   font-family: var(--sl-font);
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, padding 0.15s;
+  box-sizing: border-box;
+  outline: none;
+  position: relative;
+  bottom: -1px;
 }
-.tab-btn.active,
-.tab-btn:hover {
+.tab-btn.active {
+  padding-top: 0.5rem;
+  padding-bottom: 0.45rem;
+  background: #0d1117;
+  border-color: var(--border-subtle);
+  border-bottom: 1px solid #0d1117;
+  color: var(--accent);
+  z-index: 1;
+}
+.tab-btn:not(.active):hover {
   background: var(--accent-dim);
   border-color: var(--border-glow);
   color: var(--accent);
@@ -397,6 +424,7 @@ body::after {
 .install-block {
   display: none;
   text-align: left;
+  border-radius: 0 10px 10px 10px;
 }
 .install-block.active { display: block; }
 
@@ -411,17 +439,33 @@ pre, code {
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
+  margin-top: 0;
   font-family: var(--sl-font-mono);
   font-size: 0.85rem;
   position: relative;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(79, 142, 247, 0.04);
   text-align: left;
+  /* Terminal is always dark — pin text colors to dark-mode values */
+  color: #f0f0f5;
 }
 
+/* Terminal titlebar: traffic lights + tab name on one line */
+.terminal-titlebar {
+display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  margin-top: -1rem;
+}
+.terminal-titlebar .terminal-title {
+  font-size: 0.75rem;
+  color: #6868a0;
+  margin-left: 0.25rem;
+}
 .terminal-demo .dots {
   display: flex;
+  align-items: baseline;
   gap: 6px;
-  margin-bottom: 1rem;
 }
 .terminal-demo .dot {
   width: 11px; height: 11px;
@@ -431,11 +475,39 @@ pre, code {
 .terminal-demo .dot-y { background: #ffbd2e; }
 .terminal-demo .dot-g { background: #28c840; }
 
+/* Download button below the Windows terminal block */
+.install-block-footer {
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-glow);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.btn-download:hover {
+  background: rgba(79, 142, 247, 0.22);
+  box-shadow: 0 0 20px rgba(79, 142, 247, 0.25);
+  transform: translateY(-1px);
+}
+
+
+
 .terminal-demo .prompt  { color: #4ade80; }
-.terminal-demo .cmd     { color: var(--text-primary); }
-.terminal-demo .out     { color: var(--text-code); }
-.terminal-demo .success { color: var(--accent-green); }
-.terminal-demo .dim     { color: var(--text-muted); }
+.terminal-demo .cmd     { color: #f0f0f5; }
+.terminal-demo .out     { color: #7dd3fc; }
+.terminal-demo .success { color: #34d399; }
+.terminal-demo .dim     { color: #6868a0; }
 
 /* Typewriter animation on hero terminal lines */
 .type-line {
