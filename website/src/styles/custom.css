@@ -53,9 +53,28 @@
 }
 
 :root[data-theme='light'] {
-  --sl-color-accent-low:  #dde4ff;
-  --sl-color-accent:      #3a55d4;
-  --sl-color-accent-high: #1a2456;
+  /* Force light theme to use identical dark-mode values.
+     The theme toggle still works visually but the palette stays dark. */
+  --sl-color-white:       #f0f0f5;
+  --sl-color-black:       #0a0a0f;
+  --sl-color-gray-1:      #f0f0f5;
+  --sl-color-gray-2:      #c0c0d8;
+  --sl-color-gray-3:      #8888a8;
+  --sl-color-gray-4:      #454560;
+  --sl-color-gray-5:      #2a2a40;
+  --sl-color-gray-6:      #1a1a2a;
+  --sl-color-accent-low:  #1a1a3e;
+  --sl-color-accent:      #4f8ef7;
+  --sl-color-accent-high: #a0c0ff;
+  --sl-color-bg:          #0a0a0f;
+  --sl-color-bg-nav:      #111118;
+  --sl-color-bg-sidebar:  #111118;
+  --sl-color-hairline:    #1e1e30;
+  --sl-color-text:        #f0f0f5;
+  --sl-color-text-accent: #4f8ef7;
+  --bg-base:              #0a0a0f;
+  --bg-surface:           #111118;
+  --bg-elevated:          #1a1a2a;
 }
 
 /* ─── Global base ─── */

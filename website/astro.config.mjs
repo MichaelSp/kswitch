@@ -22,6 +22,20 @@ export default defineConfig({
 				baseUrl: 'https://github.com/MichaelSp/kswitch/edit/main/docs/',
 			},
 			customCss: ['./src/styles/custom.css'],
+			head: [
+				{
+					tag: 'script',
+					content: `
+						(function(){
+							try {
+								// Always default to dark; respect explicit user override stored in localStorage
+								var stored = localStorage.getItem('starlight-theme');
+								document.documentElement.setAttribute('data-theme', stored || 'dark');
+							} catch(e) {}
+						})();
+					`,
+				},
+			],
 			sidebar: [
 				{
 					label: 'Getting Started',
