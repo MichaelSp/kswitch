@@ -51,40 +51,52 @@
   initial-value: 0deg;
   inherits: false;
 }
-
+/* ─── Light theme ─── */
 :root[data-theme='light'] {
-  /* Force light theme to use identical dark-mode values.
-     The theme toggle still works visually but the palette stays dark. */
-  --sl-color-white:       #f0f0f5;
-  --sl-color-black:       #0a0a0f;
-  --sl-color-gray-1:      #f0f0f5;
-  --sl-color-gray-2:      #c0c0d8;
-  --sl-color-gray-3:      #8888a8;
-  --sl-color-gray-4:      #454560;
-  --sl-color-gray-5:      #2a2a40;
-  --sl-color-gray-6:      #1a1a2a;
-  --sl-color-accent-low:  #1a1a3e;
-  --sl-color-accent:      #4f8ef7;
-  --sl-color-accent-high: #a0c0ff;
-  --sl-color-bg:          #0a0a0f;
-  --sl-color-bg-nav:      #111118;
-  --sl-color-bg-sidebar:  #111118;
-  --sl-color-hairline:    #1e1e30;
-  --sl-color-text:        #f0f0f5;
-  --sl-color-text-accent: #4f8ef7;
-  --bg-base:              #0a0a0f;
-  --bg-surface:           #111118;
-  --bg-elevated:          #1a1a2a;
+  --bg-base:        #f8f9fc;
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #f0f2f8;
+  --border:         #e2e4f0;
+  --border-subtle:  #d0d4e8;
+  --border-glow:    rgba(58, 85, 212, 0.3);
+
+  --accent:         #3a55d4;
+  --accent-dim:     rgba(58, 85, 212, 0.1);
+  --accent-alt:     #6d28d9;
+  --accent-green:   #059669;
+
+  --text-primary:   #111118;
+  --text-secondary: #4a4a6a;
+  --text-muted:     #9090b0;
+  --text-code:      #1d4ed8;
+
+  --sl-color-accent-low:  #dde4ff;
+  --sl-color-accent:      #3a55d4;
+  --sl-color-accent-high: #1a2456;
+  --sl-color-bg:          #f8f9fc;
+  --sl-color-bg-nav:      #ffffff;
+  --sl-color-bg-sidebar:  #ffffff;
+  --sl-color-hairline:    #e2e4f0;
+  --sl-color-text:        #111118;
+  --sl-color-text-accent: #3a55d4;
+  --sl-color-white:       #111118;
+  --sl-color-black:       #f8f9fc;
+  --sl-color-gray-1:      #111118;
+  --sl-color-gray-2:      #2a2a40;
+  --sl-color-gray-3:      #4a4a6a;
+  --sl-color-gray-4:      #9090b0;
+  --sl-color-gray-5:      #d0d4e8;
+  --sl-color-gray-6:      #f0f2f8;
 }
 
-/* ─── Global base ─── */
+
 html, body {
-  background: var(--bg-base) !important;
+  background: var(--sl-color-bg) !important;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Dot-grid background texture */
+/* Dot-grid background texture — subtle in both themes */
 body::before {
   content: '';
   position: fixed;
@@ -93,10 +105,11 @@ body::before {
   pointer-events: none;
   background-image: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.03) 1px,
+    var(--border) 1px,
     transparent 1px
   );
   background-size: 28px 28px;
+  opacity: 0.5;
 }
 
 /* Hero glow orb */
@@ -506,14 +519,13 @@ pre, code {
 
 /* ─── Starlight nav / sidebar tweaks ─── */
 .sl-sidebar-state-persist {
-  background: var(--bg-surface) !important;
+  background: var(--sl-color-bg-sidebar) !important;
 }
 
 header.header {
-  background: rgba(10, 10, 15, 0.88) !important;
+  background: color-mix(in srgb, var(--sl-color-bg-nav) 88%, transparent) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
 }
 
 /* Sidebar active item glow */
@@ -525,7 +537,7 @@ header.header {
 
 /* Content area */
 .content-panel {
-  background: var(--bg-base) !important;
+  background: var(--sl-color-bg) !important;
 }
 
 /* On the splash/landing page, remove the content-panel top padding
