@@ -86,7 +86,7 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
   </div>
 
   <p style="font-size:0.85rem;color:var(--text-muted);margin-top:1rem">
-    Missing your provider? <a href="https://github.com/MichaelSp/kswitch/blob/main/docs/stores/adding-a-store.md" style="color:var(--accent)">Contributions welcome →</a>
+    Missing your provider? <a href="/kswitch/stores/adding-a-store/" style="color:var(--accent)">Contributions welcome →</a>
   </p>
 </section>
 
@@ -104,7 +104,7 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
   </div>
 
   <div id="tab-mac" class="install-block active terminal-demo">
-    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div class="terminal-titlebar"><div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="terminal-title">zsh</span></div>
     <div><span class="prompt">$ </span><span class="cmd">brew install kswitch</span></div>
     <div style="margin-top:0.5rem"><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init zsh)' &gt;&gt; ~/.zshrc</span></div>
     <div><span class="prompt">$ </span><span class="cmd">source ~/.zshrc</span></div>
@@ -112,7 +112,7 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
   </div>
 
   <div id="tab-linux" class="install-block terminal-demo">
-    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div class="terminal-titlebar"><div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="terminal-title">bash</span></div>
     <div><span class="prompt">$ </span><span class="cmd">curl -L -o /usr/local/bin/kswitch https://github.com/MichaelSp/kswitch/releases/latest/download/kswitch_linux_amd64</span></div>
     <div><span class="prompt">$ </span><span class="cmd">chmod +x /usr/local/bin/kswitch</span></div>
     <div><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init bash)' &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc</span></div>
@@ -120,12 +120,14 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
   </div>
 
   <div id="tab-win" class="install-block terminal-demo">
-    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <div class="terminal-titlebar"><div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="terminal-title">PowerShell</span></div>
     <div><span class="dim"># Download the binary from GitHub Releases and place it in your PATH</span></div>
     <div style="margin-top:0.5rem"><span class="prompt">PS&gt; </span><span class="cmd">kswitch init powershell &gt;&gt; $PROFILE</span></div>
     <div><span class="prompt">PS&gt; </span><span class="cmd">. $PROFILE</span></div>
     <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>kswitch</strong> to start</span></div>
-    <div style="margin-top:0.4rem"><a href="https://github.com/MichaelSp/kswitch/releases/latest" style="color:var(--accent);font-size:0.85rem">Download Windows binary →</a></div>
+  </div>
+  <div id="tab-win-dl" class="install-block-footer" style="display:none">
+    <a href="https://github.com/MichaelSp/kswitch/releases/latest" class="btn-download">↓ Download Windows binary</a>
   </div>
 </section>
 
