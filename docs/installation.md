@@ -9,7 +9,16 @@ The kswitch installation consists of both a `kswitch` binary and a shell script 
 **NOTE**: to invoke kswitch, do not call the `kswitch` binary directly from the command line. 
 Instead, use the sourced shell function as described in [source the shell function](#required-source-the-shell-function).
 
-## Option 1 - Github releases
+## Option 1 - Homebrew (macOS)
+
+```sh
+brew tap MichaelSp/kswitch
+brew install --cask kswitch
+```
+
+Next, follow [required: source the shell function](#required-source-the-shell-function).
+
+## Option 2 - Github releases
 
 Download the kswitch binary
 ```sh
@@ -27,7 +36,7 @@ If you need to add a folder to the path for the current powershell session, you 
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
 
-### Option 2 - From source
+## Option 3 - From source
 
 ```
 go get github.com/MichaelSp/kswitch
