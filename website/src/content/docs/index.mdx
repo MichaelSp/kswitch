@@ -105,7 +105,8 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
 
   <div id="tab-mac" class="install-block active terminal-demo">
     <div class="terminal-titlebar"><div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="terminal-title">zsh</span></div>
-    <div><span class="prompt">$ </span><span class="cmd">brew install kswitch</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">brew tap MichaelSp/kswitch</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">brew install --cask kswitch</span></div>
     <div style="margin-top:0.5rem"><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init zsh)' &gt;&gt; ~/.zshrc</span></div>
     <div><span class="prompt">$ </span><span class="cmd">source ~/.zshrc</span></div>
     <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>switch</strong> to start</span></div>
