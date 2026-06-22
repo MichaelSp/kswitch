@@ -33,7 +33,8 @@
 ### macOS
 
 ```sh
-brew install kswitch
+brew tap MichaelSp/kswitch
+brew install --cask kswitch
 echo 'source <(kswitch init zsh)' >> ~/.zshrc
 source ~/.zshrc
 ```
