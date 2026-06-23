@@ -20,7 +20,7 @@ import (
 	"github.com/MichaelSp/kswitch/pkg/store/plugins"
 	"github.com/MichaelSp/kswitch/types"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
+	armcontainerservice "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	eks "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/digitalocean/godo"
