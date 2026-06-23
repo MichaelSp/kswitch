@@ -24,7 +24,7 @@ import (
 func executablePath() string {
 	path, err := os.Executable()
 	if err != nil {
-		return "kswitch"
+		return "kubectl-switch"
 	}
 	return path
 }
@@ -32,8 +32,8 @@ func executablePath() string {
 var (
 	shellScriptTemplate string = `
 has_prefix() { case $2 in "$1"*) true;; *) false;; esac; }
-function switch(){
-#  if the executable path is not set, the kswitch binary has to be on the path
+function kswitch(){
+#  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
 
   local DEFAULT_EXECUTABLE_PATH="{{KSWITCH_EXECUTABLE}}"
@@ -42,10 +42,8 @@ function switch(){
   while test $# -gt 0; do
 	case "$1" in
 	--executable-path)
-		EXECUTABLE_PATH="$1"
-		;;
-	completion)
-		opts+=("$1" --cmd switch)
+		EXECUTABLE_PATH="$2"
+		shift
 		;;
 	*)
 		opts+=( "$1" )
@@ -58,13 +56,13 @@ function switch(){
 	EXECUTABLE_PATH="$DEFAULT_EXECUTABLE_PATH"
   fi
 
-  RESPONSE="$($EXECUTABLE_PATH "${opts[@]}")"
+  RESPONSE="$(KSWITCH_SHELL_WRAPPER=1 $EXECUTABLE_PATH "${opts[@]}")"
   if [ $? -ne 0 -o -z "$RESPONSE" ]; then
 	printf "%s\n" "$RESPONSE"
 	return $?
   fi
 
-  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kubectl-switch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   prefix="__ "
   if ! has_prefix "$prefix" "$RESPONSE" ; then
@@ -75,7 +73,7 @@ function switch(){
   # remove prefix
   RESPONSE=${RESPONSE#"$prefix"}
 
-  #the response form the kswitch binary is "kubeconfig_path,selected_context"
+  #the response from the kubectl-switch binary is "kubeconfig_path,selected_context"
   remainder="$RESPONSE"
   KUBECONFIG_PATH="${remainder%%,*}"; remainder="${remainder#*,}"
   SELECTED_CONTEXT="${remainder%%,*}"; remainder="${remainder#*,}"
@@ -105,9 +103,9 @@ function switch(){
 
 	fishScript string = `
 function kswitch
-#  if the executable path is not set, the kswitch binary has to be on the path
+#  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
-  set -f DEFAULT_EXECUTABLE_PATH 'kswitch'
+  set -f DEFAULT_EXECUTABLE_PATH 'kubectl-switch'
   set -f REPORT_RESPONSE
   set -f opts
 
@@ -115,8 +113,6 @@ function kswitch
 	switch "$i"
 	  case --executable-path
 		set -f EXECUTABLE_PATH $i
-	  case completion
-		set -a opts $i --cmd kswitch
 	  case '*'
 		set -a opts $i
 	end
@@ -127,13 +123,13 @@ function kswitch
   end
 
   set -f RESULT 0
-  set -f RESPONSE ($EXECUTABLE_PATH $opts; or set RESULT $status | string split0)
+  set -f RESPONSE (KSWITCH_SHELL_WRAPPER=1 $EXECUTABLE_PATH $opts; or set RESULT $status | string split0)
   if test $RESULT -ne 0; or test -z "$RESPONSE"
 	printf "%s\n" $RESPONSE
 	return $RESULT
   end
 
-  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kubectl-switch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   if string match -q "__ *" -- "$RESPONSE"
 	# remove the prefix
@@ -189,18 +185,14 @@ function has_prefix {
 
 function kswitch {
 
-	#You need to have kswitch_windows_amd64.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
-	$EXECUTABLE_PATH = "kswitch_windows_amd64.exe"
+	#You need to have kubectl-switch.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
+	$EXECUTABLE_PATH = "kubectl-switch.exe"
 
+	$env:KSWITCH_SHELL_WRAPPER = "1"
 	if (-not $args) {
-	Write-Output "no options provided"
-		Write-Output $EXECUTABLE_PATH $args
-		$RESPONSE = & $EXECUTABLE_PATH 
-	} 
-	else{
-	Write-Output "options provided:" $args
-			Write-Output $EXECUTABLE_PATH $args
-		$RESPONSE = & $EXECUTABLE_PATH  $args
+		$RESPONSE = & $EXECUTABLE_PATH
+	} else {
+		$RESPONSE = & $EXECUTABLE_PATH $args
 	}
 
 	if ($LASTEXITCODE -ne 0 -or -not $RESPONSE) {
@@ -208,7 +200,7 @@ function kswitch {
 		return $LASTEXITCODE
 	}
 
-	# kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+	# kubectl-switch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
 	# distinguish it from other responses which just need to write to STDOUT
 	$prefix = "__ "
 	if (-not (has_prefix $prefix $RESPONSE)) {
@@ -216,20 +208,14 @@ function kswitch {
 		return
 	}
 
-
 	$RESPONSE = $RESPONSE -replace $prefix, ""
-	Write-Output $RESPONSE
 	$remainder = $RESPONSE
-	Write-Output $remainder
-	Write-Output $remainder.split(",")[0]
-	Write-Output $remainder.split(",")[1]
 	$KUBECONFIG_PATH = $remainder.split(",")[0]
 	$KUBECONFIG_PATH = $KUBECONFIG_PATH -replace '\\', '/'
 	$KUBECONFIG_PATH = $KUBECONFIG_PATH -replace "C:", ""
-	Write-Output $KUBECONFIG_PATH
 	$SELECTED_CONTEXT = $remainder.split(",")[1]
 
-	if (-not $KUBECONFIG_PATH) { 
+	if (-not $KUBECONFIG_PATH) {
 		Write-Output $RESPONSE
 		return
 	}
@@ -254,22 +240,21 @@ $Env:HOME = $Env:USERPROFILE
 )
 
 var (
+	setName string
+
 	initCmd = &cobra.Command{
 		Use:                   "init [bash|zsh|fish|powershell]",
-		Short:                 "generate init and completion script",
-		Long:                  "generate and load the init and completion script for switch into the current shell. Use it like this: 'source <(kswitch init zsh)'",
+		Short:                 "generate shell function and completion script",
+		Long:                  "Generate and source the kswitch shell function and completion script. Use it like this: 'source <(kubectl-switch init zsh)'",
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := cmd.Root()
-			if setName != "" {
-				root.Use = setName
-			}
+			root.Use = "kswitch"
 			shellScript := strings.ReplaceAll(shellScriptTemplate, "{{KSWITCH_EXECUTABLE}}", executablePath())
 			switch args[0] {
 			case "bash":
-				// same shell script as zsh, but different bash completion
 				fmt.Println(shellScript)
 				return root.GenBashCompletion(os.Stdout)
 			case "zsh":

@@ -30,11 +30,11 @@ build: build-kswitch
 
 .PHONY: build-kswitch
 build-kswitch:
-	@env GOOS=linux GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kswitch_linux_amd64 .
-	@env GOOS=linux GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kswitch_linux_arm64 .
-	@env GOOS=darwin GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kswitch_darwin_amd64 .
-	@env GOOS=darwin GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kswitch_darwin_arm64 .
-	@env GOOS=windows GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o 'hack/switch/kswitch_windows_amd64.exe' .
+	@env GOOS=linux GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kubectl-switch_linux_amd64 .
+	@env GOOS=linux GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kubectl-switch_linux_arm64 .
+	@env GOOS=darwin GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kubectl-switch_darwin_amd64 .
+	@env GOOS=darwin GOARCH=arm64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o hack/switch/kubectl-switch_darwin_arm64 .
+	@env GOOS=windows GOARCH=amd64 go build -ldflags "-w -X github.com/MichaelSp/kswitch/cmd/kswitch.version=${VERSION} -X github.com/MichaelSp/kswitch/cmd/kswitch.buildDate=${DATE}" -o 'hack/switch/kubectl-switch_windows_amd64.exe' .
 
 .PHONY: all
 all: format check build
