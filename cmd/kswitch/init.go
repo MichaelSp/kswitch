@@ -99,7 +99,19 @@ function switch(){
 	\rm -f "$KUBECONFIG"
   fi
 
-  export KUBECONFIG="$KUBECONFIG_PATH"
+  local _new_kc="$KUBECONFIG_PATH"
+  if [[ -n "$KUBECONFIG" ]]; then
+	local _part
+	IFS=':' read -ra _kc_parts <<< "$KUBECONFIG"
+	for _part in "${_kc_parts[@]}"; do
+	  if [[ -n "$_part" && "$_part" != *"$switchTmpDirectory"* ]]; then
+		_new_kc="$_new_kc:$_part"
+	  fi
+	done
+	unset _kc_parts _part
+  fi
+  export KUBECONFIG="$_new_kc"
+  unset _new_kc
   printf "switched to context %s\n" "$SELECTED_CONTEXT"
 }`
 
@@ -166,14 +178,22 @@ function kswitch
 	  command rm -f "$KUBECONFIG"
 	end
 
-	set -gx KUBECONFIG "$KUBECONFIG_PATH"
+	set -l _new_kc "$KUBECONFIG_PATH"
+	if test -n "$KUBECONFIG"
+	  for _part in (string split : "$KUBECONFIG")
+		if test -n "$_part"; and not string match -q "*$switchTmpDirectory*" -- "$_part"
+		  set _new_kc "$_new_kc:$_part"
+		end
+	  end
+	end
+	set -gx KUBECONFIG "$_new_kc"
 	printf "switched to context %s\n" "$SELECTED_CONTEXT"
 	return
   end
   printf "%s\n" $RESPONSE
     end`
 
-	powershellScript string = `
+	powershellScript = `
 function has_prefix {
 	param (
 		[string]$prefix,
@@ -195,8 +215,8 @@ function kswitch {
 	if (-not $args) {
 	Write-Output "no options provided"
 		Write-Output $EXECUTABLE_PATH $args
-		$RESPONSE = & $EXECUTABLE_PATH 
-	} 
+		$RESPONSE = & $EXECUTABLE_PATH
+	}
 	else{
 	Write-Output "options provided:" $args
 			Write-Output $EXECUTABLE_PATH $args
@@ -229,7 +249,7 @@ function kswitch {
 	Write-Output $KUBECONFIG_PATH
 	$SELECTED_CONTEXT = $remainder.split(",")[1]
 
-	if (-not $KUBECONFIG_PATH) { 
+	if (-not $KUBECONFIG_PATH) {
 		Write-Output $RESPONSE
 		return
 	}
@@ -244,7 +264,15 @@ function kswitch {
 		Remove-Item -Path $env:KUBECONFIG -Force
 	}
 
-	$env:KUBECONFIG = $KUBECONFIG_PATH
+	$newKc = $KUBECONFIG_PATH
+	if ($env:KUBECONFIG) {
+		foreach ($part in $env:KUBECONFIG.Split(':')) {
+			if ($part -and -not $part.Contains($switchTmpDirectory)) {
+				$newKc = $newKc + ":" + $part
+			}
+		}
+	}
+	$env:KUBECONFIG = $newKc
 	Write-Output "switched to context $SELECTED_CONTEXT"
 }
 
