@@ -4,10 +4,10 @@ title: Installation
 
 # Installation
 
-The kswitch installation consists of both a `kswitch` binary and a shell script which needs to be sourced.
+The kswitch installation consists of a `kubectl-switch` binary and a shell function that must be sourced into your shell.
 
-**NOTE**: to invoke kswitch, do not call the `kswitch` binary directly from the command line. 
-Instead, use the sourced shell function as described in [source the shell function](#required-source-the-shell-function).
+**NOTE**: Always invoke kswitch via the shell function (`kswitch`), not the binary directly (`kubectl-switch`).
+The shell function is required to export `KUBECONFIG` into your current shell session.
 
 ## Option 1 - Homebrew (macOS)
 
@@ -20,19 +20,17 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 
 ## Option 2 - Github releases
 
-Download the kswitch binary
+Download the `kubectl-switch` binary:
 ```sh
 OS=linux                        # Pick the right os: linux, darwin (intel only)
 VERSION=0.5.0                   # Pick the current version.
 
-curl -L -o /usr/local/bin/kswitch https://github.com/MichaelSp/kswitch/releases/download/${VERSION}/kswitch_${OS}_amd64
-chmod +x /usr/local/bin/kswitch
+curl -L -o /usr/local/bin/kubectl-switch https://github.com/MichaelSp/kswitch/releases/download/${VERSION}/kubectl-switch_${OS}_amd64
+chmod +x /usr/local/bin/kubectl-switch
 ```
-If you are using Windows, go to the release webpage using you browser and download the windows binary: <https://github.com/MichaelSp/kswitch/releases/>\
-Then copy it to a folder available in your path. To add a folder to your path, you can use the ``Environment Variables`` tool for the Windows' PowerToys: <https://learn.microsoft.com/en-us/windows/powertoys/environment-variables>\
-If you need to add a folder to the path for the current powershell session, you can run ``$env:Path += ';C:\myfolder'``
 
-
+If you are using Windows, go to the release page and download the Windows binary: <https://github.com/MichaelSp/kswitch/releases/>\
+Copy it to a folder in your PATH. To add a folder to the path for the current PowerShell session: `$env:Path += ';C:\myfolder'`
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
 
@@ -44,80 +42,64 @@ go get github.com/MichaelSp/kswitch
 
 From the repository root run `make build-kswitch`.
 This builds the binaries to `/hack/switch/`.
-Copy the build binary for your OS/Architecture to e.g. `/usr/local/bin`.
+Copy the binary for your OS/architecture to e.g. `/usr/local/bin/kubectl-switch`.
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
 
 ## Required: Source the shell function
 
-Source the shell function which is used to call the `kswitch` binary. 
-For `zsh/bash` the name of the shell function is `switch` and for `fish` its `kswitch`.
-Additionally, installs the command completion script.
+The `kubectl-switch init` command generates both the `kswitch` shell function and the tab-completion script.
+Source its output in your shell rc file so the `kswitch` command is available in every new shell.
 
 ### Bash
 
 ```sh
-echo 'source <(kswitch init bash)' >> ~/.bashrc
+echo 'source <(kubectl-switch init bash)' >> ~/.bashrc
 
-# optionally use alias `s` instead of `switch`
-echo 'alias s=switch' >> ~/.bashrc
+# optionally use alias `s` instead of `kswitch`
+echo 'alias s=kswitch' >> ~/.bashrc
 echo 'complete -o default -F __start_kswitch s' >> ~/.bashrc
-
-# optionally use `kswitch` as an alias for `switch`
-# NOTE: do NOT alias `kswitch` to the raw binary — it must go through the shell wrapper
-# so that KUBECONFIG is exported into your current shell session.
-echo 'alias kswitch=switch' >> ~/.bashrc
 ```
+
 ### Zsh
+
 ```sh
-echo 'source <(kswitch init zsh)' >> ~/.zshrc
+echo 'source <(kubectl-switch init zsh)' >> ~/.zshrc
 
-# optionally use alias `s` instead of `switch`
-echo 'alias s=switch' >> ~/.zshrc
-
-# optionally use `kswitch` as an alias for `switch`
-# NOTE: do NOT alias `kswitch` to the raw binary — it must go through the shell wrapper
-# so that KUBECONFIG is exported into your current shell session.
-echo 'alias kswitch=switch' >> ~/.zshrc
-
-# optionally use command completion
-echo 'source <(switch completion zsh)' >> ~/.zshrc
+# optionally use alias `s` instead of `kswitch`
+echo 'alias s=kswitch' >> ~/.zshrc
 ```
+
 ### Fish
-Fish shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kswitch function is called `kswitch`.
-```sh
-echo 'kswitch init fish | source' >> ~/.config/fish/config.fish
 
-# optionally use alias `s` instead of `kswitch` (add to config.fish)
-function s --wraps kswitch
-        kswitch $argv;
-end
+```sh
+echo 'kubectl-switch init fish | source' >> ~/.config/fish/config.fish
+
+# optionally use alias `s` instead of `kswitch`
+echo 'function s --wraps kswitch; kswitch $argv; end' >> ~/.config/fish/config.fish
 ```
-### Powershell
-Powershell shell have a built-in `switch` function. Hence, differently from `zsh` shells, the kswitch function is called `kswitch`.
+
+### PowerShell
 
 ```powershell
-kswitch_windows_amd64.exe init powershell >> $PROFILE
+kubectl-switch.exe init powershell >> $PROFILE
 
-# add this for the autocomplete to work
-echo 'Register-ArgumentCompleter -CommandName ''kswitch_windows_amd64'' -ScriptBlock $__kswitchCompleterBlock' >> $PROFILE
+# add this for autocomplete to work
 echo 'Register-ArgumentCompleter -CommandName ''kswitch'' -ScriptBlock $__kswitchCompleterBlock' >> $PROFILE
 
-# optionally use alias `s` instead of `kswitch` (add to $PROFILE)
-echo "" >> $PROFILE
+# optionally use alias `s` instead of `kswitch`
 echo "Set-Alias -Name s -Value kswitch" >> $PROFILE
 echo 'Register-ArgumentCompleter -CommandName ''s'' -ScriptBlock $__kswitchCompleterBlock' >> $PROFILE
 
-# source your profile again
+# re-source your profile
 . $PROFILE
 ```
 
 ## Check that it works
 
-If you installed kswitch correctly, you can run the command `switch` (zsh, bash) or `kswitch` (fish, powershell) or alternatively the alias `s` from the terminal.
-In case the terminal can't find the function, you might need to open another terminal or re-source your config file (`.zshrc`,`.bashrc`,...).
+Run `kswitch` (or `s` if you set the alias) from any terminal.
+If the command is not found, open a new terminal or re-source your rc file (`.zshrc`, `.bashrc`, …).
 
 That should display the contexts the tool can find with the default configuration.
-If you get the error `Error: you need to point kswitch to a kubeconfig file` or do not see all
-desired kubeconfig contexts that you want to choose from, follow
-[kubeconfig stores](kubeconfig_stores.md) for the configuration.
+If you get `Error: you need to point kswitch to a kubeconfig file` or do not see all desired contexts,
+follow [kubeconfig stores](kubeconfig_stores.md) for configuration.

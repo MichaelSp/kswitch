@@ -1,9 +1,9 @@
 #!/usr/bin/env fish
 
 function kswitch
-#  if the executable path is not set, the switcher binary has to be on the path
+#  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
-  set -f DEFAULT_EXECUTABLE_PATH 'switcher'
+  set -f DEFAULT_EXECUTABLE_PATH 'kubectl-switch'
   set -f REPORT_RESPONSE
   set -f opts
 
@@ -11,8 +11,6 @@ function kswitch
     switch "$i"
       case --executable-path
         set -f EXECUTABLE_PATH $i
-      case completion
-        set -a opts $i --cmd kswitch
       case '*'
         set -a opts $i
     end
@@ -23,13 +21,13 @@ function kswitch
   end
 
   set -f RESULT 0
-  set -f RESPONSE ($EXECUTABLE_PATH $opts; or set RESULT $status | string split0)
+  set -f RESPONSE (KSWITCH_SHELL_WRAPPER=1 $EXECUTABLE_PATH $opts; or set RESULT $status | string split0)
   if test $RESULT -ne 0; or test -z "$RESPONSE"
     printf "%s\n" $RESPONSE
     return $RESULT
   end
 
-  # switcher returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kubectl-switch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   if string match -q "__ *" -- "$RESPONSE"
     # remove the prefix
