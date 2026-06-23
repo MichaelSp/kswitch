@@ -240,8 +240,6 @@ $Env:HOME = $Env:USERPROFILE
 )
 
 var (
-	setName string
-
 	initCmd = &cobra.Command{
 		Use:                   "init [bash|zsh|fish|powershell]",
 		Short:                 "generate shell function and completion script",
