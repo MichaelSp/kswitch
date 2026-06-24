@@ -17,6 +17,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -126,6 +127,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case discoveryDoneMsg:
 		m.loading = false
+		// Disambiguate items that share a contextName by showing the source path.
+		nameCounts := make(map[string]int)
+		for _, it := range m.allItems {
+			nameCounts[it.contextName]++
+		}
+		changed := false
+		for i, it := range m.allItems {
+			if nameCounts[it.contextName] > 1 && it.dimSuffix == "" {
+				m.allItems[i].dimSuffix = shortPath(it.path)
+				changed = true
+			}
+		}
+		if changed {
+			m.filtered = filterItems(m.query, m.allItems)
+		}
 		return m, nil
 
 	case previewMsg:
@@ -422,4 +438,15 @@ func truncate(s string, max int) string {
 		return string(r[:max])
 	}
 	return string(r[:max-2]) + ".."
+}
+
+// shortPath returns up to the last 2 path components of p (e.g. "configs/prod.yaml").
+func shortPath(p string) string {
+	dir := filepath.Dir(p)
+	base := filepath.Base(p)
+	parent := filepath.Base(dir)
+	if parent == "." || parent == "/" {
+		return base
+	}
+	return parent + "/" + base
 }
