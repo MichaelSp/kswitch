@@ -9,7 +9,7 @@ If you neither provide a flag or a `SwitchConfig` file, it will default to the f
 
 The `SwitchConfig` file is expected to be in the default location
 on the local filesystem at `~/.kube/switch-config.yaml` or set via flag `--config-path`.
-Example config files can be found [here](/kswitch/resources/demo-config-files) but also in
+Example config files can be found [in the repository](https://github.com/MichaelSp/kswitch/tree/main/pkg/store/plugins/example) but also in
 the documentation for each store (see below).
 
 Please check the documentation for each kubeconfig store on how to use it
