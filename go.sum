@@ -125,6 +125,8 @@ github.com/gabriel-vasile/mimetype v1.4.13 h1:46nXokslUBsAJE/wMsp5gtO500a4F3Nkz9
 github.com/gabriel-vasile/mimetype v1.4.13/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
 github.com/gardener/gardener-extension-provider-openstack v1.55.3 h1:DXqsJ/EBMEwZsrCNKfIG2euIAnVUASd/iPRkW5LjqZE=
 github.com/gardener/gardener-extension-provider-openstack v1.55.3/go.mod h1:dnr5KBhzIAX5BRJa0HbqY4EPDwBLFz93Zh2o8Iwf3BM=
+github.com/gardener/gardener-extension-provider-openstack v1.56.0 h1:WWBwt8qmmrWIYUCRHJprQLkNq9a2JCzp7uWEG6mcloA=
+github.com/gardener/gardener-extension-provider-openstack v1.56.0/go.mod h1:19VXh6ny5NJHm/vtljEAxzkrRKAjf6LWcZVCYlMYdik=
 github.com/gardener/gardener/pkg/apis v1.145.0 h1:E9mnDYOKOoOEJnpGCPpFuS0OX32uoOnv27a03b/nlP0=
 github.com/gardener/gardener/pkg/apis v1.145.0/go.mod h1:LsjZw5/3awWSMDnKg4bgftM1kW9Dkeor/ged5DNHVPI=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
