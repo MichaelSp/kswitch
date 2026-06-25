@@ -3,7 +3,7 @@
 function kswitch
 #  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
-  set -f DEFAULT_EXECUTABLE_PATH 'kubectl-switch'
+  set -f DEFAULT_EXECUTABLE_PATH 'kswitch'
   set -f REPORT_RESPONSE
   set -f opts
 
