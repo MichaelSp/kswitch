@@ -24,7 +24,7 @@ import (
 func executablePath() string {
 	path, err := os.Executable()
 	if err != nil {
-		return "kubectl-switch"
+		return "kswitch"
 	}
 	return path
 }
@@ -105,7 +105,7 @@ function kswitch(){
 function kswitch
 #  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
-  set -f DEFAULT_EXECUTABLE_PATH 'kubectl-switch'
+  set -f DEFAULT_EXECUTABLE_PATH 'kswitch'
   set -f REPORT_RESPONSE
   set -f opts
 
@@ -186,7 +186,7 @@ function has_prefix {
 function kswitch {
 
 	#You need to have kubectl-switch.exe in your PATH, or you need to change the value of EXECUTABLE_PATH here
-	$EXECUTABLE_PATH = "kubectl-switch.exe"
+	$EXECUTABLE_PATH = "kswitch.exe"
 
 	$env:KSWITCH_SHELL_WRAPPER = "1"
 	if (-not $args) {
