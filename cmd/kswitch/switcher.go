@@ -80,12 +80,12 @@ var (
 			// Commands that make sense without the shell wrapper (bootstrap/introspection)
 			exempt := map[string]bool{"init": true, "version": true, "__complete": true, "__completeNoDesc": true}
 			if !exempt[cmd.Name()] && os.Getenv("KSWITCH_SHELL_WRAPPER") != "1" {
-				fmt.Fprintln(os.Stderr, "kubectl-switch must be invoked via the kswitch shell function, not directly.")
+				fmt.Fprintln(os.Stderr, "kswitch must be invoked via the kswitch shell function, not directly.")
 				fmt.Fprintln(os.Stderr, "")
 				fmt.Fprintln(os.Stderr, "To set up the shell function, add this to your shell rc file:")
-				fmt.Fprintln(os.Stderr, "  bash/zsh:   source <(kubectl-switch init bash)")
-				fmt.Fprintln(os.Stderr, "  fish:       kubectl-switch init fish | source")
-				fmt.Fprintln(os.Stderr, "  powershell: kubectl-switch init powershell >> $PROFILE")
+				fmt.Fprintln(os.Stderr, "  bash/zsh:   source <(kswitch init bash)")
+				fmt.Fprintln(os.Stderr, "  fish:       kswitch init fish | source")
+				fmt.Fprintln(os.Stderr, "  powershell: kswitch init powershell >> $PROFILE")
 				fmt.Fprintln(os.Stderr, "")
 				fmt.Fprintln(os.Stderr, "Then open a new shell or re-source your rc file and run: kswitch")
 				os.Exit(1)
