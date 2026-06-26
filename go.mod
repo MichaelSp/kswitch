@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/jedib0t/go-pretty/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.42.0
+	github.com/onsi/gomega v1.42.1
 	github.com/rancher/norman v0.9.7
 	github.com/rancher/rancher/pkg/client v0.0.0-20260615061755-d799b65710c5
 	github.com/sirupsen/logrus v1.9.4
