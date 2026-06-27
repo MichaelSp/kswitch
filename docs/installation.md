@@ -13,7 +13,8 @@ The shell function is required to export `KUBECONFIG` into your current shell se
 
 ```sh
 brew tap MichaelSp/kswitch
-brew install --cask kswitch
+brew trust --cask michaelsp/kswitch/kubectl-switch
+brew install kubectl-switch
 ```
 
 Next, follow [required: source the shell function](#required-source-the-shell-function).
