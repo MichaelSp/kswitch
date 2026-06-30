@@ -8,7 +8,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.25
 	github.com/aws/aws-sdk-go-v2/service/eks v1.87.0
-	github.com/aws/smithy-go v1.27.2
+	github.com/aws/smithy-go v1.27.3
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/gardener/gardener-extension-provider-openstack v1.56.0
 	github.com/go-cmd/cmd v1.4.3
