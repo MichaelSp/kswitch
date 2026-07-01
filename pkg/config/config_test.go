@@ -35,6 +35,7 @@ func TestLoadConfigFromFile_EmptyFile(t *testing.T) {
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil empty config")
+		return
 	}
 	if cfg.Version != "" || cfg.Kind != "" || len(cfg.KubeconfigStores) != 0 {
 		t.Fatalf("expected zero-value config, got %#v", cfg)
@@ -60,6 +61,7 @@ kubeconfigStores:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil config")
+		return
 	}
 	if cfg.Kind != "SwitchConfig" {
 		t.Fatalf("Kind: got %q", cfg.Kind)
@@ -100,6 +102,7 @@ kubeconfigPaths:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil migrated config")
+		return
 	}
 	if cfg.Version != "v1alpha1" {
 		t.Fatalf("expected migrated version v1alpha1, got %q", cfg.Version)
@@ -172,6 +175,7 @@ kubeconfigPaths:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil config")
+		return
 	}
 	if cfg.Version != "v1alpha1" {
 		t.Fatalf("expected v1alpha1, got %q", cfg.Version)
