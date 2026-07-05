@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.88.1
 	github.com/aws/smithy-go v1.27.3
 	github.com/bombsimon/logrusr/v4 v4.1.0
-	github.com/gardener/gardener-extension-provider-openstack v1.56.0
+	github.com/gardener/gardener-extension-provider-openstack v1.56.1
 	github.com/go-cmd/cmd v1.4.3
 	github.com/google/addlicense v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
