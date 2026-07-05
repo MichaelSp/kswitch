@@ -339,6 +339,8 @@ github.com/linode/linodego/v2 v2.2.0 h1:tmQPeV4i1OXuOq49nvpHVEFVI8+lakCIgeVJiucJ
 github.com/linode/linodego/v2 v2.2.0/go.mod h1:rsITrtsKFKBi+pEnznDbbF9ZGBou9S8UccCm1yHLbpI=
 github.com/linode/linodego/v2 v2.3.0 h1:kyPK0kL1pR+RzfdGj3QdM4ivaE9WM+E4U+hfnU0xX78=
 github.com/linode/linodego/v2 v2.3.0/go.mod h1:rsITrtsKFKBi+pEnznDbbF9ZGBou9S8UccCm1yHLbpI=
+github.com/linode/linodego/v2 v2.4.0 h1:U5gjzswVj+Spjo8kLqemvcNkDtXMmMvjqKR2q6qEplw=
+github.com/linode/linodego/v2 v2.4.0/go.mod h1:Xd78WEdX9RHs2BdR1tjqkui3zQkn4EXJvdq4S0NLvs4=
 github.com/lucasb-eyer/go-colorful v1.4.0 h1:UtrWVfLdarDgc44HcS7pYloGHJUjHV/4FwW4TvVgFr4=
 github.com/lucasb-eyer/go-colorful v1.4.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=
