@@ -22,38 +22,51 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// MergeResult holds information about a successful merge for display purposes.
+type MergeResult struct {
+	Context     string
+	Destination string
+}
+
 // MergeToDefault merges the currently selected KUBECONFIG into ~/.kube/config.
 // Contexts, clusters, and users with the same name are overwritten.
 // current-context is set to the context from the selected KUBECONFIG.
-func MergeToDefault() error {
+func MergeToDefault() (*MergeResult, error) {
 	src, err := kubeconfigutil.LoadCurrentKubeconfig()
 	if err != nil {
-		return fmt.Errorf("failed to load current KUBECONFIG: %w", err)
+		return nil, fmt.Errorf("failed to load current KUBECONFIG: %w", err)
 	}
 
 	defaultPath := defaultKubeconfigPath()
 	if err := ensureDefaultExists(defaultPath); err != nil {
-		return err
+		return nil, err
 	}
 
 	srcBytes, err := src.GetBytes()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	dstBytes, err := os.ReadFile(defaultPath)
 	if err != nil {
-		return fmt.Errorf("failed to read %s: %w", defaultPath, err)
+		return nil, fmt.Errorf("failed to read %s: %w", defaultPath, err)
 	}
 
 	merged, err := mergeKubeconfigs(dstBytes, srcBytes)
 	if err != nil {
-		return fmt.Errorf("failed to merge kubeconfigs: %w", err)
+		return nil, fmt.Errorf("failed to merge kubeconfigs: %w", err)
 	}
 
 	if err := os.WriteFile(defaultPath, merged, 0600); err != nil {
-		return fmt.Errorf("failed to write %s: %w", defaultPath, err)
+		return nil, fmt.Errorf("failed to write %s: %w", defaultPath, err)
 	}
-	return nil
+
+	var srcDoc yaml.Node
+	_ = yaml.Unmarshal(srcBytes, &srcDoc)
+	ctx := ""
+	if len(srcDoc.Content) > 0 {
+		ctx = scalarValue(srcDoc.Content[0], "current-context")
+	}
+	return &MergeResult{Context: ctx, Destination: defaultPath}, nil
 }
 
 func defaultKubeconfigPath() string {
