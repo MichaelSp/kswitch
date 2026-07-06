@@ -40,7 +40,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/digitalocean/godo v1.197.0
 	github.com/exoscale/egoscale/v3 v3.1.40
-	github.com/gardener/gardener/pkg/apis v1.145.0
+	github.com/gardener/gardener/pkg/apis v1.146.0
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.4.0
 	github.com/ovh/go-ovh v1.9.0
