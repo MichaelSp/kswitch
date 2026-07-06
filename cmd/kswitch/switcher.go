@@ -78,7 +78,7 @@ var (
 		Version: version,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Commands that make sense without the shell wrapper (bootstrap/introspection)
-			exempt := map[string]bool{"init": true, "version": true, "__complete": true, "__completeNoDesc": true}
+			exempt := map[string]bool{"init": true, "version": true, "merge-to-default-kubeconfig": true, "__complete": true, "__completeNoDesc": true}
 			if !exempt[cmd.Name()] && os.Getenv("KSWITCH_SHELL_WRAPPER") != "1" {
 				fmt.Fprintln(os.Stderr, "kswitch must be invoked via the kswitch shell function, not directly.")
 				fmt.Fprintln(os.Stderr, "")
