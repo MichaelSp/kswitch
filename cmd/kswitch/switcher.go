@@ -27,6 +27,7 @@ import (
 	"github.com/MichaelSp/kswitch/pkg"
 
 	"github.com/MichaelSp/kswitch/pkg/cache"
+	merge_to_default "github.com/MichaelSp/kswitch/pkg/subcommands/merge-to-default"
 	"github.com/MichaelSp/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -47,12 +48,13 @@ const (
 
 var (
 	// root command
-	kubeconfigPath string
-	kubeconfigName string
-	showPreview    bool
-	deleteContext  bool
-	unsetContext   bool
-	currentContext bool
+	kubeconfigPath    string
+	kubeconfigName    string
+	showPreview       bool
+	deleteContext     bool
+	unsetContext      bool
+	currentContext    bool
+	writeToKubeconfig bool
 
 	// vault store
 	storageBackend          string
@@ -136,9 +138,29 @@ var (
 				showPreview = false
 			}
 
+			// config file can enable write-to-kubeconfig by default; CLI flag overrides
+			if !writeToKubeconfig && config.WriteToKubeconfig != nil && *config.WriteToKubeconfig {
+				writeToKubeconfig = true
+			}
+
 			kubeconfigPath, contextName, err := pkg.Switcher(stores, config, stateDirectory, noIndex, showPreview)
+			if err != nil {
+				return err
+			}
+			if writeToKubeconfig && kubeconfigPath != nil && contextName != nil {
+				kubeconfigData, readErr := os.ReadFile(*kubeconfigPath)
+				if readErr != nil {
+					return fmt.Errorf("failed to read temporary kubeconfig: %w", readErr)
+				}
+				result, mergeErr := merge_to_default.MergeDataToTarget(kubeconfigData, merge_to_default.ResolveWriteTarget())
+				if mergeErr != nil {
+					return mergeErr
+				}
+				reportNewContext(&result.Destination, contextName)
+				return nil
+			}
 			reportNewContext(kubeconfigPath, contextName)
-			return err
+			return nil
 		},
 		SilenceUsage: true,
 	}
@@ -149,6 +171,7 @@ func init() {
 	rootCommand.Flags().BoolVarP(&deleteContext, "d", "d", false, "delete desired context. Context name is required")
 	rootCommand.Flags().BoolVarP(&unsetContext, "unset", "u", false, "unset current context")
 	rootCommand.Flags().BoolVarP(&currentContext, "current", "c", false, "show current context")
+	rootCommand.Flags().BoolVarP(&writeToKubeconfig, "write", "w", false, "merge selected context into the real KUBECONFIG (or ~/.kube/config) and set current-context")
 }
 
 func NewCommandStartKswitch() *cobra.Command {
