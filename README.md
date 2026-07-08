@@ -17,6 +17,7 @@
 
 - **Unified fuzzy search** — one search over EKS, AKS, GKE, Gardener, Vault, filesystem, and more
 - **Terminal isolation** — each window targets a different cluster; the original kubeconfig is never modified
+- **Write mode** (`-w`) — merge the selected context into the real kubeconfig for IDE and cross-terminal visibility
 - **History** — every `{context, namespace}` tuple recorded; jump back with `switch .` or `switch -`
 - **Context aliases** — human-friendly names for cryptic generated context names
 - **Search index cache** — instant results across massive directories or slow remote stores
@@ -104,5 +105,6 @@ Full documentation is available at **[MichaelSp.github.io/kswitch](https://Micha
 - [Installation guide](https://MichaelSp.github.io/kswitch/installation/) — shell completion, all platforms
 - [Kubeconfig stores](https://MichaelSp.github.io/kswitch/kubeconfig_stores/) — multi-provider setup
 - [Search index](https://MichaelSp.github.io/kswitch/search_index/) — caching for large setups
+- [Writing context to KUBECONFIG](https://MichaelSp.github.io/kswitch/write_to_kubeconfig/) — write mode and merge-to-default
 - [Hooks](https://MichaelSp.github.io/kswitch/hooks/) — extensibility
 - [Cloud provider guides](https://MichaelSp.github.io/kswitch/stores/eks/eks/) — EKS, AKS, GKE, Gardener, Vault, and more
