@@ -76,6 +76,7 @@ export default defineConfig({
 					label: 'Advanced',
 					items: [
 						{ label: 'Hooks', slug: 'hooks' },
+						{ label: 'Writing context to KUBECONFIG', slug: 'write_to_kubeconfig' },
 					],
 				},
 			],

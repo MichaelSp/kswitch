@@ -29,3 +29,12 @@ For a proper installation:
 8. The shell function captures that filepath and runs `export KUBECONFIG=<path>`
 
 Each terminal window operates on its own copy of the kubeconfig file (terminal isolation).
+
+## Write mode (`-w`)
+
+When `kswitch -w` (or `writeToKubeconfig: true` in `switch-config.yaml`) is used, step 6 changes:
+instead of writing to `~/.kube/.switch_tmp/`, the selected context is **merged into the real kubeconfig**
+and `current-context` is set there. The shell function then exports `$KUBECONFIG` pointing to that real
+file instead of a temp file.
+
+See [Writing context to KUBECONFIG](write_to_kubeconfig.md) for full details.
