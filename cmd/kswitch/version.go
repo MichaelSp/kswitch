@@ -16,6 +16,7 @@ package kswitch
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"slices"
 
 	"github.com/MichaelSp/kswitch/types"
@@ -56,5 +57,12 @@ func getSupportedStores() string {
 }
 
 func init() {
+	if version == "" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+			version = info.Main.Version
+		} else {
+			version = "dev"
+		}
+	}
 	rootCommand.AddCommand(versionCmd)
 }
