@@ -37,36 +37,59 @@ func MergeToDefault() (*MergeResult, error) {
 		return nil, fmt.Errorf("failed to load current KUBECONFIG: %w", err)
 	}
 
-	defaultPath := defaultKubeconfigPath()
-	if err := ensureDefaultExists(defaultPath); err != nil {
-		return nil, err
-	}
-
 	srcBytes, err := src.GetBytes()
 	if err != nil {
 		return nil, err
 	}
-	dstBytes, err := os.ReadFile(defaultPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", defaultPath, err)
+
+	targetPath := ResolveWriteTarget()
+	return MergeDataToTarget(srcBytes, targetPath)
+}
+
+// ResolveWriteTarget returns the real kubeconfig path to write to:
+// if $KUBECONFIG points to a kswitch tmp file (or is unset), returns ~/.kube/config;
+// otherwise returns $KUBECONFIG.
+func ResolveWriteTarget() string {
+	if kc := os.Getenv("KUBECONFIG"); kc != "" && !isKswitchTmp(kc) {
+		return kc
+	}
+	return defaultKubeconfigPath()
+}
+
+// isKswitchTmp reports whether path is inside the kswitch temporary directory.
+func isKswitchTmp(path string) bool {
+	tmpDir := os.ExpandEnv(kubeconfigutil.TemporaryKubeconfigDir)
+	return len(path) > len(tmpDir) && path[:len(tmpDir)] == tmpDir
+}
+
+// MergeDataToTarget merges srcData into the kubeconfig at targetPath.
+// The target file is created if it does not exist.
+func MergeDataToTarget(srcData []byte, targetPath string) (*MergeResult, error) {
+	if err := ensureDefaultExists(targetPath); err != nil {
+		return nil, err
 	}
 
-	merged, err := mergeKubeconfigs(dstBytes, srcBytes)
+	dstBytes, err := os.ReadFile(targetPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", targetPath, err)
+	}
+
+	merged, err := mergeKubeconfigs(dstBytes, srcData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge kubeconfigs: %w", err)
 	}
 
-	if err := os.WriteFile(defaultPath, merged, 0600); err != nil {
-		return nil, fmt.Errorf("failed to write %s: %w", defaultPath, err)
+	if err := os.WriteFile(targetPath, merged, 0600); err != nil {
+		return nil, fmt.Errorf("failed to write %s: %w", targetPath, err)
 	}
 
 	var srcDoc yaml.Node
-	_ = yaml.Unmarshal(srcBytes, &srcDoc)
+	_ = yaml.Unmarshal(srcData, &srcDoc)
 	ctx := ""
 	if len(srcDoc.Content) > 0 {
 		ctx = scalarValue(srcDoc.Content[0], "current-context")
 	}
-	return &MergeResult{Context: ctx, Destination: defaultPath}, nil
+	return &MergeResult{Context: ctx, Destination: targetPath}, nil
 }
 
 func defaultKubeconfigPath() string {

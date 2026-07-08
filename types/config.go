@@ -78,6 +78,13 @@ type Config struct {
 	// default: true
 	// + optional
 	ShowPreview *bool `yaml:"showPreview"`
+	// WriteToKubeconfig configures if the selected context is merged into the real KUBECONFIG
+	// (or ~/.kube/config if KUBECONFIG points to a kswitch temp file) instead of only being
+	// active in the current shell via a temporary file.
+	// Can be overridden via command line flag --write / -w
+	// default: false
+	// + optional
+	WriteToKubeconfig *bool `yaml:"writeToKubeconfig"`
 	// ExecShell configures the shell to be used for switch exec -- "command"
 	// If a shell (bash, zsh, sh) is provided, the command is executed like so
 	// --> bash -c "your_command"
