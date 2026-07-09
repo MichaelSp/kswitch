@@ -23,8 +23,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/MichaelSp/kswitch/pkg"
-	"github.com/MichaelSp/kswitch/pkg/tui"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/pkg/tui"
 	"github.com/MichaelSp/kswitch/types"
 )
 
@@ -98,7 +98,9 @@ func ListContextsVerbose(pattern string, stores []storetypes.KubeconfigStore, co
 		entries = append(entries, ListEntry{Name: name, Display: display, Suffix: suffix})
 	}
 
-	sort.Slice(entries, func(i, j int) bool { return entries[i].Display+entries[i].Suffix < entries[j].Display+entries[j].Suffix })
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Display+entries[i].Suffix < entries[j].Display+entries[j].Suffix
+	})
 	return entries, nil
 }
 
@@ -126,7 +128,7 @@ func matchesPattern(pattern, name string) (bool, error) {
 	}
 	// Also match against each '/'-separated segment so patterns like "*-dev*"
 	// work on the last segment of a context name like "ns/ctx-dev-external".
-	for _, seg := range strings.Split(name, "/") {
+	for seg := range strings.SplitSeq(name, "/") {
 		if ok, _ := path.Match(pattern, seg); ok {
 			return true, nil
 		}

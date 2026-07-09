@@ -230,4 +230,3 @@ func logSearchErrors() {
 		logger.Warnf("Suppressed warnings during the search: %v", searchError.Error())
 	}
 }
-
