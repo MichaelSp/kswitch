@@ -29,6 +29,8 @@ import (
 )
 
 var (
+	listVerbose = false
+
 	previousContextCmd = &cobra.Command{
 		Use:     "set-previous-context",
 		Aliases: []string{"spc"},
@@ -91,6 +93,20 @@ var (
 			pattern := "*"
 			if len(args) == 1 && len(args[0]) > 0 {
 				pattern = args[0]
+			}
+			if listVerbose {
+				entries, err := list_contexts.ListContextsVerbose(pattern, stores, config, stateDirectory, noIndex)
+				if err != nil {
+					return err
+				}
+				for _, e := range entries {
+					if e.Suffix != "" {
+						fmt.Printf("%s %s\n", e.Display, e.Suffix)
+					} else {
+						fmt.Println(e.Display)
+					}
+				}
+				return nil
 			}
 			contexts, err := list_contexts.ListContexts(pattern, stores, config, stateDirectory, noIndex)
 			if err != nil {
@@ -197,6 +213,7 @@ func init() {
 
 	setFlagsForContextCommands(setContextCmd)
 	setFlagsForContextCommands(listContextsCmd)
+	listContextsCmd.Flags().BoolVarP(&listVerbose, "verbose", "v", false, "show formatted display name and label values")
 	// need to add flags as the namespace history allows switching to any {context: namespace} combination
 	setFlagsForContextCommands(previousContextCmd)
 	setFlagsForContextCommands(lastContextCmd)

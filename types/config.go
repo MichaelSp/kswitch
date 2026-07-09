@@ -164,6 +164,10 @@ type StoreConfigGardener struct {
 	// also used as the store ID if the kubeconfig store ID is not specified
 	// + optional
 	LandscapeName *string `yaml:"landscapeName"`
+	// ShootLabelKeys is an optional list of shoot label keys whose values are included in the
+	// display suffix and the search index. Example entry:
+	//   "gardener.clusters.openmcp.cloud/cluster-name"
+	ShootLabelKeys []string `yaml:"shootLabelKeys"`
 }
 
 type StoreConfigGKE struct {

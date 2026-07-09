@@ -457,6 +457,14 @@ func (s *GardenerStore) discoverProjectNamespaces(ctx context.Context) []string 
 	return namespaces
 }
 
+// GetShootLabelKeys returns the label keys configured for display in the TUI suffix.
+func (s *GardenerStore) GetShootLabelKeys() []string {
+	if s.Config == nil {
+		return nil
+	}
+	return s.Config.ShootLabelKeys
+}
+
 func (s *GardenerStore) GetContextPrefix(path string) string {
 	if s.GetStoreConfig().ShowPrefix != nil && !*s.GetStoreConfig().ShowPrefix {
 		return ""
@@ -804,10 +812,14 @@ func (s *GardenerStore) sendKubeconfigPaths(channel chan storetypes.SearchResult
 			Error:          nil,
 		}
 
-		if clusterName, ok := shoot.Labels[gardenerstore.LabelKeyClusterName]; ok && clusterName != "" {
-			result.Tags = map[string]string{
-				gardenerstore.LabelKeyClusterName: clusterName,
+		tags := map[string]string{}
+		for _, key := range s.Config.ShootLabelKeys {
+			if val, ok := shoot.Labels[key]; ok && val != "" {
+				tags[key] = val
 			}
+		}
+		if len(tags) > 0 {
+			result.Tags = tags
 		}
 
 		channel <- result

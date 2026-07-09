@@ -28,7 +28,6 @@ import (
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	aliasutil "github.com/MichaelSp/kswitch/pkg/subcommands/alias/util"
 	"github.com/MichaelSp/kswitch/pkg/tui"
-	"github.com/MichaelSp/kswitch/pkg/util"
 	kubeconfigutil "github.com/MichaelSp/kswitch/pkg/util/kubectx_copied"
 	"github.com/MichaelSp/kswitch/types"
 )
@@ -90,7 +89,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 			all = append(all, dc)
 		}
 
-		deduplicated := deduplicateKindContexts(all)
+		deduplicated := applyContextFilters(all, contextFilters...)
 
 		for _, dc := range deduplicated {
 			kubeconfigStore := *dc.Store
@@ -104,12 +103,13 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 			writeToPathToStoreID(dc.Path, kubeconfigStore.GetID())
 
 			tuiCh <- tui.ContextItem{
-				ContextName: contextName,
-				Alias:       dc.Alias,
-				StoreKind:   string(kubeconfigStore.GetKind()),
-				Path:        dc.Path,
-				Tags:        dc.Tags,
-				StoreID:     kubeconfigStore.GetID(),
+				ContextName:      contextName,
+				Alias:            dc.Alias,
+				StoreKind:        string(kubeconfigStore.GetKind()),
+				Path:             dc.Path,
+				Tags:             dc.Tags,
+				StoreID:          kubeconfigStore.GetID(),
+				LabelDisplayKeys: labelDisplayKeys(kubeconfigStore),
 			}
 		}
 	}()
@@ -231,95 +231,3 @@ func logSearchErrors() {
 	}
 }
 
-// clusterIdentity is a fingerprint derived from the cluster's API server URL
-// and CA certificate. Two entries that share the same identity point to the
-// same cluster regardless of which store discovered them.
-type clusterIdentity struct {
-	server string
-	ca     string
-}
-
-// clusterIdentityForContext fetches the kubeconfig for dc and returns the
-// identity of the cluster referenced by its current-context. Returns the zero
-// value and false if the kubeconfig cannot be fetched or parsed.
-func clusterIdentityForContext(dc DiscoveredContext) (clusterIdentity, bool) {
-	store := *dc.Store
-	data, err := store.GetKubeconfigForPath(dc.Path, dc.Tags)
-	if err != nil {
-		return clusterIdentity{}, false
-	}
-	kubeconf, err := util.ParseSanitizedKubeconfig(data)
-	if err != nil {
-		return clusterIdentity{}, false
-	}
-
-	// resolve the cluster name via the current-context
-	ctxName := kubeconf.CurrentContext
-	if ctxName == "" && len(kubeconf.Contexts) > 0 {
-		ctxName = kubeconf.Contexts[0].Name
-	}
-	clusterName := ""
-	for _, ctx := range kubeconf.Contexts {
-		if ctx.Name == ctxName {
-			clusterName = ctx.Context.Cluster
-			break
-		}
-	}
-	for _, cl := range kubeconf.Clusters {
-		if cl.Name == clusterName {
-			return clusterIdentity{
-				server: cl.Cluster.Server,
-				ca:     cl.Cluster.CertificateAuthorityData,
-			}, true
-		}
-	}
-	return clusterIdentity{}, false
-}
-
-// deduplicateKindContexts removes filesystem-store entries that point to the
-// same cluster as a kind-store entry. kind entries always win because they
-// carry the canonical cluster name, whereas the filesystem copy in
-// ~/.kube/config may have a generic or auto-generated name.
-func deduplicateKindContexts(contexts []DiscoveredContext) []DiscoveredContext {
-	// fast path: no kind store present
-	hasKind := false
-	for _, dc := range contexts {
-		if (*dc.Store).GetKind() == types.StoreKindKind {
-			hasKind = true
-			break
-		}
-	}
-	if !hasKind {
-		return contexts
-	}
-
-	// build identity → kind entry map
-	kindIdentities := make(map[clusterIdentity]struct{})
-	for _, dc := range contexts {
-		if (*dc.Store).GetKind() != types.StoreKindKind {
-			continue
-		}
-		if id, ok := clusterIdentityForContext(dc); ok && id.server != "" {
-			kindIdentities[id] = struct{}{}
-		}
-	}
-
-	if len(kindIdentities) == 0 {
-		return contexts
-	}
-
-	result := make([]DiscoveredContext, 0, len(contexts))
-	for _, dc := range contexts {
-		store := *dc.Store
-		if store.GetKind() == types.StoreKindFilesystem {
-			if id, ok := clusterIdentityForContext(dc); ok {
-				if _, shadowed := kindIdentities[id]; shadowed {
-					logger.Debugf("dedup: dropping filesystem context %q (shadowed by kind store)", dc.Name)
-					continue
-				}
-			}
-		}
-		result = append(result, dc)
-	}
-	return result
-}
