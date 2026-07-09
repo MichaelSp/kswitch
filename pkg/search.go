@@ -49,6 +49,17 @@ type DiscoveredContext struct {
 // DoSearch executes a concurrent search over the given kubeconfig stores
 // returns results from all stores on the return channel
 func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) (*chan DiscoveredContext, error) {
+	return doSearch(stores, config, stateDir, noIndex, false)
+}
+
+// DoSearchFromIndex is like DoSearch but reads from the index file whenever one
+// exists, ignoring the refreshIndexAfter gate. Use for non-TUI commands where a
+// live API call would be too slow.
+func DoSearchFromIndex(stores []storetypes.KubeconfigStore, config *types.Config, stateDir string) (*chan DiscoveredContext, error) {
+	return doSearch(stores, config, stateDir, false, true)
+}
+
+func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, forceIndex bool) (*chan DiscoveredContext, error) {
 	// Silence STDOUT during search to not interfere with the search selection screen
 	// restore after search is over
 	originalSTDOUT := os.Stdout
@@ -98,6 +109,8 @@ func DoSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		var readFromIndex bool
 		if noIndex {
 			readFromIndex = false
+		} else if forceIndex && searchIndex.HasContent() && searchIndex.HasKind(kubeconfigStore.GetKind()) {
+			readFromIndex = true
 		} else {
 			readFromIndex, err = shouldReadFromIndex(searchIndex, kubeconfigStore, config)
 			if err != nil {

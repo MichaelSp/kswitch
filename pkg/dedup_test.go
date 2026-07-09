@@ -106,7 +106,7 @@ func TestDeduplicateKindContexts_NoDuplicate(t *testing.T) {
 		dc(kind, "my-cluster", "kind/my-cluster"),
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 2 {
 		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
 	}
@@ -125,7 +125,7 @@ func TestDeduplicateKindContexts_DropFilesystemDuplicate(t *testing.T) {
 		dc(kind, "my-cluster", "kind/my-cluster"), // kind copy — should survive
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 context, got %d: %v", len(result), contextNames(result))
 	}
@@ -148,7 +148,7 @@ func TestDeduplicateKindContexts_KindOrderDoesNotMatter(t *testing.T) {
 		dc(fs, "~/.kube/config", "my-cluster"),
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 context, got %d: %v", len(result), contextNames(result))
 	}
@@ -168,7 +168,7 @@ func TestDeduplicateKindContexts_NoKindStore(t *testing.T) {
 		dc(fs, "b", "cluster-b"),
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 2 {
 		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
 	}
@@ -197,7 +197,7 @@ func TestDeduplicateKindContexts_MultipleKindClusters(t *testing.T) {
 		dc(kind, "cluster-b", "kind/cluster-b"),
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 3 {
 		t.Fatalf("expected 3 contexts, got %d: %v", len(result), contextNames(result))
 	}
@@ -220,8 +220,85 @@ func TestDeduplicateKindContexts_KubeconfigFetchError(t *testing.T) {
 		dc(kind, "missing", "kind/my-cluster"),
 	}
 
-	result := deduplicateKindContexts(contexts)
+	result := filterKindDuplicates(contexts)
 	if len(result) != 2 {
 		t.Errorf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
+}
+
+// --- filterPreferExternal tests ---
+
+func TestFilterPreferExternal_KeepsExternalOnly(t *testing.T) {
+	fs := fsStore(map[string][]byte{})
+	contexts := []DiscoveredContext{
+		dc(fs, "path/a", "ctx-virtualservice-0"),
+		dc(fs, "path/a", "ctx-virtualservice-c"),
+		dc(fs, "path/a", "ctx-external"),
+	}
+
+	result := filterPreferExternal(contexts)
+	if len(result) != 1 {
+		t.Fatalf("expected 1 context, got %d: %v", len(result), contextNames(result))
+	}
+	if result[0].Name != "ctx-external" {
+		t.Errorf("expected ctx-external, got %q", result[0].Name)
+	}
+}
+
+func TestFilterPreferExternal_FallbackWhenNoExternal(t *testing.T) {
+	fs := fsStore(map[string][]byte{})
+	contexts := []DiscoveredContext{
+		dc(fs, "path/a", "ctx-virtualservice-0"),
+		dc(fs, "path/a", "ctx-virtualservice-c"),
+	}
+
+	result := filterPreferExternal(contexts)
+	if len(result) != 2 {
+		t.Fatalf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
+}
+
+func TestFilterPreferExternal_IndependentPerPath(t *testing.T) {
+	fs := fsStore(map[string][]byte{})
+	contexts := []DiscoveredContext{
+		// path/a has an external — keep only it
+		dc(fs, "path/a", "a-virtualservice"),
+		dc(fs, "path/a", "a-external"),
+		// path/b has no external — keep all
+		dc(fs, "path/b", "b-virtualservice-0"),
+		dc(fs, "path/b", "b-virtualservice-1"),
+	}
+
+	result := filterPreferExternal(contexts)
+	if len(result) != 3 {
+		t.Fatalf("expected 3 contexts, got %d: %v", len(result), contextNames(result))
+	}
+	if !containsName(result, "a-external") {
+		t.Error("expected a-external")
+	}
+	if containsName(result, "a-virtualservice") {
+		t.Error("a-virtualservice should have been filtered out")
+	}
+	if !containsName(result, "b-virtualservice-0") || !containsName(result, "b-virtualservice-1") {
+		t.Error("b contexts should survive unchanged")
+	}
+}
+
+func TestFilterPreferExternal_MultipleExternalSamePathAllKept(t *testing.T) {
+	fs := fsStore(map[string][]byte{})
+	contexts := []DiscoveredContext{
+		dc(fs, "path/a", "ctx-external"),
+		dc(fs, "path/a", "ctx2-external"),
+		dc(fs, "path/a", "ctx-virtualservice"),
+	}
+
+	result := filterPreferExternal(contexts)
+	if len(result) != 2 {
+		t.Fatalf("expected 2 contexts, got %d: %v", len(result), contextNames(result))
+	}
+	for _, want := range []string{"ctx-external", "ctx2-external"} {
+		if !containsName(result, want) {
+			t.Errorf("expected %q in result", want)
+		}
 	}
 }

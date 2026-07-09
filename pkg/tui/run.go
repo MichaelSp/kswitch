@@ -38,6 +38,9 @@ type ContextItem struct {
 	Path      string
 	Tags      map[string]string
 	StoreID   string
+	// LabelDisplayKeys lists tag keys whose values should appear in the display suffix.
+	// Values are shown in the order given and become part of the fuzzy-search string.
+	LabelDisplayKeys []string
 }
 
 // Run launches the interactive bubbletea TUI and blocks until the user selects
@@ -56,7 +59,7 @@ func Run(
 	go func() {
 		var batch []item
 		for ci := range itemCh {
-			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias)
+			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias, ci.Tags, ci.LabelDisplayKeys)
 			batch = append(batch, item{
 				displayName: primary,
 				dimSuffix:   suffix,
