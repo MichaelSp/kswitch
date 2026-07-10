@@ -18,7 +18,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.8.2
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
-	github.com/rancher/norman v0.9.7
+	github.com/rancher/norman v0.9.8
 	github.com/rancher/rancher/pkg/client v0.0.0-20260615061755-d799b65710c5
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
