@@ -38,7 +38,7 @@ require (
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/digitalocean/godo v1.197.0
+	github.com/digitalocean/godo v1.198.0
 	github.com/exoscale/egoscale/v3 v3.1.40
 	github.com/gardener/gardener/pkg/apis v1.146.0
 	github.com/hashicorp/go-plugin v1.8.0
