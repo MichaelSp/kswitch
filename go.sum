@@ -149,6 +149,8 @@ github.com/gardener/gardener/pkg/apis v1.146.0 h1:CMjfOkjAqLytEe29MgSfx/HQfWvXeg
 github.com/gardener/gardener/pkg/apis v1.146.0/go.mod h1:S6v1kxYVnqIYsGE2P3emsTUs27bduXEHRYpLx4Zpd9I=
 github.com/gardener/gardener/pkg/apis v1.146.1 h1:s1wRxBS4RV1Z9BFErqTPtjClktcc9gphqPqMHEer3uw=
 github.com/gardener/gardener/pkg/apis v1.146.1/go.mod h1:S6v1kxYVnqIYsGE2P3emsTUs27bduXEHRYpLx4Zpd9I=
+github.com/gardener/gardener/pkg/apis v1.146.2 h1:x6vls9DljiitbKhTG+LDE08BhPLtqjGZLfxwCk3AZsM=
+github.com/gardener/gardener/pkg/apis v1.146.2/go.mod h1:S6v1kxYVnqIYsGE2P3emsTUs27bduXEHRYpLx4Zpd9I=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gkampitakis/ciinfo v0.3.2 h1:JcuOPk8ZU7nZQjdUhctuhQofk7BGHuIy0c9Ez8BNhXs=
