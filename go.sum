@@ -582,6 +582,8 @@ k8s.io/utils v0.0.0-20260507154919-ff6756f316d2 h1:wU4tMEhLGgIbLvXQb1cfN+EcM0wf7
 k8s.io/utils v0.0.0-20260507154919-ff6756f316d2/go.mod h1:xDxuJ0whA3d0I4mf/C4ppKHxXynQ+fxnkmQH0vTHnuk=
 sigs.k8s.io/cluster-api v1.13.3 h1:BlNVnjg644NnlWnxIWHbkltleFLVQwm8FmjWCSB9wGY=
 sigs.k8s.io/cluster-api v1.13.3/go.mod h1:7xB2mYn7oOxSlUw7wk6TukNCjR2phn+MI0gRju3TKSk=
+sigs.k8s.io/cluster-api v1.13.4 h1:27PPEKSqESKeUIf475Ga6hSW1+gKxd5V5sCmMDgeBDo=
+sigs.k8s.io/cluster-api v1.13.4/go.mod h1:suV3Ixu7yUMD651EtBULa/RtwHRxU30eojF3wifGe8Y=
 sigs.k8s.io/controller-runtime v0.24.1 h1:miPEwrmirImAvgME1L9qebGHrOnGJoVmVdtOU9fRfo4=
 sigs.k8s.io/controller-runtime v0.24.1/go.mod h1:vFkfY5fGt5xAC/sKb8IBFKgWPNKG9OUG29dR8Y2wImw=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 h1:IpInykpT6ceI+QxKBbEflcR5EXP7sU1kvOlxwZh5txg=
