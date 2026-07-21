@@ -290,23 +290,23 @@ func TestExpandK0smotronCmd_EmptyClusterList(t *testing.T) {
 	emptyList := `{"apiVersion":"k0smotron.io/v1beta2","kind":"ClusterList","metadata":{},"items":[]}`
 	mux.HandleFunc("/api", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"versions":["v1"]}`)
+		_, _ = fmt.Fprint(w, `{"versions":["v1"]}`)
 	})
 	mux.HandleFunc("/api/v1", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[]}`)
 	})
 	mux.HandleFunc("/apis", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
+		_, _ = fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2/clusters", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, emptyList)
+		_, _ = fmt.Fprint(w, emptyList)
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found: "+r.URL.Path, http.StatusNotFound)
