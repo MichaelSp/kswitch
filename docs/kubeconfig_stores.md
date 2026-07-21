@@ -17,6 +17,7 @@ Please check the documentation for each kubeconfig store on how to use it
  - [Vault](stores/vault/use_vault_store.md)
  - [Gardener](stores/gardener/gardener.md)
  - [Rancher](stores/rancher/rancher.md)
+ - [k0smotron](stores/k0smotron/k0smotron.md) (interactive sub-cluster discovery, no config needed)
 
 Want to support another provider? See [Adding a new kubeconfig store](stores/adding-a-store.md).
 
