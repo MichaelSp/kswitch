@@ -125,7 +125,7 @@ func DiscoverK0smotronClusters(parentPath string, kubeconfigData []byte) (*K0smo
 			DisplayName: displayName,
 			Namespace:   namespace,
 			Name:        name,
-			StoreID:     storeID,
+			StoreID:     memStore.GetID(),
 		})
 	}
 
