@@ -51,7 +51,9 @@ func (s *K0smotronInMemoryStore) GetContextPrefix(_ string) string {
 }
 
 // StartSearch is a no-op: this store is populated dynamically, not via background search.
-func (s *K0smotronInMemoryStore) StartSearch(_ chan storetypes.SearchResult) {}
+func (s *K0smotronInMemoryStore) StartSearch(ch chan storetypes.SearchResult) {
+	_ = ch // nothing to send; populated on demand via DiscoverK0smotronClusters
+}
 
 func (s *K0smotronInMemoryStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
 	data, ok := s.pathToKubeconfig[path]
