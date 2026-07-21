@@ -114,7 +114,7 @@ import KswitchScripts from '../../components/KswitchScripts.astro'
 
   <div id="tab-linux" class="install-block terminal-demo">
     <div class="terminal-titlebar"><div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="terminal-title">bash</span></div>
-    <div><span class="prompt">$ </span><span class="cmd">curl -L -o /usr/local/bin/kubectl-switch https://github.com/MichaelSp/kswitch/releases/latest/download/kswitch_linux_amd64</span></div>
+    <div><span class="prompt">$ </span><span class="cmd">curl -L -o /usr/local/bin/kubectl-switch "https://github.com/MichaelSp/kswitch/releases/latest/download/kubectl-switch_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"</span></div>
     <div><span class="prompt">$ </span><span class="cmd">chmod +x /usr/local/bin/kubectl-switch</span></div>
     <div><span class="prompt">$ </span><span class="cmd">echo 'source &lt;(kswitch init bash)' &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc</span></div>
     <div style="margin-top:0.75rem"><span class="success">✓ Ready — type <strong>switch</strong> to start</span></div>
