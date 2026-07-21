@@ -23,10 +23,7 @@ Next, follow [required: source the shell function](#required-source-the-shell-fu
 
 Download the `kubectl-switch` binary:
 ```sh
-OS=linux                        # Pick the right os: linux, darwin (intel only)
-VERSION=0.5.0                   # Pick the current version.
-
-curl -L -o /usr/local/bin/kubectl-switch https://github.com/MichaelSp/kswitch/releases/download/${VERSION}/kubectl-switch_${OS}_amd64
+curl -L -o /usr/local/bin/kubectl-switch "https://github.com/MichaelSp/kswitch/releases/latest/download/kubectl-switch_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
 chmod +x /usr/local/bin/kubectl-switch
 ```
 
