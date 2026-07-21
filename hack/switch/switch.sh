@@ -69,6 +69,18 @@ function kswitch(){
     \rm -f "$KUBECONFIG"
   fi
 
-  export KUBECONFIG="$KUBECONFIG_PATH"
+  local _new_kc="$KUBECONFIG_PATH"
+  if [[ -n "$KUBECONFIG" ]]; then
+    local _part
+    IFS=':' read -ra _kc_parts <<< "$KUBECONFIG"
+    for _part in "${_kc_parts[@]}"; do
+      if [[ -n "$_part" && "$_part" != *"$switchTmpDirectory"* ]]; then
+        _new_kc="$_new_kc:$_part"
+      fi
+    done
+    unset _kc_parts _part
+  fi
+  export KUBECONFIG="$_new_kc"
+  unset _new_kc
   printf "switched to context %s\n" "$SELECTED_CONTEXT"
 }
