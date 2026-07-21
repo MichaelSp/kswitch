@@ -19,7 +19,7 @@ import (
 
 var k0smotronClusterGVR = schema.GroupVersionResource{
 	Group:    "k0smotron.io",
-	Version:  "v1beta1",
+	Version:  "v1beta2",
 	Resource: "clusters",
 }
 

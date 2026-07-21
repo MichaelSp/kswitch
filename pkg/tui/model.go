@@ -38,10 +38,11 @@ type item struct {
 	matchedIndexes []int // positions in displayName+dimSuffix that matched the query (for highlighting)
 
 	// tree fields for k0smotron sub-cluster expansion
-	depth      int    // 0 = top-level, 1 = first level sub-cluster, etc.
-	parentPath string // path of parent item (empty for top-level)
-	isLoading  bool   // true while sub-clusters are being fetched
-	expanded   bool   // true when sub-clusters are currently shown
+	depth         int    // 0 = top-level, 1 = first level sub-cluster, etc.
+	parentPath    string // path of parent item (empty for top-level)
+	isLoading     bool   // true while sub-clusters are being fetched
+	expanded      bool   // true when sub-clusters are currently shown
+	expandedEmpty bool   // true when expansion ran but found no sub-clusters
 }
 
 // itemsMsg is sent by the discovery goroutine with a batch of new items.
@@ -304,6 +305,8 @@ func (m Model) renderLeft(width int) string {
 			treePrefix += "⟳ "
 		} else if it.expanded {
 			treePrefix += "▼ "
+		} else if it.expandedEmpty {
+			treePrefix += "⊝ "
 		} else if it.depth > 0 {
 			treePrefix += "  "
 		}
@@ -516,6 +519,8 @@ func (m Model) applyExpandResult(msg expandResultMsg) Model {
 			m.allItems[i].isLoading = false
 			if msg.err == nil && len(msg.children) > 0 {
 				m.allItems[i].expanded = true
+			} else if msg.err == nil {
+				m.allItems[i].expandedEmpty = true
 			}
 		}
 	}
