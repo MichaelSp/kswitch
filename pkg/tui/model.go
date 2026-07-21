@@ -586,8 +586,7 @@ func (m Model) collapseItem(path string) Model {
 		return false
 	}
 
-	kept := m.allItems[:0:len(m.allItems)]
-	kept = append([]item{}, m.allItems...)
+	kept := append([]item{}, m.allItems...)
 	newItems := kept[:0]
 	for _, it := range kept {
 		if it.path == path {
@@ -617,7 +616,7 @@ func (d *dynamicStoreAdapter) GetKind() types.StoreKind {
 func (d *dynamicStoreAdapter) GetContextPrefix(_ string) string {
 	return string(types.StoreKindK0smotron)
 }
-func (d *dynamicStoreAdapter) VerifyKubeconfigPaths() error { return nil }
+func (d *dynamicStoreAdapter) VerifyKubeconfigPaths() error               { return nil }
 func (d *dynamicStoreAdapter) StartSearch(_ chan storetypes.SearchResult) {}
 func (d *dynamicStoreAdapter) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
 	return d.inner.GetKubeconfigForPath(path, tags)
