@@ -40,7 +40,7 @@ func expandK0smotronCmd(
 			children = append(children, item{
 				displayName: e.DisplayName,
 				dimSuffix:   "(k0smotron)",
-				contextName: e.Name,
+				contextName: e.ContextName,
 				path:        e.Path,
 				tags: map[string]string{
 					"namespace": e.Namespace,

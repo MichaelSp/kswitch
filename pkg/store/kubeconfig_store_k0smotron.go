@@ -116,6 +116,13 @@ func DiscoverK0smotronClusters(parentPath string, kubeconfigData []byte) (*K0smo
 			continue
 		}
 
+		// extract the actual context name from the kubeconfig so the TUI can
+		// pass it to SetContext correctly (k0smotron uses "k0s" by default)
+		contextName := name
+		if cfg, err := clientcmd.Load(kubeconfigBytes); err == nil && cfg.CurrentContext != "" {
+			contextName = cfg.CurrentContext
+		}
+
 		path := fmt.Sprintf("%s/%s/%s", parentPath, namespace, name)
 		memStore.pathToKubeconfig[path] = kubeconfigBytes
 
@@ -125,6 +132,7 @@ func DiscoverK0smotronClusters(parentPath string, kubeconfigData []byte) (*K0smo
 			DisplayName: displayName,
 			Namespace:   namespace,
 			Name:        name,
+			ContextName: contextName,
 			StoreID:     memStore.GetID(),
 		})
 	}
@@ -138,5 +146,6 @@ type K0smotronClusterEntry struct {
 	DisplayName string
 	Namespace   string
 	Name        string
+	ContextName string // actual current-context from the kubeconfig
 	StoreID     string
 }
