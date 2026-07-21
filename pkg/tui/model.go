@@ -554,9 +554,10 @@ func (m Model) applyExpandResult(msg expandResultMsg) Model {
 
 	m.filtered = filterItems(m.query, m.allItems)
 
-	// move cursor to the first child (lowest index = bottom of the child group)
-	if parentIdx >= 0 {
-		m.cursor = parentIdx
+	// move cursor to the child visually closest to the parent (highest child index
+	// = just below the parent in fzf bottom-to-top rendering)
+	if parentIdx >= 0 && len(msg.children) > 0 {
+		m.cursor = parentIdx + len(msg.children) - 1
 		m.clampCursor()
 		m.scrollIntoView()
 	} else {
