@@ -536,7 +536,8 @@ func (m Model) applyExpandResult(msg expandResultMsg) Model {
 		m.dynamicStores[storeID] = &dynamicStoreAdapter{inner: msg.store}
 	}
 
-	// insert children immediately after the parent in allItems
+	// insert children immediately before the parent in allItems so that in
+	// fzf bottom-to-top rendering the parent appears above its children.
 	parentIdx := -1
 	for i, it := range m.allItems {
 		if it.path == msg.parentPath {
@@ -545,14 +546,22 @@ func (m Model) applyExpandResult(msg expandResultMsg) Model {
 		}
 	}
 	if parentIdx >= 0 {
-		tail := append([]item{}, m.allItems[parentIdx+1:]...)
-		m.allItems = append(m.allItems[:parentIdx+1], append(msg.children, tail...)...)
+		tail := append([]item{}, m.allItems[parentIdx:]...) // parent + everything after
+		m.allItems = append(m.allItems[:parentIdx], append(msg.children, tail...)...)
 	} else {
 		m.allItems = append(m.allItems, msg.children...)
 	}
 
 	m.filtered = filterItems(m.query, m.allItems)
-	m.clampCursor()
+
+	// move cursor to the first child (lowest index = bottom of the child group)
+	if parentIdx >= 0 {
+		m.cursor = parentIdx
+		m.clampCursor()
+		m.scrollIntoView()
+	} else {
+		m.clampCursor()
+	}
 	return m
 }
 
