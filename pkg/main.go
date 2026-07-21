@@ -116,7 +116,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 	defer logSearchErrors()
 
-	kubeconfigPath, selectedContext, err := tui.Run(tuiCh, kindToStore, showPreview)
+	kubeconfigPath, selectedContext, dynamicStore, err := tui.Run(tuiCh, kindToStore, showPreview)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -125,9 +125,14 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		return nil, nil, nil
 	}
 
-	// map back kubeconfig path to the store kind
-	storeID := readFromPathToStoreID(kubeconfigPath)
-	store := kindToStore[storeID]
+	// use dynamic store (k0smotron sub-cluster) if present, else look up by path
+	var store storetypes.KubeconfigStore
+	if dynamicStore != nil {
+		store = dynamicStore
+	} else {
+		storeID := readFromPathToStoreID(kubeconfigPath)
+		store = kindToStore[storeID]
+	}
 
 	// get the tags associated with the selected kubeconfig path
 	tags := readFromPathToTagsMapping(kubeconfigPath)
