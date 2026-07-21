@@ -60,6 +60,8 @@ const (
 	StoreKindPlugin StoreKind = "plugin"
 	// StoreKindKind is an identifier for the kind (Kubernetes IN Docker) store
 	StoreKindKind StoreKind = "kind"
+	// StoreKindK0smotron is an identifier for k0smotron sub-clusters discovered dynamically
+	StoreKindK0smotron StoreKind = "k0smotron"
 )
 
 type Config struct {

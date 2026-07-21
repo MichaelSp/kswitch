@@ -20,9 +20,11 @@ import (
 	"strings"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+	"github.com/MichaelSp/kswitch/types"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/sirupsen/logrus"
 )
 
 // item represents a discovered kubeconfig context entry.
@@ -34,6 +36,12 @@ type item struct {
 	tags           map[string]string
 	storeID        string
 	matchedIndexes []int // positions in displayName+dimSuffix that matched the query (for highlighting)
+
+	// tree fields for k0smotron sub-cluster expansion
+	depth      int    // 0 = top-level, 1 = first level sub-cluster, etc.
+	parentPath string // path of parent item (empty for top-level)
+	isLoading  bool   // true while sub-clusters are being fetched
+	expanded   bool   // true when sub-clusters are currently shown
 }
 
 // itemsMsg is sent by the discovery goroutine with a batch of new items.
@@ -46,6 +54,21 @@ type discoveryDoneMsg struct{}
 type previewMsg struct {
 	content string
 	forPath string
+}
+
+// expandResultMsg is sent when k0smotron sub-cluster discovery completes.
+type expandResultMsg struct {
+	parentPath string
+	children   []item
+	// store is the in-memory store holding the sub-cluster kubeconfigs; nil = no k0smotron installed
+	store k0smotronStore
+	err   error
+}
+
+// k0smotronStore is a minimal interface so the TUI doesn't import the store package directly.
+type k0smotronStore interface {
+	GetID() string
+	GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error)
 }
 
 // Model is the bubbletea model for the kswitch TUI.
@@ -70,6 +93,9 @@ type Model struct {
 
 	width  int
 	height int
+
+	// k0smotron dynamic stores registered during expansion (storeID → store)
+	dynamicStores map[string]storetypes.KubeconfigStore
 }
 
 // stderrRenderer detects color support from stderr (the actual TUI output fd)
@@ -99,10 +125,11 @@ func NewModel(stores map[string]storetypes.KubeconfigStore, showPreview bool) Mo
 	ti.TextStyle = stderrRenderer.NewStyle().Bold(true)
 
 	return Model{
-		stores:      stores,
-		showPreview: showPreview,
-		input:       ti,
-		loading:     true,
+		stores:        stores,
+		showPreview:   showPreview,
+		input:         ti,
+		loading:       true,
+		dynamicStores: make(map[string]storetypes.KubeconfigStore),
 	}
 }
 
@@ -134,6 +161,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case expandResultMsg:
+		m = m.applyExpandResult(msg)
+		return m, m.fetchPreviewCmd()
+
 	case tea.KeyMsg:
 		// Navigation keys take priority over textinput
 		switch msg.Type {
@@ -147,6 +178,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Selected = &sel
 			}
 			return m, tea.Quit
+
+		case tea.KeyRight:
+			if len(m.filtered) > 0 {
+				sel := m.filtered[m.cursor]
+				if !sel.expanded && !sel.isLoading {
+					m = m.markLoading(sel.path)
+					return m, expandK0smotronCmd(m.stores, m.dynamicStores, sel)
+				}
+			}
+			return m, nil
+
+		case tea.KeyLeft:
+			if len(m.filtered) > 0 {
+				sel := m.filtered[m.cursor]
+				if sel.expanded {
+					m = m.collapseItem(sel.path)
+					return m, m.fetchPreviewCmd()
+				} else if sel.parentPath != "" {
+					m = m.collapseItem(sel.parentPath)
+					// move cursor to the parent
+					for i, it := range m.filtered {
+						if it.path == sel.parentPath {
+							m.cursor = i
+							m.scrollIntoView()
+							break
+						}
+					}
+					return m, m.fetchPreviewCmd()
+				}
+			}
+			return m, nil
 
 		case tea.KeyUp, tea.KeyCtrlK, tea.KeyCtrlP:
 			m.moveCursor(1)
@@ -235,7 +297,18 @@ func (m Model) renderLeft(width int) string {
 	rows := make([]string, 0, lh)
 	for i := end - 1; i >= start; i-- {
 		it := m.filtered[i]
-		primaryW := width - 3
+
+		// tree prefix: indent + expand/collapse indicator
+		treePrefix := strings.Repeat("  ", it.depth)
+		if it.isLoading {
+			treePrefix += "⟳ "
+		} else if it.expanded {
+			treePrefix += "▼ "
+		} else if it.depth > 0 {
+			treePrefix += "  "
+		}
+
+		primaryW := width - 3 - len([]rune(treePrefix))
 		if it.dimSuffix != "" {
 			// reserve space for " suffix" — suffix rendered after primary
 			primaryW -= len([]rune(it.dimSuffix)) + 1
@@ -259,13 +332,13 @@ func (m Model) renderLeft(width int) string {
 
 		var row string
 		if i == m.cursor {
-			row = styleCursor.Render("> ") +
+			row = styleCursor.Render("> ") + styleDim.Render(treePrefix) +
 				highlightMatches(name, primaryIdx, styleSelected, styleSelected)
 			if it.dimSuffix != "" {
 				row += " " + highlightMatches(it.dimSuffix, suffixIdx, styleDimSuffix, styleSelected)
 			}
 		} else {
-			row = styleDim.Render("  ") +
+			row = styleDim.Render("  ") + styleDim.Render(treePrefix) +
 				highlightMatches(name, primaryIdx, stderrRenderer.NewStyle(), styleMatch)
 			if it.dimSuffix != "" {
 				row += " " + highlightMatches(it.dimSuffix, suffixIdx, styleDimSuffix, styleMatch)
@@ -422,4 +495,121 @@ func truncate(s string, max int) string {
 		return string(r[:max])
 	}
 	return string(r[:max-2]) + ".."
+}
+
+// markLoading sets isLoading=true on the item with the given path in allItems.
+func (m Model) markLoading(path string) Model {
+	for i := range m.allItems {
+		if m.allItems[i].path == path {
+			m.allItems[i].isLoading = true
+		}
+	}
+	m.filtered = filterItems(m.query, m.allItems)
+	return m
+}
+
+// applyExpandResult integrates sub-clusters returned by expandK0smotronCmd.
+func (m Model) applyExpandResult(msg expandResultMsg) Model {
+	// clear loading flag and set expanded on the parent
+	for i := range m.allItems {
+		if m.allItems[i].path == msg.parentPath {
+			m.allItems[i].isLoading = false
+			if msg.err == nil && len(msg.children) > 0 {
+				m.allItems[i].expanded = true
+			}
+		}
+	}
+
+	if msg.err != nil || len(msg.children) == 0 {
+		m.filtered = filterItems(m.query, m.allItems)
+		return m
+	}
+
+	// register the dynamic store so GetKubeconfigForPath works later
+	if msg.store != nil {
+		storeID := msg.store.GetID()
+		m.dynamicStores[storeID] = &dynamicStoreAdapter{inner: msg.store}
+	}
+
+	// insert children immediately after the parent in allItems
+	parentIdx := -1
+	for i, it := range m.allItems {
+		if it.path == msg.parentPath {
+			parentIdx = i
+			break
+		}
+	}
+	if parentIdx >= 0 {
+		tail := append([]item{}, m.allItems[parentIdx+1:]...)
+		m.allItems = append(m.allItems[:parentIdx+1], append(msg.children, tail...)...)
+	} else {
+		m.allItems = append(m.allItems, msg.children...)
+	}
+
+	m.filtered = filterItems(m.query, m.allItems)
+	m.clampCursor()
+	return m
+}
+
+// collapseItem removes all descendants of the item with the given path and marks it unexpanded.
+func (m Model) collapseItem(path string) Model {
+	// collect all descendant paths (items whose parentPath chain leads to path)
+	isDescendant := func(it item) bool {
+		p := it.parentPath
+		for p != "" {
+			if p == path {
+				return true
+			}
+			// walk up
+			for _, a := range m.allItems {
+				if a.path == p {
+					p = a.parentPath
+					break
+				}
+			}
+		}
+		return false
+	}
+
+	kept := m.allItems[:0:len(m.allItems)]
+	kept = append([]item{}, m.allItems...)
+	newItems := kept[:0]
+	for _, it := range kept {
+		if it.path == path {
+			it.expanded = false
+			it.isLoading = false
+			newItems = append(newItems, it)
+		} else if !isDescendant(it) {
+			newItems = append(newItems, it)
+		}
+	}
+	m.allItems = newItems
+	m.filtered = filterItems(m.query, m.allItems)
+	m.clampCursor()
+	return m
+}
+
+// dynamicStoreAdapter wraps a k0smotronStore so it satisfies storetypes.KubeconfigStore.
+// Only GetID and GetKubeconfigForPath are meaningful; the rest are stubs.
+type dynamicStoreAdapter struct {
+	inner k0smotronStore
+}
+
+func (d *dynamicStoreAdapter) GetID() string { return d.inner.GetID() }
+func (d *dynamicStoreAdapter) GetKind() types.StoreKind {
+	return types.StoreKindK0smotron
+}
+func (d *dynamicStoreAdapter) GetContextPrefix(_ string) string {
+	return string(types.StoreKindK0smotron)
+}
+func (d *dynamicStoreAdapter) VerifyKubeconfigPaths() error { return nil }
+func (d *dynamicStoreAdapter) StartSearch(_ chan storetypes.SearchResult) {}
+func (d *dynamicStoreAdapter) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
+	return d.inner.GetKubeconfigForPath(path, tags)
+}
+func (d *dynamicStoreAdapter) GetLogger() *logrus.Entry {
+	return logrus.WithField("store", types.StoreKindK0smotron)
+}
+func (d *dynamicStoreAdapter) GetStoreConfig() types.KubeconfigStore {
+	return types.KubeconfigStore{Kind: types.StoreKindK0smotron}
 }
