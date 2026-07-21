@@ -169,28 +169,28 @@ func fakeK8sServer(t *testing.T, clusterName, namespace string, childKubeconfig 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"versions":["v1"]}`)
+		_, _ = fmt.Fprint(w, `{"versions":["v1"]}`)
 	})
 	mux.HandleFunc("/api/v1", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[{"name":"secrets","namespaced":true,"kind":"Secret","verbs":["get","list"]}]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[{"name":"secrets","namespaced":true,"kind":"Secret","verbs":["get","list"]}]}`)
 	})
 	mux.HandleFunc("/apis", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
+		_, _ = fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2/clusters", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(clusterListJSON)
+		_, _ = w.Write(clusterListJSON)
 	})
 	mux.HandleFunc("/api/v1/namespaces/"+namespace+"/secrets/"+clusterName+"-kubeconfig",
 		func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(secretJSON)
+			_, _ = w.Write(secretJSON)
 		})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found: "+r.URL.Path, http.StatusNotFound)
@@ -254,28 +254,28 @@ func TestDiscoverK0smotronClusters_SecretMissingValue(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"versions":["v1"]}`)
+		_, _ = fmt.Fprint(w, `{"versions":["v1"]}`)
 	})
 	mux.HandleFunc("/api/v1", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[{"name":"secrets","namespaced":true,"kind":"Secret","verbs":["get","list"]}]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"v1","resources":[{"name":"secrets","namespaced":true,"kind":"Secret","verbs":["get","list"]}]}`)
 	})
 	mux.HandleFunc("/apis", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
+		_, _ = fmt.Fprint(w, `{"groups":[{"name":"k0smotron.io","versions":[{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}],"preferredVersion":{"groupVersion":"k0smotron.io/v1beta2","version":"v1beta2"}}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
+		_, _ = fmt.Fprint(w, `{"kind":"APIResourceList","groupVersion":"k0smotron.io/v1beta2","resources":[{"name":"clusters","namespaced":true,"kind":"Cluster","verbs":["get","list"]}]}`)
 	})
 	mux.HandleFunc("/apis/k0smotron.io/v1beta2/clusters", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(clusterListJSON)
+		_, _ = w.Write(clusterListJSON)
 	})
 	mux.HandleFunc("/api/v1/namespaces/"+namespace+"/secrets/"+clusterName+"-kubeconfig",
 		func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(secretJSON)
+			_, _ = w.Write(secretJSON)
 		})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found: "+r.URL.Path, http.StatusNotFound)
