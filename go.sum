@@ -154,6 +154,8 @@ github.com/exoscale/egoscale/v3 v3.1.41 h1:sFcGn74f5l73KCpYIWVmSPFUz6i+yrk5K7Ldw
 github.com/exoscale/egoscale/v3 v3.1.41/go.mod h1:DUTgeubl5msPAo3SKFed04AxNhyTNOrCTJHZDRYLR10=
 github.com/exoscale/egoscale/v3 v3.1.42 h1:KlFDdm2ga1RdCdKuKlzJxLmgJjWVcDbJxF0t6FDswzw=
 github.com/exoscale/egoscale/v3 v3.1.42/go.mod h1:DUTgeubl5msPAo3SKFed04AxNhyTNOrCTJHZDRYLR10=
+github.com/exoscale/egoscale/v3 v3.1.43 h1:b036uxDZvCFVPKHI9RiZLjBcwMjGQTfJyJIzwqQkKO8=
+github.com/exoscale/egoscale/v3 v3.1.43/go.mod h1:DUTgeubl5msPAo3SKFed04AxNhyTNOrCTJHZDRYLR10=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.19.0 h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=
 github.com/fatih/color v1.19.0/go.mod h1:zNk67I0ZUT1bEGsSGyCZYZNrHuTkJJB+r6Q9VuMi0LE=
