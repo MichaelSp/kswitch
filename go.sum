@@ -166,6 +166,8 @@ github.com/digitalocean/godo v1.198.0 h1:jylPVf1efxpOZnTOSc3K4a+Qse9pTl/AHu+GExt
 github.com/digitalocean/godo v1.198.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/digitalocean/godo v1.199.0 h1:brSUWakhtutyzNTvRGSvn+lXC7MTg8VA9DGoA6miWXA=
 github.com/digitalocean/godo v1.199.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
+github.com/digitalocean/godo v1.200.0 h1:2+f5OH8+sjie20XwCYm6tveJBH7Xo5YZ2pnvfO2lDgk=
+github.com/digitalocean/godo v1.200.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/emicklei/go-restful/v3 v3.13.0 h1:C4Bl2xDndpU6nJ4bc1jXd+uTmYPVUwkD6bFY/oTyCes=
 github.com/emicklei/go-restful/v3 v3.13.0/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=
 github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f h1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=
