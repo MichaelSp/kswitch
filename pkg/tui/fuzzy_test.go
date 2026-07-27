@@ -236,3 +236,51 @@ func TestFilterStringItems_QueryNoMatch_ReturnsEmpty(t *testing.T) {
 		t.Errorf("expected empty result, got %d entries", len(got))
 	}
 }
+
+// TestFilterItems_SuffixLabelHighlighted reproduces the bug where searching for
+// a label value that appears verbatim in the dim suffix (e.g. "my-mcp") matched
+// via scattered fuzzy positions in the primary name instead of the contiguous
+// run in the suffix — making the highlight look wrong and confusing users.
+func TestFilterItems_SuffixLabelHighlighted(t *testing.T) {
+	items := []item{
+		{
+			displayName: "gardener/canary/garden-mcpds/s-rns5ayty",
+			dimSuffix:   "(canary-shoot-mcpds-s-rns5ayty/garden-mcpds--s-rns5ayty-external, mcp-worker-gk3y76mb, my-mcp, 0-demo-d067570)",
+		},
+	}
+	got := filterItems("my-mcp", items)
+	if len(got) == 0 {
+		t.Fatal("expected a match for 'my-mcp' in suffix")
+	}
+
+	// The search string passed to fuzzy is "primary suffix".
+	// Contiguous "my-mcp" starts at position len("primary ") + offset-of-"my-mcp"-in-suffix.
+	primary := items[0].displayName
+	suffix := items[0].dimSuffix
+	searchStr := primary + " " + suffix
+	runes := []rune(strings.ToLower(searchStr))
+	query := "my-mcp"
+	contiguousStart := -1
+	for i := 0; i <= len(runes)-len(query); i++ {
+		if string(runes[i:i+len(query)]) == query {
+			contiguousStart = i
+			break
+		}
+	}
+	if contiguousStart < 0 {
+		t.Fatal("'my-mcp' not found in search string — test data wrong")
+	}
+	want := make([]int, len(query))
+	for i := range want {
+		want[i] = contiguousStart + i
+	}
+
+	if len(got[0].matchedIndexes) != len(want) {
+		t.Fatalf("matchedIndexes length: got %d want %d (%v)", len(got[0].matchedIndexes), len(want), got[0].matchedIndexes)
+	}
+	for i, idx := range got[0].matchedIndexes {
+		if idx != want[i] {
+			t.Errorf("matchedIndexes[%d] = %d, want %d", i, idx, want[i])
+		}
+	}
+}
