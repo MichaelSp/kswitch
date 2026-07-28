@@ -202,7 +202,7 @@ func filterStringItems(query string, items []string) []listEntry {
 	matches := fuzzy.Find(query, items)
 	out := make([]listEntry, 0, len(matches))
 	for _, m := range matches {
-		out = append(out, listEntry{displayName: items[m.Index], origIndex: m.Index, matchedIndexes: m.MatchedIndexes})
+		out = append(out, listEntry{displayName: items[m.Index], origIndex: m.Index, matchedIndexes: improveMatchPositions(query, items[m.Index], m.MatchedIndexes)})
 	}
 	return out
 }

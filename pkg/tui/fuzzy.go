@@ -48,8 +48,25 @@ func filterItems(query string, items []item) []item {
 	out := make([]item, 0, len(matches))
 	for _, m := range matches {
 		it := items[m.Index]
-		it.matchedIndexes = m.MatchedIndexes
+		it.matchedIndexes = improveMatchPositions(query, names[m.Index], m.MatchedIndexes)
 		out = append(out, it)
+	}
+	return out
+}
+
+// improveMatchPositions replaces fuzzy-scattered positions with a contiguous
+// set when the query appears verbatim (case-insensitive) in the target.
+// The fuzzy algorithm may prefer scattered early characters over an obvious
+// contiguous match further in the string; this corrects the highlighting.
+func improveMatchPositions(query, target string, fuzzyIndexes []int) []int {
+	idx := strings.Index(strings.ToLower(target), strings.ToLower(query))
+	if idx < 0 {
+		return fuzzyIndexes
+	}
+	runeOff := len([]rune(target[:idx]))
+	out := make([]int, len([]rune(query)))
+	for i := range out {
+		out[i] = runeOff + i
 	}
 	return out
 }
