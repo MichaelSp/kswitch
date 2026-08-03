@@ -40,7 +40,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/digitalocean/godo v1.202.0
 	github.com/exoscale/egoscale/v3 v3.1.43
-	github.com/gardener/gardener/pkg/apis v1.147.2
+	github.com/gardener/gardener/pkg/apis v1.148.0
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.5.0
 	github.com/ovh/go-ovh v1.9.0
@@ -198,12 +198,12 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.36.2 // indirect
+	k8s.io/apiextensions-apiserver v0.36.3 // indirect
 	k8s.io/cluster-bootstrap v0.36.1 // indirect
-	k8s.io/component-base v0.36.2 // indirect
+	k8s.io/component-base v0.36.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20260603220949-865597e52e25 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v6 v6.4.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
