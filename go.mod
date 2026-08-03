@@ -45,7 +45,7 @@ require (
 	github.com/linode/linodego/v2 v2.5.0
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37
 	go.uber.org/goleak v1.3.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.83.0
