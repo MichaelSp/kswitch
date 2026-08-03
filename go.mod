@@ -19,7 +19,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	github.com/rancher/norman v0.10.0
-	github.com/rancher/rancher/pkg/client v0.0.0-20260615061755-d799b65710c5
+	github.com/rancher/rancher/pkg/client v0.0.0-20260731201916-4aac0ad5c925
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.48.0
