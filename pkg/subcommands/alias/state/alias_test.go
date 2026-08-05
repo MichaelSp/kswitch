@@ -1,8 +1,10 @@
 package state
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -17,10 +19,6 @@ func TestGetDefaultAlias_NoFile(t *testing.T) {
 	}
 	if len(a.Content.ContextToAliasMapping) != 0 {
 		t.Fatalf("expected empty mapping, got %v", a.Content.ContextToAliasMapping)
-	}
-	expectedPath := filepath.Join(dir, "switch.alias")
-	if a.aliasFilepath != expectedPath {
-		t.Errorf("expected path %q, got %q", expectedPath, a.aliasFilepath)
 	}
 }
 
@@ -58,6 +56,9 @@ func TestWriteAlias_NewAlias(t *testing.T) {
 	}
 	if a.Content.ContextToAliasMapping["mycontext"] != "myalias" {
 		t.Errorf("mapping not stored properly")
+	}
+	if _, err := os.Stat(filepath.Join(dir, aliasDirName, "myalias")); err != nil {
+		t.Errorf("expected alias file to exist: %v", err)
 	}
 }
 
@@ -129,10 +130,6 @@ func TestWriteAllAliases_Roundtrip(t *testing.T) {
 		t.Fatalf("WriteAllAliases error: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(dir, "switch.alias")); err != nil {
-		t.Fatalf("expected file to exist: %v", err)
-	}
-
 	a2, err := GetDefaultAlias(dir)
 	if err != nil {
 		t.Fatalf("reload error: %v", err)
@@ -142,5 +139,93 @@ func TestWriteAllAliases_Roundtrip(t *testing.T) {
 	}
 	if a2.Content.ContextToAliasMapping["ctx2"] != "a2" {
 		t.Errorf("expected ctx2->a2, got %q", a2.Content.ContextToAliasMapping["ctx2"])
+	}
+}
+
+func TestWriteAllAliases_RemovesStaleFiles(t *testing.T) {
+	dir := t.TempDir()
+	a, err := GetDefaultAlias(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := a.WriteAlias("a1", "ctx1"); err != nil {
+		t.Fatalf("WriteAlias error: %v", err)
+	}
+	if _, err := a.WriteAlias("a2", "ctx2"); err != nil {
+		t.Fatalf("WriteAlias error: %v", err)
+	}
+
+	// Remove a2 from memory and rewrite
+	delete(a.Content.ContextToAliasMapping, "ctx2")
+	if err := a.WriteAllAliases(); err != nil {
+		t.Fatalf("WriteAllAliases error: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, aliasDirName, "a2")); !os.IsNotExist(err) {
+		t.Error("expected stale alias file a2 to be removed")
+	}
+}
+
+func TestMigrateFromLegacy(t *testing.T) {
+	dir := t.TempDir()
+
+	// Write a legacy switch.alias file
+	legacy := "contextToAliasMapping:\n    mycontext: myalias\n    other: otheralias\n"
+	if err := os.WriteFile(filepath.Join(dir, "switch.alias"), []byte(legacy), 0644); err != nil {
+		t.Fatalf("failed to write legacy file: %v", err)
+	}
+
+	a, err := GetDefaultAlias(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if a.Content.ContextToAliasMapping["mycontext"] != "myalias" {
+		t.Errorf("expected mycontext->myalias after migration")
+	}
+	if a.Content.ContextToAliasMapping["other"] != "otheralias" {
+		t.Errorf("expected other->otheralias after migration")
+	}
+
+	// Legacy file should be gone
+	if _, err := os.Stat(filepath.Join(dir, "switch.alias")); !os.IsNotExist(err) {
+		t.Error("expected legacy file to be removed after migration")
+	}
+
+	// Per-alias files should exist
+	if _, err := os.Stat(filepath.Join(dir, aliasDirName, "myalias")); err != nil {
+		t.Errorf("expected alias file myalias to exist: %v", err)
+	}
+}
+
+func TestConcurrentWrites_NoLostUpdates(t *testing.T) {
+	dir := t.TempDir()
+
+	const n = 20
+	var wg sync.WaitGroup
+	wg.Add(n)
+	for i := range n {
+		go func(i int) {
+			defer wg.Done()
+			a, err := GetDefaultAlias(dir)
+			if err != nil {
+				t.Errorf("goroutine %d: GetDefaultAlias error: %v", i, err)
+				return
+			}
+			alias := fmt.Sprintf("alias-%d", i)
+			ctx := fmt.Sprintf("ctx-%d", i)
+			if _, err := a.WriteAlias(alias, ctx); err != nil {
+				t.Errorf("goroutine %d: WriteAlias error: %v", i, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	a, err := GetDefaultAlias(dir)
+	if err != nil {
+		t.Fatalf("final load error: %v", err)
+	}
+	if len(a.Content.ContextToAliasMapping) != n {
+		t.Errorf("expected %d aliases after concurrent writes, got %d", n, len(a.Content.ContextToAliasMapping))
 	}
 }
