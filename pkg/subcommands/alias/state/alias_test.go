@@ -204,7 +204,7 @@ func TestConcurrentWrites_NoLostUpdates(t *testing.T) {
 	const n = 20
 	var wg sync.WaitGroup
 	wg.Add(n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		go func(i int) {
 			defer wg.Done()
 			a, err := GetDefaultAlias(dir)
