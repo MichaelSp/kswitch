@@ -17,6 +17,7 @@ package list_contexts
 import (
 	"fmt"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -41,7 +42,16 @@ type ListEntry struct {
 }
 
 func ListContexts(pattern string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]string, error) {
-	entries, err := ListContextsVerbose(pattern, stores, config, stateDir, noIndex)
+	return ListContextsFiltered(pattern, false, stores, config, stateDir, noIndex)
+}
+
+// ListContextsRegexp filters contexts using a regular expression instead of a wildcard pattern.
+func ListContextsRegexp(pattern string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]string, error) {
+	return ListContextsFiltered(pattern, true, stores, config, stateDir, noIndex)
+}
+
+func ListContextsFiltered(pattern string, isRegexp bool, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]string, error) {
+	entries, err := ListContextsVerbose(pattern, isRegexp, stores, config, stateDir, noIndex)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +63,7 @@ func ListContexts(pattern string, stores []storetypes.KubeconfigStore, config *t
 }
 
 // ListContextsVerbose returns full display information for each matching context.
-func ListContextsVerbose(pattern string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]ListEntry, error) {
+func ListContextsVerbose(pattern string, isRegexp bool, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool) ([]ListEntry, error) {
 	var c *chan pkg.DiscoveredContext
 	var err error
 	if noIndex {
@@ -84,10 +94,31 @@ func ListContextsVerbose(pattern string, stores []storetypes.KubeconfigStore, co
 			name = dc.Alias
 		}
 
-		matched, err := matchesPattern(pattern, name)
-		if err != nil {
-			logger.Warnf("invalid pattern %q: %v", pattern, err)
-			continue
+		// match against both the resolved name (alias if set, else context name) and
+		// the raw context name, so agents can grep for aliases without knowing which
+		// form a context was stored under.
+		candidates := []string{name}
+		if dc.Alias != "" && dc.Alias != dc.Name {
+			candidates = append(candidates, dc.Name)
+		}
+
+		matched := false
+		for _, candidate := range candidates {
+			var ok bool
+			var err error
+			if isRegexp {
+				ok, err = matchesRegexp(pattern, candidate)
+			} else {
+				ok, err = matchesPattern(pattern, candidate)
+			}
+			if err != nil {
+				logger.Warnf("invalid pattern %q: %v", pattern, err)
+				break
+			}
+			if ok {
+				matched = true
+				break
+			}
 		}
 		if !matched {
 			continue
@@ -111,6 +142,23 @@ func labelDisplayKeys(store storetypes.KubeconfigStore) []string {
 		return p.GetShootLabelKeys()
 	}
 	return nil
+}
+
+// matchesRegexp reports whether name matches the regular expression pattern against the full name or any '/'-separated segment.
+func matchesRegexp(pattern, name string) (bool, error) {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return false, err
+	}
+	if re.MatchString(name) {
+		return true, nil
+	}
+	for seg := range strings.SplitSeq(name, "/") {
+		if re.MatchString(seg) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // matchesPattern reports whether name matches the wildcard pattern.
