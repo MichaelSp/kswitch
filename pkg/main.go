@@ -33,12 +33,6 @@ import (
 )
 
 var (
-	pathToTagsMapping     = make(map[string]map[string]string)
-	pathToTagsMappingLock = sync.RWMutex{}
-
-	pathToStoreID   = make(map[string]string)
-	pathToStoreLock = sync.RWMutex{}
-
 	aliasToContext     = make(map[string]string)
 	aliasToContextLock = sync.RWMutex{}
 
@@ -64,8 +58,8 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		kindToStore[s.GetID()] = s
 	}
 
-	// Collect alias and mapping data from the discovery channel so that after
-	// the TUI returns we can look up path / tags / storeID by context name.
+	// Collect alias data from the discovery channel so that after the TUI
+	// returns we can look up the original context name behind an alias.
 	// We also feed a ContextItem channel to tui.Run so the TUI can stream items
 	// as they are discovered.
 	tuiCh := make(chan tui.ContextItem)
@@ -99,9 +93,6 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				writeToAliasToContext(dc.Alias, dc.Name)
 			}
 
-			writeToPathToTagsMapping(dc.Path, dc.Tags)
-			writeToPathToStoreID(dc.Path, kubeconfigStore.GetID())
-
 			tuiCh <- tui.ContextItem{
 				ContextName:      contextName,
 				Alias:            dc.Alias,
@@ -116,7 +107,7 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 	defer logSearchErrors()
 
-	kubeconfigPath, selectedContext, dynamicStore, err := tui.Run(tuiCh, kindToStore, showPreview)
+	kubeconfigPath, selectedContext, storeID, tags, dynamicStore, err := tui.Run(tuiCh, kindToStore, showPreview)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -125,17 +116,18 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		return nil, nil, nil
 	}
 
-	// use dynamic store (k0smotron sub-cluster) if present, else look up by path
+	// use dynamic store (k0smotron sub-cluster) if present, else the store the
+	// selected item was discovered from. Resolving via the selected item's own
+	// storeID (rather than a global path->store lookup) matters because "path"
+	// is only unique within a single store: two different stores can each have
+	// a cluster with the same path (e.g. both named "prod"), which would
+	// otherwise resolve to whichever store happened to be indexed last.
 	var store storetypes.KubeconfigStore
 	if dynamicStore != nil {
 		store = dynamicStore
 	} else {
-		storeID := readFromPathToStoreID(kubeconfigPath)
 		store = kindToStore[storeID]
 	}
-
-	// get the tags associated with the selected kubeconfig path
-	tags := readFromPathToTagsMapping(kubeconfigPath)
 
 	// use the store to get the kubeconfig for the selected kubeconfig path
 	kubeconfigData, err := store.GetKubeconfigForPath(kubeconfigPath, tags)
@@ -198,30 +190,6 @@ func writeIndex(store storetypes.KubeconfigStore, searchIndex *index.SearchIndex
 	if err := searchIndex.WriteState(indexStateToWrite); err != nil {
 		store.GetLogger().Warnf("failed to write index state file: %v", err)
 	}
-}
-
-func readFromPathToTagsMapping(key string) map[string]string {
-	pathToTagsMappingLock.RLock()
-	defer pathToTagsMappingLock.RUnlock()
-	return pathToTagsMapping[key]
-}
-
-func writeToPathToTagsMapping(key string, value map[string]string) {
-	pathToTagsMappingLock.Lock()
-	defer pathToTagsMappingLock.Unlock()
-	pathToTagsMapping[key] = value
-}
-
-func readFromPathToStoreID(key string) string {
-	pathToStoreLock.RLock()
-	defer pathToStoreLock.RUnlock()
-	return pathToStoreID[key]
-}
-
-func writeToPathToStoreID(key string, value string) {
-	pathToStoreLock.Lock()
-	defer pathToStoreLock.Unlock()
-	pathToStoreID[key] = value
 }
 
 func writeToAliasToContext(key, value string) {
