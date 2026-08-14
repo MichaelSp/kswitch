@@ -50,7 +50,7 @@ require (
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.12
-	sigs.k8s.io/cluster-api v1.13.4
+	sigs.k8s.io/cluster-api v1.14.0
 )
 
 require (
