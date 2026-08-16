@@ -3,7 +3,7 @@ set -e
 
 echo "> Format"
 
-goimports -l -w $@
+go tool goimports -l -w $@
 
 addlicense -c "The Kswitch authors" pkg/
 addlicense -c "The Kswitch authors" cmd/

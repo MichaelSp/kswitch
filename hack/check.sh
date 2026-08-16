@@ -5,7 +5,7 @@ echo "> Check"
 
 echo "Executing golangci-lint"
 which golangci-lint
-golangci-lint run "${SOURCE_TREES[@]}" --timeout=10m0s --verbose --print-resources-usage
+go tool golangci-lint run "${SOURCE_TREES[@]}" --timeout=10m0s --verbose --print-resources-usage
 
 echo "Check for license headers"
 addlicense -check -ignore ".git/**" -ignore "hack/**" -ignore "**/*.yaml" -ignore "**/*.yml" -ignore "resources/demo-config-files/**" -ignore "**/*.proto" .
