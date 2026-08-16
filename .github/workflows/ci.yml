@@ -15,10 +15,10 @@ name: Build
 on:
   push:
     branches:
-      - main
+    - main
   pull_request:
 
-# Cancel redundant runs on the same ref (e.g. rapid pushes to a PR branch).
+    # Cancel redundant runs on the same ref (e.g. rapid pushes to a PR branch).
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -32,23 +32,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version-file: go.mod
-          cache: true
+    - name: Set up Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      with:
+        go-version-file: go.mod
+        cache: true
 
-      - name: Lint
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: latest
-          args: --timeout=10m --modules-download-mode=mod
+    - name: Lint
+      uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+      with:
+        version: latest
+        args: --timeout=10m --modules-download-mode=mod
 
-      - name: Test
-        run: go test ./...
+    - name: check
+      run: make check
 
-      - name: Vulnerability scan
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+    - name: Test
+      run: go test ./...
+
+    - name: Vulnerability scan
+      run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
