@@ -2,18 +2,11 @@ DATE=$(shell date -u +%Y-%m-%d)
 VERSION=$(shell cat VERSION | sed 's/-dev//g')
 
 #########################################
-# Tools                                 #
-#########################################
-
-TOOLS_DIR := hack/tools
-include hack/tools.mk
-
-#########################################
 # Targets                                 #
 #########################################
 
 .PHONY: format
-format: $(GOLICENSES) $(GOIMPORTS)
+format:
 	@./hack/format.sh ./cmd ./pkg
 
 .PHONY: test
@@ -21,8 +14,7 @@ test:
 	@./hack/test.sh ./pkg/...
 
 .PHONY: check
-check: $(GOIMPORTS) $(GOLANGCI_LINT) $(ADDLICENSE)
-	@./hack/test.sh ./pkg/...
+check:
 	@./hack/check.sh ./cmd/... ./pkg/...
 
 .PHONY: build
@@ -38,8 +30,3 @@ build-kswitch:
 
 .PHONY: all
 all: format check build
-
-.PHONY: revendor
-revendor:
-	@GO111MODULE=on go mod vendor
-	@GO111MODULE=on go mod tidy
