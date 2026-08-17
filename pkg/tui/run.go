@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"os"
 
+	tea "charm.land/bubbletea/v2"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	tea "charm.land/bubbletea/v2"
 )
 
 // ErrAbort is returned when the user exits the TUI without selecting a context.
