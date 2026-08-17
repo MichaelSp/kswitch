@@ -370,5 +370,7 @@ require (
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/google/addlicense
+	github.com/onsi/ginkgo/v2/ginkgo
 	golang.org/x/tools/cmd/goimports
 )

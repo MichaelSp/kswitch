@@ -2,18 +2,11 @@ DATE=$(shell date -u +%Y-%m-%d)
 VERSION=$(shell cat VERSION | sed 's/-dev//g')
 
 #########################################
-# Tools                                 #
-#########################################
-
-TOOLS_DIR := hack/tools
-include hack/tools.mk
-
-#########################################
 # Targets                                 #
 #########################################
 
 .PHONY: format
-format: $(GOLICENSES) $(GOIMPORTS)
+format:
 	@./hack/format.sh ./cmd ./pkg
 
 .PHONY: test
@@ -21,7 +14,7 @@ test:
 	@./hack/test.sh ./pkg/...
 
 .PHONY: check
-check: $(GOIMPORTS) $(GOLANGCI_LINT) $(ADDLICENSE)
+check:
 	@./hack/test.sh ./pkg/...
 	@./hack/check.sh ./cmd/... ./pkg/...
 
