@@ -17,7 +17,7 @@ package tui
 import (
 	kstore "github.com/MichaelSp/kswitch/pkg/store"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // expandK0smotronCmd fires a background command that fetches the kubeconfig for

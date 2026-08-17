@@ -20,7 +20,7 @@ import (
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/pkg/util"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"gopkg.in/yaml.v3"
 )
 

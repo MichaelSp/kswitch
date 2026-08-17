@@ -21,7 +21,7 @@ import (
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // ErrAbort is returned when the user exits the TUI without selecting a context.
@@ -55,7 +55,7 @@ func Run(
 ) (kubeconfigPath string, selectedContext string, dynamicStore storetypes.KubeconfigStore, err error) {
 	model := NewModel(storeIDToStore, showPreview)
 
-	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithOutput(os.Stderr))
+	p := tea.NewProgram(model, tea.WithOutput(os.Stderr))
 
 	go func() {
 		var batch []item

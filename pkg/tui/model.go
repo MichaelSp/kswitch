@@ -16,14 +16,13 @@ package tui
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/sirupsen/logrus"
 )
 
@@ -99,21 +98,17 @@ type Model struct {
 	dynamicStores map[string]storetypes.KubeconfigStore
 }
 
-// stderrRenderer detects color support from stderr (the actual TUI output fd)
-// rather than stdout, which may be redirected by the shell wrapper function.
-var stderrRenderer = lipgloss.NewRenderer(os.Stderr)
-
 var (
-	stylePrompt    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	styleCursor    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	styleSelected  = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-	styleDim       = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	styleDimSuffix = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	styleCount     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3"))
-	styleBorder    = stderrRenderer.NewStyle().Foreground(lipgloss.Color("8"))
-	stylePreview   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("7"))
-	styleLoading   = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
-	styleMatch     = stderrRenderer.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	stylePrompt    = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	styleCursor    = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	styleSelected  = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
+	styleDim       = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	styleDimSuffix = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	styleCount     = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
+	styleBorder    = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	stylePreview   = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+	styleLoading   = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Italic(true)
+	styleMatch     = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
 )
 
 // NewModel creates an initial TUI model.
@@ -122,8 +117,12 @@ func NewModel(stores map[string]storetypes.KubeconfigStore, showPreview bool) Mo
 	ti.Placeholder = "type to filter..."
 	ti.Focus()
 	ti.Prompt = "> "
-	ti.PromptStyle = stylePrompt
-	ti.TextStyle = stderrRenderer.NewStyle().Bold(true)
+	s := ti.Styles()
+	s.Focused.Prompt = stylePrompt
+	s.Focused.Text = lipgloss.NewStyle().Bold(true)
+	s.Blurred.Prompt = stylePrompt
+	s.Blurred.Text = lipgloss.NewStyle().Bold(true)
+	ti.SetStyles(s)
 
 	return Model{
 		stores:        stores,
@@ -135,7 +134,7 @@ func NewModel(stores map[string]storetypes.KubeconfigStore, showPreview bool) Mo
 }
 
 func (m Model) Init() tea.Cmd {
-	return textinput.Blink
+	return func() tea.Msg { return textinput.Blink() }
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -166,21 +165,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m = m.applyExpandResult(msg)
 		return m, m.fetchPreviewCmd()
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		// Navigation keys take priority over textinput
-		switch msg.Type {
-		case tea.KeyEsc, tea.KeyCtrlC, tea.KeyCtrlD:
+		switch msg.String() {
+		case "esc", "ctrl+c", "ctrl+d":
 			m.Aborted = true
 			return m, tea.Quit
 
-		case tea.KeyEnter:
+		case "enter":
 			if len(m.filtered) > 0 {
 				sel := m.filtered[m.cursor]
 				m.Selected = &sel
 			}
 			return m, tea.Quit
 
-		case tea.KeyRight:
+		case "right":
 			if len(m.filtered) > 0 {
 				sel := m.filtered[m.cursor]
 				if !sel.expanded && !sel.isLoading {
@@ -190,7 +189,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case tea.KeyLeft:
+		case "left":
 			if len(m.filtered) > 0 {
 				sel := m.filtered[m.cursor]
 				if sel.expanded {
@@ -211,40 +210,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case tea.KeyUp, tea.KeyCtrlK, tea.KeyCtrlP:
+		case "up", "ctrl+k", "ctrl+p":
 			m.moveCursor(1)
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyDown, tea.KeyCtrlJ, tea.KeyCtrlN:
+		case "down", "ctrl+j", "ctrl+n":
 			m.moveCursor(-1)
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyPgUp:
+		case "pgup":
 			m.moveCursor(m.listHeight())
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyPgDown:
+		case "pgdown":
 			m.moveCursor(-m.listHeight())
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyCtrlU:
+		case "ctrl+u":
 			m.input.SetValue("")
 			m.query = ""
 			m.filtered = filterItems("", m.allItems)
 			m.cursor = 0
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyCtrlW:
+		case "ctrl+w":
 			m.deleteWord()
 			m.refilter()
 			return m, m.fetchPreviewCmd()
 
-		case tea.KeyBackspace:
-			if msg.Alt {
-				m.deleteWord()
-				m.refilter()
-				return m, m.fetchPreviewCmd()
-			}
+		case "alt+backspace":
+			m.deleteWord()
+			m.refilter()
+			return m, m.fetchPreviewCmd()
 		}
 
 		// Delegate to textinput for character input & standard backspace
@@ -262,9 +259,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	if m.width == 0 {
-		return ""
+		return tea.NewView("")
 	}
 
 	listW := m.width
@@ -274,14 +271,18 @@ func (m Model) View() string {
 
 	left := m.renderLeft(listW)
 
+	var content string
 	if !m.showPreview || m.width <= 60 {
-		return left
+		content = left
+	} else {
+		previewW := m.width - listW
+		right := m.renderRight(previewW)
+		content = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
 	}
 
-	previewW := m.width - listW
-	right := m.renderRight(previewW)
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 func (m Model) renderLeft(width int) string {
@@ -342,7 +343,7 @@ func (m Model) renderLeft(width int) string {
 			}
 		} else {
 			row = styleDim.Render("  ") + styleDim.Render(treePrefix) +
-				highlightMatches(name, primaryIdx, stderrRenderer.NewStyle(), styleMatch)
+				highlightMatches(name, primaryIdx, lipgloss.NewStyle(), styleMatch)
 			if it.dimSuffix != "" {
 				row += " " + highlightMatches(it.dimSuffix, suffixIdx, styleDimSuffix, styleMatch)
 			}
