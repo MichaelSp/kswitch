@@ -1,6 +1,6 @@
 module github.com/MichaelSp/kswitch
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.0
@@ -12,7 +12,7 @@ require (
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/gardener/gardener-extension-provider-openstack v1.57.0
 	github.com/go-cmd/cmd v1.4.3
-	github.com/google/addlicense v1.2.0
+	github.com/google/addlicense v1.2.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/jedib0t/go-pretty/v6 v6.8.3
@@ -22,7 +22,7 @@ require (
 	github.com/rancher/rancher/pkg/client v0.0.0-20260816113444-682ae904c918
 	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/tools v0.49.0
+	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/api v0.293.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.36.3
