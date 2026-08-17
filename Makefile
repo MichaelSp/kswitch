@@ -15,7 +15,6 @@ test:
 
 .PHONY: check
 check:
-	@./hack/test.sh ./pkg/...
 	@./hack/check.sh ./cmd/... ./pkg/...
 
 .PHONY: build

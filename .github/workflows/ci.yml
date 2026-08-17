@@ -51,7 +51,7 @@ jobs:
       run: make check
 
     - name: Test
-      run: go test ./...
+      run: make test
 
     - name: Vulnerability scan
-      run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      run: go tool govulncheck ./...
