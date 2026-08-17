@@ -17,8 +17,8 @@ package kswitch
 import (
 	"fmt"
 
-	merge_to_default "github.com/MichaelSp/kswitch/pkg/subcommands/merge-to-default"
 	"charm.land/lipgloss/v2"
+	merge_to_default "github.com/MichaelSp/kswitch/pkg/subcommands/merge-to-default"
 	"github.com/spf13/cobra"
 )
 
