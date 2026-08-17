@@ -622,6 +622,8 @@ github.com/rancher/norman v0.10.0 h1:vBIp5gNHelyS64IAs6FONPUfv0VTYWiMSrEbDS2l+hM
 github.com/rancher/norman v0.10.0/go.mod h1:ExdLbr95m15PLbzQRrCVjGf8ah6kAVcttk484HSI9cM=
 github.com/rancher/rancher/pkg/client v0.0.0-20260816113444-682ae904c918 h1:FPDxz3omfT1whGTqoWjfk57EdBqonEzUpfx7q9iu2Co=
 github.com/rancher/rancher/pkg/client v0.0.0-20260816113444-682ae904c918/go.mod h1:ocyJVAF7RhHhpt00VnW5xexALpyscQj662BkaG52bFk=
+github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6 h1:lO5LqkH2oyuH/fmpLZRKRHgVFj91zrS8sulQ5xqeaMY=
+github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6/go.mod h1:ocyJVAF7RhHhpt00VnW5xexALpyscQj662BkaG52bFk=
 github.com/rancher/wrangler/v3 v3.7.1 h1:3IoJWG8YEsPJ3oYXEDTNjITsrqxDuDz722ivCFXQOGQ=
 github.com/rancher/wrangler/v3 v3.7.1/go.mod h1:SRd8RgvLACW1sOeOE/JagsO1gWVgSduKGQtPSsKzntI=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
