@@ -195,7 +195,7 @@ func (s *VaultStore) StartSearch(channel chan storetypes.SearchResult) {
 		// to secret path if necessary.
 		var secretsPath string
 		if s.EngineVersion == "v2" {
-			mountPath := strings.Split(path, "/")[0]
+			mountPath, _, _ := strings.Cut(path, "/")
 			secretsPath = shimKvV2ListPath(path, mountPath)
 		} else {
 			secretsPath = path
@@ -239,7 +239,7 @@ func (s *VaultStore) GetKubeconfigForPath(path string, _ map[string]string) ([]b
 	// to secret path if necessary.
 	var secretsPath string
 	if s.EngineVersion == "v2" {
-		mountPath := strings.Split(path, "/")[0]
+		mountPath, _, _ := strings.Cut(path, "/")
 		secretsPath = shimKVv2Path(path, mountPath)
 	} else {
 		secretsPath = path
@@ -315,7 +315,7 @@ func (s *VaultStore) VerifyKubeconfigPaths() error {
 		// to secret path if necessary.
 		var secretsPath string
 		if s.EngineVersion == "v2" {
-			mountPath := strings.Split(path, "/")[0]
+			mountPath, _, _ := strings.Cut(path, "/")
 			secretsPath = shimKvV2ListPath(path, mountPath)
 		} else {
 			secretsPath = path
