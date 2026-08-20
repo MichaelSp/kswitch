@@ -39,7 +39,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.4.0
 	github.com/digitalocean/godo v1.204.0
-	github.com/exoscale/egoscale/v3 v3.1.43
+	github.com/exoscale/egoscale/v3 v3.1.44
 	github.com/gardener/gardener/pkg/apis v1.149.0
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.5.0
