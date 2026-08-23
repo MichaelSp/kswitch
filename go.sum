@@ -275,6 +275,8 @@ github.com/gardener/gardener/pkg/apis v1.149.1 h1:axD2hrFjvLexyqKDK5tVcQs6zaRCAy
 github.com/gardener/gardener/pkg/apis v1.149.1/go.mod h1:jWVcJcOtKb9TynpN+Fc1hRfBmwBAPOgwzmhlt8ub2l8=
 github.com/gardener/gardener/pkg/apis v1.149.2 h1:Sd6/Kjp5aaQkBCiCC4pxHT+io11YR+DNhm3AoDyrZzU=
 github.com/gardener/gardener/pkg/apis v1.149.2/go.mod h1:jWVcJcOtKb9TynpN+Fc1hRfBmwBAPOgwzmhlt8ub2l8=
+github.com/gardener/gardener/pkg/apis v1.149.3 h1:SU9vRWk+Cbz+v2V6k9ZJ9lLFZTVYKtPJVK/SlkY5MXk=
+github.com/gardener/gardener/pkg/apis v1.149.3/go.mod h1:jWVcJcOtKb9TynpN+Fc1hRfBmwBAPOgwzmhlt8ub2l8=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghostiam/protogetter v0.3.20 h1:oW7OPFit2FxZOpmMRPP9FffU4uUpfeE/rEdE1f+MzD0=
