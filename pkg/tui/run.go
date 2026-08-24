@@ -63,15 +63,7 @@ func Run(
 	go func() {
 		var batch []item
 		for ci := range itemCh {
-			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias, ci.Tags, ci.LabelDisplayKeys)
-			batch = append(batch, item{
-				displayName: primary,
-				dimSuffix:   suffix,
-				contextName: ci.ContextName,
-				path:        ci.Path,
-				tags:        ci.Tags,
-				storeID:     ci.StoreID,
-			})
+			batch = append(batch, itemFor(ci))
 			if len(batch) >= 50 {
 				p.Send(itemsMsg(batch))
 				batch = nil
@@ -93,6 +85,27 @@ func Run(
 		return "", "", "", nil, nil, fmt.Errorf("unexpected model type")
 	}
 
+	return selectionFor(m)
+}
+
+// itemFor converts a discovered context into a list item. The storeID and tags
+// travel with the item so the selection can later be resolved by identity
+// instead of by path, which is only unique within a single store.
+func itemFor(ci ContextItem) item {
+	primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias, ci.Tags, ci.LabelDisplayKeys)
+	return item{
+		displayName: primary,
+		dimSuffix:   suffix,
+		contextName: ci.ContextName,
+		path:        ci.Path,
+		tags:        ci.Tags,
+		storeID:     ci.StoreID,
+	}
+}
+
+// selectionFor extracts the selection from a finished TUI model, returning the
+// same values as Run.
+func selectionFor(m Model) (kubeconfigPath string, selectedContext string, storeID string, tags map[string]string, dynamicStore storetypes.KubeconfigStore, err error) {
 	if m.Aborted || m.Selected == nil {
 		return "", "", "", nil, nil, ErrAbort
 	}
