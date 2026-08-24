@@ -19,8 +19,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -53,8 +54,12 @@ func newListModel(items []string) listModel {
 	ti.Placeholder = "type to filter..."
 	ti.Focus()
 	ti.Prompt = "> "
-	ti.PromptStyle = stylePrompt
-	ti.TextStyle = stderrRenderer.NewStyle().Bold(true)
+	s := ti.Styles()
+	s.Focused.Prompt = stylePrompt
+	s.Focused.Text = lipgloss.NewStyle().Bold(true)
+	s.Blurred.Prompt = stylePrompt
+	s.Blurred.Text = lipgloss.NewStyle().Bold(true)
+	ti.SetStyles(s)
 
 	filtered := make([]listEntry, len(items))
 	for i, s := range items {
@@ -69,7 +74,7 @@ func newListModel(items []string) listModel {
 	}
 }
 
-func (m listModel) Init() tea.Cmd { return textinput.Blink }
+func (m listModel) Init() tea.Cmd { return func() tea.Msg { return textinput.Blink() } }
 
 func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -78,37 +83,35 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		return m, nil
 
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEsc, tea.KeyCtrlC, tea.KeyCtrlD:
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "esc", "ctrl+c", "ctrl+d":
 			m.Aborted = true
 			return m, tea.Quit
-		case tea.KeyEnter:
+		case "enter":
 			if len(m.filtered) > 0 {
 				m.Selected = m.filtered[m.cursor].displayName
 				m.SelectedIndex = m.filtered[m.cursor].origIndex
 			}
 			return m, tea.Quit
-		case tea.KeyUp, tea.KeyCtrlK, tea.KeyCtrlP:
+		case "up", "ctrl+k", "ctrl+p":
 			m.moveCursor(-1)
 			return m, nil
-		case tea.KeyDown, tea.KeyCtrlJ, tea.KeyCtrlN:
+		case "down", "ctrl+j", "ctrl+n":
 			m.moveCursor(1)
 			return m, nil
-		case tea.KeyCtrlU:
+		case "ctrl+u":
 			m.input.SetValue("")
 			m.query = ""
 			m.filtered = filterStringItems("", m.items)
 			m.cursor = 0
 			return m, nil
-		case tea.KeyCtrlW:
+		case "ctrl+w":
 			m.deleteWord()
 			return m, nil
-		case tea.KeyBackspace:
-			if msg.Alt {
-				m.deleteWord()
-				return m, nil
-			}
+		case "alt+backspace":
+			m.deleteWord()
+			return m, nil
 		}
 	}
 
@@ -123,9 +126,9 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m listModel) View() string {
+func (m listModel) View() tea.View {
 	if m.width == 0 {
-		return ""
+		return tea.NewView("")
 	}
 	lh := max(m.height-2, 1)
 
@@ -140,7 +143,7 @@ func (m listModel) View() string {
 		if i == m.cursor {
 			rows = append(rows, styleCursor.Render("> ")+highlightMatches(name, m.filtered[i].matchedIndexes, styleSelected, styleSelected))
 		} else {
-			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, m.filtered[i].matchedIndexes, stderrRenderer.NewStyle(), styleMatch))
+			rows = append(rows, styleDim.Render("  ")+highlightMatches(name, m.filtered[i].matchedIndexes, lipgloss.NewStyle(), styleMatch))
 		}
 	}
 	for len(rows) < lh {
@@ -151,7 +154,10 @@ func (m listModel) View() string {
 	countStr := styleCount.Render(fmt.Sprintf("%d/%d", len(m.filtered), len(m.items)))
 	inputLine := m.input.View() + "  " + countStr
 
-	return strings.Join(rows, "\n") + "\n" + sep + "\n" + inputLine
+	content := strings.Join(rows, "\n") + "\n" + sep + "\n" + inputLine
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 func (m *listModel) moveCursor(delta int) {
@@ -221,7 +227,7 @@ func RunList(items []string, labelFunc func(i int) string) (int, error) {
 	}
 
 	model := newListModel(labels)
-	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithOutput(os.Stderr))
+	p := tea.NewProgram(model, tea.WithOutput(os.Stderr))
 
 	final, err := p.Run()
 	if err != nil {

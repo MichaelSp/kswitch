@@ -19,8 +19,8 @@ import (
 	"reflect"
 	"testing"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/MichaelSp/kswitch/types"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // ---- itemFor ----
@@ -189,7 +189,7 @@ func TestEnterSelectsStoreOfCursorItem(t *testing.T) {
 		}
 		m = updateModel(t, m, itemsMsg(batch))
 		m.cursor = cursor
-		m = updateModel(t, m, tea.KeyMsg{Type: tea.KeyEnter})
+		m = updateModel(t, m, tea.KeyPressMsg{Code: tea.KeyEnter})
 
 		path, ctx, storeID, tags, _, err := selectionFor(m)
 		if err != nil {
@@ -214,7 +214,7 @@ func TestEnterOnEmptyListAborts(t *testing.T) {
 	m := NewModel(nil, false)
 	m.width, m.height = 80, 24
 
-	m = updateModel(t, m, tea.KeyMsg{Type: tea.KeyEnter})
+	m = updateModel(t, m, tea.KeyPressMsg{Code: tea.KeyEnter})
 
 	if _, _, _, _, _, err := selectionFor(m); !errors.Is(err, ErrAbort) {
 		t.Errorf("error = %v, want ErrAbort", err)
