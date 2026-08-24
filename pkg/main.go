@@ -116,17 +116,9 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		return nil, nil, nil
 	}
 
-	// use dynamic store (k0smotron sub-cluster) if present, else the store the
-	// selected item was discovered from. Resolving via the selected item's own
-	// storeID (rather than a global path->store lookup) matters because "path"
-	// is only unique within a single store: two different stores can each have
-	// a cluster with the same path (e.g. both named "prod"), which would
-	// otherwise resolve to whichever store happened to be indexed last.
-	var store storetypes.KubeconfigStore
-	if dynamicStore != nil {
-		store = dynamicStore
-	} else {
-		store = kindToStore[storeID]
+	store, err := resolveStore(kindToStore, storeID, dynamicStore)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// use the store to get the kubeconfig for the selected kubeconfig path
@@ -167,6 +159,25 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 	}
 
 	return &tempKubeconfigPath, &selectedContext, nil
+}
+
+// resolveStore returns the store that holds the kubeconfig for the selected item.
+// It uses the dynamic store (k0smotron sub-cluster) if present, else the store the
+// selected item was discovered from. Resolving via the selected item's own
+// storeID (rather than a global path->store lookup) matters because "path"
+// is only unique within a single store: two different stores can each have
+// a cluster with the same path (e.g. both named "prod"), which would
+// otherwise resolve to whichever store happened to be indexed last.
+func resolveStore(kindToStore map[string]storetypes.KubeconfigStore, storeID string, dynamicStore storetypes.KubeconfigStore) (storetypes.KubeconfigStore, error) {
+	if dynamicStore != nil {
+		return dynamicStore, nil
+	}
+
+	store, ok := kindToStore[storeID]
+	if !ok || store == nil {
+		return nil, fmt.Errorf("failed to find the kubeconfig store %q the selected context was discovered from", storeID)
+	}
+	return store, nil
 }
 
 // writeIndex tries to write the Index file for the kubeconfig store
