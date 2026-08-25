@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/api/container/v1"
@@ -36,6 +37,11 @@ import (
 var (
 	scheme           = runtime.NewScheme()
 	gcloudBinaryPath = ""
+
+	// gkeClusterListTimeout is the time budget for listing the GKE clusters of a
+	// single GCP project. Every project gets its own budget (see StartSearch).
+	// Overridden in tests.
+	gkeClusterListTimeout = 10 * time.Second
 )
 
 func init() {
@@ -172,9 +178,6 @@ func (s *GKEStore) initialize() error {
 }
 
 func (s *GKEStore) StartSearch(channel chan storetypes.SearchResult) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	if err := s.InitializeGKEStore(); err != nil {
 		err := fmt.Errorf("failed to initialize store: %w", err)
 		channel <- storetypes.SearchResult{
@@ -183,31 +186,46 @@ func (s *GKEStore) StartSearch(channel chan storetypes.SearchResult) {
 		return
 	}
 
+	// Query every project concurrently, each with its own timeout budget.
+	// Accounts with access to many (often unrelated, e.g. auto-generated "sys-*")
+	// projects would otherwise exhaust a single shared deadline before the
+	// sequential loop reaches the later projects, surfacing spurious
+	// "context deadline exceeded" errors for projects that were never actually slow.
+	var wg sync.WaitGroup
 	for projectName, projectId := range s.ProjectNameToID {
-		resp, err := s.GkeClient.Projects.Zones.Clusters.List(projectId, "-").Context(ctx).Do()
-		if err != nil {
-			channel <- storetypes.SearchResult{
-				Error: fmt.Errorf("failed to list GKE clusters for project with ID %q: %w", projectId, err),
+		wg.Add(1)
+		go func(projectName, projectId string) {
+			defer wg.Done()
+
+			ctx, cancel := context.WithTimeout(context.Background(), gkeClusterListTimeout)
+			defer cancel()
+
+			resp, err := s.GkeClient.Projects.Zones.Clusters.List(projectId, "-").Context(ctx).Do()
+			if err != nil {
+				channel <- storetypes.SearchResult{
+					Error: fmt.Errorf("failed to list GKE clusters for project with ID %q: %w", projectId, err),
+				}
+				return
 			}
-			continue
-		}
 
-		// for every GKE cluster in the project
-		for _, f := range resp.Clusters {
-			// kubeconfig path used to uniquely identify this cluster
-			// gke_<project-name>--<zone>--<gke-cluster-name>
+			// for every GKE cluster in the project
+			for _, f := range resp.Clusters {
+				// kubeconfig path used to uniquely identify this cluster
+				// gke_<project-name>--<zone>--<gke-cluster-name>
 
-			kubeconfigPath := fmt.Sprintf("gke_%s--%s--%s", projectName, f.Location, f.Name)
+				kubeconfigPath := fmt.Sprintf("gke_%s--%s--%s", projectName, f.Location, f.Name)
 
-			// cache for when getting the kubeconfig for the unique path later
-			s.DiscoveredClusters.Set(kubeconfigPath, f)
+				// cache for when getting the kubeconfig for the unique path later
+				s.DiscoveredClusters.Set(kubeconfigPath, f)
 
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: kubeconfigPath,
-				Error:          nil,
+				channel <- storetypes.SearchResult{
+					KubeconfigPath: kubeconfigPath,
+					Error:          nil,
+				}
 			}
-		}
+		}(projectName, projectId)
 	}
+	wg.Wait()
 }
 
 func (s *GKEStore) GetContextPrefix(path string) string {

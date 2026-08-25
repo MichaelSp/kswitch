@@ -99,14 +99,18 @@ function kswitch(){
 
   local _new_kc="$KUBECONFIG_PATH"
   if [[ -n "$KUBECONFIG" ]]; then
-	local _part
-	IFS=':' read -ra _kc_parts <<< "$KUBECONFIG"
-	for _part in "${_kc_parts[@]}"; do
+	local _rest="$KUBECONFIG" _part
+	while [[ -n "$_rest" ]]; do
+	  _part="${_rest%%:*}"
+	  case "$_rest" in
+		*:*) _rest="${_rest#*:}" ;;
+		*) _rest="" ;;
+	  esac
 	  if [[ -n "$_part" && "$_part" != *"$switchTmpDirectory"* ]]; then
 		_new_kc="$_new_kc:$_part"
 	  fi
 	done
-	unset _kc_parts _part
+	unset _rest _part
   fi
   export KUBECONFIG="$_new_kc"
   unset _new_kc
