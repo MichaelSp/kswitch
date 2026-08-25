@@ -68,6 +68,9 @@ func (s *AkamaiStore) InitializeAkamaiStore() error {
 	oauth2Client := &http.Client{
 		Transport: &oauth2.Transport{
 			Source: tokenSource,
+			Base: &http.Transport{
+				Proxy: http.ProxyFromEnvironment,
+			},
 		},
 	}
 
