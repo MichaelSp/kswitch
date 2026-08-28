@@ -103,7 +103,7 @@ func (a *Alias) migrateFromLegacy(stateDir string) error {
 		}
 	}
 
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
@@ -129,7 +129,7 @@ func (a *Alias) WriteAlias(aliasName, contextName string) (*string, error) {
 
 	a.Content.ContextToAliasMapping[contextName] = aliasName
 
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
@@ -154,7 +154,7 @@ func (a *Alias) ContainsAlias(alias string) *string {
 // WriteAllAliases writes every in-memory alias as an individual file and
 // removes any on-disk files that are no longer in the mapping.
 func (a *Alias) WriteAllAliases() error {
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
 

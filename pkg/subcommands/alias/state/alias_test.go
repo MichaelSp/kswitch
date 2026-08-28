@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -73,6 +74,29 @@ func TestWriteAlias_NewAlias(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, aliasDirName, "myalias")); err != nil {
 		t.Errorf("expected alias file to exist: %v", err)
+	}
+}
+
+func TestWriteAlias_CreatesOwnerOnlyDir(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("file mode bits are not enforced on windows")
+	}
+	dir := t.TempDir()
+	a, err := GetDefaultAlias(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := a.WriteAlias("myalias", "mycontext"); err != nil {
+		t.Fatalf("WriteAlias error: %v", err)
+	}
+
+	info, err := os.Stat(filepath.Join(dir, aliasDirName))
+	if err != nil {
+		t.Fatalf("stat alias dir: %v", err)
+	}
+	// an alias file per context names the clusters the user works with
+	if got := info.Mode().Perm(); got != 0700 {
+		t.Errorf("alias dir has mode %04o, want 0700", got)
 	}
 }
 

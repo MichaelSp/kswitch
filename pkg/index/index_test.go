@@ -11,6 +11,7 @@ package index
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -44,6 +45,12 @@ func TestNew_CreatesStateDir(t *testing.T) {
 	}
 	if !info.IsDir() {
 		t.Fatalf("expected directory, got file")
+	}
+	// the index names every cluster the user can reach
+	if runtime.GOOS != "windows" {
+		if got := info.Mode().Perm(); got != 0700 {
+			t.Errorf("state dir has mode %04o, want 0700", got)
+		}
 	}
 }
 
