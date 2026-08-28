@@ -18,6 +18,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -110,6 +111,139 @@ func TestNew_CreatesNonExistingDir(t *testing.T) {
 	if !info.IsDir() {
 		t.Fatalf("expected directory, got file")
 	}
+}
+
+// requirePOSIXPermissions skips a test that asserts on mode bits where the platform
+// does not enforce them.
+func requirePOSIXPermissions(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("file mode bits are not enforced on windows")
+	}
+}
+
+func assertPerm(t *testing.T, path string, want os.FileMode) {
+	t.Helper()
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat %s: %v", path, err)
+	}
+	if got := info.Mode().Perm(); got != want {
+		t.Errorf("%s holds credentials and has mode %04o, want %04o", path, got, want)
+	}
+}
+
+// cacheEntry returns the single cache file with the given suffix.
+func cacheEntry(t *testing.T, dir, suffix string) string {
+	t.Helper()
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir failed: %v", err)
+	}
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), suffix) {
+			return filepath.Join(dir, f.Name())
+		}
+	}
+	t.Fatalf("no cache entry with suffix %q in %s", suffix, dir)
+	return ""
+}
+
+func TestNew_CreatesCacheDirNotReachableByOtherUsers(t *testing.T) {
+	requirePOSIXPermissions(t)
+
+	cachePath := filepath.Join(t.TempDir(), "subdir", "cache")
+	ccfg := &types.Cache{
+		Kind:   "filesystem",
+		Config: map[string]any{"path": cachePath},
+	}
+	if _, err := New(&mockStore{id: "test"}, ccfg); err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	assertPerm(t, cachePath, 0700)
+}
+
+func TestNew_TightensPermissiveExistingCacheDir(t *testing.T) {
+	requirePOSIXPermissions(t)
+
+	cachePath := filepath.Join(t.TempDir(), "cache")
+	// a cache directory as left behind by an earlier version (os.ModePerm)
+	if err := os.MkdirAll(cachePath, 0777); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.Chmod(cachePath, 0777); err != nil { // defeat the umask
+		t.Fatalf("Chmod failed: %v", err)
+	}
+
+	ccfg := &types.Cache{
+		Kind:   "filesystem",
+		Config: map[string]any{"path": cachePath},
+	}
+	if _, err := New(&mockStore{id: "test"}, ccfg); err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	assertPerm(t, cachePath, 0700)
+}
+
+func TestGetKubeconfigForPath_WritesCacheEntryOwnerOnly(t *testing.T) {
+	requirePOSIXPermissions(t)
+
+	tmp := t.TempDir()
+	ccfg := &types.Cache{
+		Kind:   "filesystem",
+		Config: map[string]any{"path": tmp},
+	}
+	store, err := New(&mockStore{id: "upstream-perm", kind: types.StoreKindFilesystem}, ccfg)
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	if _, err := store.GetKubeconfigForPath("some/cluster/path", nil); err != nil {
+		t.Fatalf("GetKubeconfigForPath failed: %v", err)
+	}
+
+	assertPerm(t, cacheEntry(t, tmp, ".upstream-perm.cache"), 0600)
+}
+
+func TestGetKubeconfigForPath_TightensLegacyCacheEntry(t *testing.T) {
+	requirePOSIXPermissions(t)
+
+	tmp := t.TempDir()
+	upstream := &mockStore{id: "upstream-legacy", kind: types.StoreKindFilesystem}
+	ccfg := &types.Cache{
+		Kind:   "filesystem",
+		Config: map[string]any{"path": tmp},
+	}
+	store, err := New(upstream, ccfg)
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	const path = "some/cluster/path"
+
+	// a cache entry as written by an earlier version
+	c, ok := store.(*fileCache)
+	if !ok {
+		t.Fatalf("expected *fileCache, got %T", store)
+	}
+	legacy := filepath.Join(tmp, c.hash(path)+c.suffix())
+	if err := os.WriteFile(legacy, []byte(minimalKubeconfigYAML), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.Chmod(legacy, 0644); err != nil { // defeat the umask
+		t.Fatalf("Chmod failed: %v", err)
+	}
+
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("GetKubeconfigForPath failed: %v", err)
+	}
+	if upstream.getKubeconfigCt != 0 {
+		t.Fatalf("expected the cached entry to be served, upstream was called %d times", upstream.getKubeconfigCt)
+	}
+
+	assertPerm(t, legacy, 0600)
 }
 
 func TestGetKubeconfigForPath_CacheMissThenHit(t *testing.T) {

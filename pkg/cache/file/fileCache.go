@@ -33,6 +33,15 @@ import (
 const cacheKey = "filesystem"
 const kubeconfigSuffix = "cache"
 
+// cacheDirPerm restricts the cache directory to its owner. The cache holds
+// fully-resolved kubeconfigs, i.e. live credentials. Because a directory has to be
+// searchable to reach the files inside it, this also shields entries that earlier
+// versions wrote with a permissive file mode.
+const cacheDirPerm os.FileMode = 0700
+
+// cacheFilePerm restricts a single cache entry to its owner.
+const cacheFilePerm os.FileMode = 0600
+
 func init() {
 	cache.Register(cacheKey, New)
 }
@@ -55,10 +64,8 @@ func New(upstream storetypes.KubeconfigStore, ccfg *types.Cache) (storetypes.Kub
 		homedir, _ := os.UserHomeDir()
 		path = filepath.Join(homedir, path[2:])
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, os.ModePerm); err != nil {
-			return nil, fmt.Errorf("path: %s was not able to be created", path)
-		}
+	if err := ensureCacheDir(path); err != nil {
+		return nil, err
 	}
 	cfgStore.Paths = []string{path}
 
@@ -69,6 +76,27 @@ func New(upstream storetypes.KubeconfigStore, ccfg *types.Cache) (storetypes.Kub
 		cfg:      cfg,
 		logger:   log,
 	}, nil
+}
+
+// ensureCacheDir creates the cache directory if it does not exist yet and makes sure
+// it is not reachable by group or other. Directories left behind by earlier versions
+// are tightened as well, so an upgrade repairs an already-exposed cache.
+func ensureCacheDir(path string) error {
+	if err := os.MkdirAll(path, cacheDirPerm); err != nil {
+		return fmt.Errorf("path: %s was not able to be created: %w", path, err)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("path: %s was not able to be read: %w", path, err)
+	}
+
+	if info.Mode().Perm()&0077 != 0 {
+		if err := os.Chmod(path, cacheDirPerm); err != nil {
+			return fmt.Errorf("path: %s holds kubeconfigs but is accessible by other users and could not be restricted: %w", path, err)
+		}
+	}
+	return nil
 }
 
 type fileCache struct {
@@ -124,6 +152,12 @@ func (c *fileCache) GetKubeconfigForPath(path string, tags map[string]string) ([
 	k, err := kubeconfigutil.NewKubeconfigForPath(file)
 	if err == nil { // return cached kubeconfig if found
 		c.logger.Debugf("kubeconfig found in cache '%s'", path)
+		// entries written by earlier versions are world-readable, so tighten on use.
+		// The directory mode already keeps other users out; this is a second layer,
+		// and not worth failing the lookup over.
+		if err := os.Chmod(file, cacheFilePerm); err != nil {
+			c.logger.Debugf("failed to restrict permissions on cache entry '%s': %v", file, err)
+		}
 		return k.GetBytes()
 	}
 	c.logger.Debugf("kubeconfig not found in cache '%s'", path)
