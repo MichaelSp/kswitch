@@ -267,3 +267,86 @@ func TestConcurrentWrites_NoLostUpdates(t *testing.T) {
 		t.Errorf("expected %d aliases after concurrent writes, got %d", n, len(a.Content.ContextToAliasMapping))
 	}
 }
+
+func TestWriteAlias_RejectsPathTraversal(t *testing.T) {
+	tests := []struct {
+		name  string
+		alias string
+	}{
+		{name: "parent directory escape", alias: "../../../.kube/config"},
+		{name: "single parent segment", alias: ".."},
+		{name: "current directory", alias: "."},
+		{name: "nested path", alias: "sub/alias"},
+		{name: "leading slash", alias: "/etc/passwd"},
+		{name: "windows separator", alias: `..\..\config`},
+		{name: "empty name", alias: ""},
+		{name: "dotfile is unreadable by loadFromDir", alias: ".hidden"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			a, err := GetDefaultAlias(dir)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if _, err := a.WriteAlias(tt.alias, "mycontext"); err == nil {
+				t.Fatalf("WriteAlias(%q) succeeded, want a rejection", tt.alias)
+			}
+		})
+	}
+}
+
+func TestWriteAlias_DoesNotWriteOutsideAliasDir(t *testing.T) {
+	parent := t.TempDir()
+	stateDir := filepath.Join(parent, "state")
+	if err := os.MkdirAll(stateDir, 0700); err != nil {
+		t.Fatalf("failed to create state dir: %v", err)
+	}
+	victim := filepath.Join(parent, "victim")
+	if err := os.WriteFile(victim, []byte("original"), 0600); err != nil {
+		t.Fatalf("failed to seed victim file: %v", err)
+	}
+
+	a, err := GetDefaultAlias(stateDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := a.WriteAlias("../../victim", "mycontext"); err == nil {
+		t.Fatal("WriteAlias escaped the alias directory")
+	}
+
+	data, err := os.ReadFile(victim)
+	if err != nil {
+		t.Fatalf("failed to read victim file: %v", err)
+	}
+	if string(data) != "original" {
+		t.Errorf("victim file was overwritten with %q", data)
+	}
+}
+
+func TestWriteAllAliases_SkipsUnusableLegacyNames(t *testing.T) {
+	dir := t.TempDir()
+	a, err := GetDefaultAlias(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// a legacy alias file is the one source of names that never went through
+	// WriteAlias; a bad entry must not cost the user their good ones
+	a.Content.ContextToAliasMapping = map[string]string{
+		"goodcontext": "goodalias",
+		"badcontext":  "../escape",
+	}
+	if err := a.WriteAllAliases(); err != nil {
+		t.Fatalf("WriteAllAliases error: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, aliasDirName, "goodalias")); err != nil {
+		t.Errorf("expected the valid alias to be written: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "escape")); !os.IsNotExist(err) {
+		t.Errorf("the invalid alias escaped the alias directory")
+	}
+}
