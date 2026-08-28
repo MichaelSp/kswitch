@@ -15,7 +15,7 @@
 package file
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -128,8 +128,12 @@ type fileCacheCfg struct {
 
 // hash for provided path
 // the hash does not contain any folders or special characters and is safe to use as filename
+// SHA-256 is not needed for its cryptographic strength here, but a blocklisted
+// primitive is not worth defending in review. Entries cached under the old MD5
+// names are simply missed and rewritten; Flush still removes them, because it
+// matches on the filename suffix rather than the digest.
 func (c *fileCache) hash(path string) string {
-	filename := md5.Sum([]byte(path))
+	filename := sha256.Sum256([]byte(path))
 	return fmt.Sprintf("%x", filename)
 }
 
