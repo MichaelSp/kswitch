@@ -20,7 +20,7 @@ require (
 	github.com/onsi/gomega v1.42.1
 	github.com/rancher/norman v0.10.0
 	github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6
-	github.com/sirupsen/logrus v1.10.1
+	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/api v0.293.0
