@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "github>MichaelSp/MichaelSp:.github/renovate.json5",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "automerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "minimumReleaseAge": "3 days"
+}
