@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
@@ -199,6 +200,85 @@ func TestGetKubeconfigForPath_UpstreamError(t *testing.T) {
 		if strings.HasSuffix(f.Name(), ".upstream-err.cache") {
 			t.Fatalf("expected no cache file to be created on upstream error, found %q", f.Name())
 		}
+	}
+}
+
+func TestGetKubeconfigForPath_TTLExpiry(t *testing.T) {
+	tmp := t.TempDir()
+	upstream := &mockStore{
+		id:   "upstream-ttl",
+		kind: types.StoreKindFilesystem,
+	}
+	ccfg := &types.Cache{
+		Kind:   "filesystem",
+		Config: map[string]any{"path": tmp, "ttl": "1h"},
+	}
+	store, err := New(upstream, ccfg)
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	const path = "some/cluster/path"
+
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("first GetKubeconfigForPath failed: %v", err)
+	}
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("second GetKubeconfigForPath failed: %v", err)
+	}
+	if upstream.getKubeconfigCt != 1 {
+		t.Fatalf("expected the cached kubeconfig to be reused within the TTL, upstream was called %d times", upstream.getKubeconfigCt)
+	}
+
+	// age the cached file beyond the TTL
+	files, err := os.ReadDir(tmp)
+	if err != nil {
+		t.Fatalf("ReadDir failed: %v", err)
+	}
+	stale := time.Now().Add(-2 * time.Hour)
+	for _, f := range files {
+		if err := os.Chtimes(filepath.Join(tmp, f.Name()), stale, stale); err != nil {
+			t.Fatalf("Chtimes failed: %v", err)
+		}
+	}
+
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("third GetKubeconfigForPath failed: %v", err)
+	}
+	if upstream.getKubeconfigCt != 2 {
+		t.Fatalf("expected the expired kubeconfig to be fetched again, upstream was called %d times", upstream.getKubeconfigCt)
+	}
+}
+
+func TestGetKubeconfigForPath_WithoutTTLNeverExpires(t *testing.T) {
+	tmp := t.TempDir()
+	upstream := &mockStore{
+		id:   "upstream-no-ttl",
+		kind: types.StoreKindFilesystem,
+	}
+	store, err := New(upstream, &types.Cache{Kind: "filesystem", Config: map[string]any{"path": tmp}})
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	const path = "some/cluster/path"
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("first GetKubeconfigForPath failed: %v", err)
+	}
+
+	files, _ := os.ReadDir(tmp)
+	stale := time.Now().Add(-30 * 24 * time.Hour)
+	for _, f := range files {
+		if err := os.Chtimes(filepath.Join(tmp, f.Name()), stale, stale); err != nil {
+			t.Fatalf("Chtimes failed: %v", err)
+		}
+	}
+
+	if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+		t.Fatalf("second GetKubeconfigForPath failed: %v", err)
+	}
+	if upstream.getKubeconfigCt != 1 {
+		t.Fatalf("expected an old cache entry to still be used without a TTL, upstream was called %d times", upstream.getKubeconfigCt)
 	}
 }
 

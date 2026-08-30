@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/MichaelSp/kswitch/pkg/cache"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
@@ -96,6 +97,26 @@ func unmarshalFileCacheCfg(cfg any) (fileCacheCfg, error) {
 type fileCacheCfg struct {
 	// Path to store the kubeconfigs in.
 	Path string `yaml:"path"`
+	// TTL is how long a cached kubeconfig is used before it is fetched from the store again.
+	// Kubeconfigs of cloud providers usually embed credentials that expire, so a TTL keeps
+	// the cache from handing out a kubeconfig that no longer authenticates.
+	// If not set, cached kubeconfigs are used until `kswitch clean` removes them.
+	// + optional
+	TTL *time.Duration `yaml:"ttl"`
+}
+
+// isExpired reports whether the cached file is older than the configured TTL.
+func (c *fileCache) isExpired(file string) bool {
+	if c.cfg.TTL == nil || *c.cfg.TTL <= 0 {
+		return false
+	}
+
+	info, err := os.Stat(file)
+	if err != nil {
+		return true
+	}
+
+	return time.Since(info.ModTime()) > *c.cfg.TTL
 }
 
 // hash for provided path
@@ -122,7 +143,7 @@ func (c *fileCache) GetKubeconfigForPath(path string, tags map[string]string) ([
 	file = util.ExpandEnv(file)
 
 	k, err := kubeconfigutil.NewKubeconfigForPath(file)
-	if err == nil { // return cached kubeconfig if found
+	if err == nil && !c.isExpired(file) { // return cached kubeconfig if found and still valid
 		c.logger.Debugf("kubeconfig found in cache '%s'", path)
 		return k.GetBytes()
 	}

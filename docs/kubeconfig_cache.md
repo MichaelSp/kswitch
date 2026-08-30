@@ -30,6 +30,9 @@ kubeconfigStores:
     kind: filesystem
     config:
       path: ~/kubetest/cache
+      # optional: how long a cached kubeconfig is used before it is fetched again.
+      # Without a ttl the cached kubeconfig is used until `switch clean` removes it.
+      ttl: 8h
 ```
 
 Each downloaded kubeconfig file will be stored in the path for the cache.
@@ -39,9 +42,14 @@ Example: 08df4a6d672ebac1a7d0657e7800f264.vault.example.cache
 Note: The file is not encrypted. The directory should be protected.
 
 
+### Expiring cached kubeconfigs
+
+Kubeconfigs of cloud providers usually embed credentials that expire. Set a `ttl` on the cache to
+fetch such a kubeconfig from the store again once the cached copy is older than the given duration.
+
 ### Clean up cache
 
-The files are cached forever. The switch clean command will delete all files of every configured cache.
+Without a `ttl` the files are cached forever. The switch clean command will delete all files of every configured cache.
 
 ```
 $ switch clean
