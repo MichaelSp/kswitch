@@ -91,7 +91,10 @@ type GKEStore struct {
 	// ProjectNameToID contains a mapping projectName -> project ID
 	// used to construct the kubeconfig path containing the project name instead of a technical project id
 	ProjectNameToID map[string]string
-	StateDirectory  string
+	// Projects caches the GCP projects of the account together with the projects that
+	// are known to not serve GKE clusters
+	Projects       *projectCache
+	StateDirectory string
 }
 
 type AzureStore struct {
