@@ -15,6 +15,8 @@
 package memory
 
 import (
+	"sync"
+
 	"github.com/MichaelSp/kswitch/pkg/cache"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
@@ -34,23 +36,36 @@ func New(upstream storetypes.KubeconfigStore, _ *types.Cache) (storetypes.Kubeco
 
 type memoryCache struct {
 	upstream storetypes.KubeconfigStore
-	cache    map[string][]byte
+
+	// mutex guards cache: the search retrieves the kubeconfigs of a store in parallel,
+	// so GetKubeconfigForPath runs on several goroutines at once.
+	mutex sync.RWMutex
+	cache map[string][]byte
 }
 
 // GetKubeconfigForPath implements the store.KubeconfigStore interface.
 // It is a wrapper around a KubeConfigCache.
 // It intercepts calls to GetKubeconfigForPath and caches the result in memory.
 func (c *memoryCache) GetKubeconfigForPath(path string, tags map[string]string) ([]byte, error) {
-	if val, ok := c.cache[path]; ok {
+	c.mutex.RLock()
+	val, ok := c.cache[path]
+	c.mutex.RUnlock()
+	if ok {
 		c.GetLogger().Debugf("GetKubeconfigForPath: %s found in cache", path)
 		return val, nil
 	}
+
+	// the upstream call is deliberately made without holding the lock: it is a remote
+	// call taking seconds and would serialise the whole search.
 	c.GetLogger().Debugf("GetKubeconfigForPath: %s not cached", path)
 	kube, err := c.upstream.GetKubeconfigForPath(path, tags)
 	if err != nil {
 		return kube, err
 	}
+	c.mutex.Lock()
 	c.cache[path] = kube
+	c.mutex.Unlock()
+
 	return kube, nil
 }
 
