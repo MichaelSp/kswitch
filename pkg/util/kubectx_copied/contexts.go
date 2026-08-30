@@ -18,6 +18,7 @@ package kubeconfigutil
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -66,7 +67,13 @@ func (k *Kubeconfig) GetContextNames() ([]string, error) {
 
 	var contextNames []string
 	for _, contextNode := range contexts.Content {
+		// a hand-edited or provider-generated kubeconfig may hold a context entry that
+		// is not a mapping, or a mapping without a "name" key. valueOf returns nil for
+		// both, so skip the entry rather than dereferencing it.
 		contextName := valueOf(contextNode, "name")
+		if contextName == nil {
+			continue
+		}
 		contextNames = append(contextNames, contextName.Value)
 	}
 
@@ -140,4 +147,33 @@ func valueOf(mapNode *yaml.Node, key string) *yaml.Node {
 		}
 	}
 	return nil
+}
+
+// ResolveContextName maps a wanted context name onto the contexts this kubeconfig
+// actually contains.
+//
+// Stores that implement storetypes.ContextNamer name their contexts during the search
+// without downloading the kubeconfig, by predicting the name from the provider's
+// template. Should such a prediction ever diverge from what the provider writes,
+// ModifyCurrentContext would happily set a current-context that does not exist and the
+// switch would only fail later, inside kubectl. A kubeconfig holding a single context
+// is unambiguous, so fall back to that one and let the caller keep working.
+//
+// The wanted name is returned unchanged when it exists, when the contexts cannot be
+// read, or when the kubeconfig is ambiguous (several contexts, none of them matching).
+func (k *Kubeconfig) ResolveContextName(wanted string) string {
+	names, err := k.GetContextNames()
+	if err != nil || len(names) == 0 {
+		return wanted
+	}
+
+	if slices.Contains(names, wanted) {
+		return wanted
+	}
+
+	if len(names) == 1 {
+		return names[0]
+	}
+
+	return wanted
 }

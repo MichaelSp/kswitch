@@ -79,3 +79,8 @@ func (c *clusterCache[K, V]) Reset() {
 	defer c.mu.Unlock()
 	c.m = make(map[K]V)
 }
+
+// maxConcurrentListRequests bounds how many provider API calls a store issues in
+// parallel while enumerating clusters. Providers answer one project resp. one cluster
+// per request, so the enumeration is entirely latency bound.
+const maxConcurrentListRequests = 16

@@ -17,8 +17,12 @@ package store
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/api/container/v1"
@@ -31,6 +35,19 @@ import (
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 	"google.golang.org/api/cloudresourcemanager/v1"
+)
+
+const (
+	// defaultMaxConcurrentProjectRequests is the number of projects queried for GKE clusters in parallel.
+	defaultMaxConcurrentProjectRequests = 32
+	// projectSearchTimeout bounds the cluster listing of a single project. A deadline
+	// shared by every project is exhausted long before the last one is queried for
+	// accounts that are members of many organizations, surfacing spurious
+	// "context deadline exceeded" errors for projects that were never actually slow.
+	projectSearchTimeout = 10 * time.Second
+	// maxProjectsPerPage is the page size used when listing the projects of the account.
+	// Fewer pages mean fewer sequential round trips.
+	maxProjectsPerPage = 1000
 )
 
 var (
@@ -66,12 +83,25 @@ func NewGKEStore(store types.KubeconfigStore, stateDir string) (*GKEStore, error
 	// TODO: If using gcloud with config specifying the gcp account
 	// validate by invoking gcloud auth list --format json that the correct account is ACTIVE
 
+	skipFor := defaultSkipUnusableProjectsFor
+	if gkeStoreConfig.SkipUnusableProjectsFor != nil {
+		skipFor = *gkeStoreConfig.SkipUnusableProjectsFor
+	}
+
+	refreshProjectsAfter := defaultRefreshProjectsAfter
+	if gkeStoreConfig.RefreshProjectsAfter != nil {
+		refreshProjectsAfter = *gkeStoreConfig.RefreshProjectsAfter
+	}
+
+	baseStore := NewBaseStore(types.StoreKindGKE, store)
+
 	return &GKEStore{
-		BaseStore:          NewBaseStore(types.StoreKindGKE, store),
+		BaseStore:          baseStore,
 		Config:             gkeStoreConfig,
 		StateDirectory:     stateDir,
 		ProjectNameToID:    map[string]string{},
 		DiscoveredClusters: newClusterCache[string, *container.Cluster](),
+		Projects:           newProjectCache(stateDir, baseStore.GetID(), refreshProjectsAfter, skipFor),
 	}, nil
 }
 
@@ -116,20 +146,38 @@ func (s *GKEStore) initialize() error {
 		}
 	}
 
-	if s.Config.GCPAccount != nil {
+	// verifying the account shells out to gcloud, which takes seconds. Run it next to
+	// the project discovery instead of before it.
+	accountCheck := make(chan error, 1)
+	go func() {
+		defer close(accountCheck)
+
+		if s.Config.GCPAccount == nil {
+			return
+		}
+
 		isActive, err := isAccountActive(*s.Config.GCPAccount)
 		if err != nil {
-			return fmt.Errorf("failed to check if Google Cloud account %q is active: %w", *s.Config.GCPAccount, err)
+			accountCheck <- fmt.Errorf("failed to check if Google Cloud account %q is active: %w", *s.Config.GCPAccount, err)
+			return
 		}
 
 		if !isActive {
-			return fmt.Errorf("google cloud account %q is not active. Please use `gcloud config set account %s` to activate the account", *s.Config.GCPAccount, *s.Config.GCPAccount)
+			accountCheck <- fmt.Errorf("google cloud account %q is not active. Please use `gcloud config set account %s` to activate the account", *s.Config.GCPAccount, *s.Config.GCPAccount)
 		}
-	}
+	}()
 
 	s.GkeClient = client
 
-	// Discover projects in this account
+	// Discover projects in this account.
+	// Listing them takes seconds for accounts that are members of many organizations,
+	// so reuse the previously discovered projects while they are fresh.
+	if s.Projects.isFresh() {
+		s.Logger.Debugf("using %d cached GCP projects", len(s.Projects.getProjects()))
+		s.indexProjects()
+		return <-accountCheck
+	}
+
 	allowedProjectIDs := sets.NewString(s.Config.ProjectIDs...)
 
 	cloudResourceManagerService, err := cloudresourcemanager.NewService(ctx)
@@ -137,14 +185,23 @@ func (s *GKEStore) initialize() error {
 		return fmt.Errorf("failed to create cloud resource manager client: %w", err)
 	}
 
-	req := cloudResourceManagerService.Projects.List()
+	var discovered []*gkeProject
+
+	req := cloudResourceManagerService.Projects.List().PageSize(maxProjectsPerPage)
+	// let the API do the filtering when possible, this keeps the number of pages
+	// (and hence round trips) low for accounts that can see many projects
+	if s.Config.ProjectFilter != nil && len(*s.Config.ProjectFilter) > 0 {
+		req = req.Filter(*s.Config.ProjectFilter)
+	}
 	if err := req.Pages(ctx, func(page *cloudresourcemanager.ListProjectsResponse) error {
 		for _, project := range page.Projects {
 			if allowedProjectIDs.Len() > 0 && !allowedProjectIDs.Has(project.ProjectId) {
 				continue
 			}
-			// remember project name -> project ID
-			s.ProjectNameToID[project.Name] = project.ProjectId
+			if !matchesProjectPatterns(project.ProjectId, s.Config.ProjectPatterns) {
+				continue
+			}
+			discovered = append(discovered, &gkeProject{ID: project.ProjectId, Name: project.Name})
 		}
 		return nil
 	}); err != nil {
@@ -164,15 +221,37 @@ func (s *GKEStore) initialize() error {
 		s.Logger.Infof("Sucessfully obtained application default credentials.")
 	}
 
+	if len(discovered) > 0 {
+		s.Projects.setProjects(discovered)
+		if err := s.Projects.write(); err != nil {
+			s.Logger.Debugf("failed to persist the GCP project cache: %v", err)
+		}
+	}
+	s.indexProjects()
+
 	if len(s.ProjectNameToID) == 0 {
 		return fmt.Errorf("no projects found in Google Cloud. Unable to discover GKE clusters")
 	}
 
-	return nil
+	return <-accountCheck
+}
+
+// indexProjects builds the project name -> project ID mapping used to resolve a
+// kubeconfig path back to the project it belongs to. Project names are not unique,
+// so the project ID is registered as well for the paths that fall back to it.
+func (s *GKEStore) indexProjects() {
+	for _, project := range s.Projects.getProjects() {
+		if _, ok := s.ProjectNameToID[project.Name]; !ok {
+			s.ProjectNameToID[project.Name] = project.ID
+		}
+		if _, ok := s.ProjectNameToID[project.ID]; !ok {
+			s.ProjectNameToID[project.ID] = project.ID
+		}
+	}
 }
 
 func (s *GKEStore) StartSearch(channel chan storetypes.SearchResult) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	if err := s.InitializeGKEStore(); err != nil {
@@ -183,31 +262,126 @@ func (s *GKEStore) StartSearch(channel chan storetypes.SearchResult) {
 		return
 	}
 
-	for projectName, projectId := range s.ProjectNameToID {
-		resp, err := s.GkeClient.Projects.Zones.Clusters.List(projectId, "-").Context(ctx).Do()
-		if err != nil {
-			channel <- storetypes.SearchResult{
-				Error: fmt.Errorf("failed to list GKE clusters for project with ID %q: %w", projectId, err),
+	// each project needs its own API call, so query them concurrently. Otherwise the
+	// search takes one round trip per project, which adds up to double digit seconds
+	// for accounts that are members of many organizations.
+	projects := make(chan *gkeProject)
+	go func() {
+		defer close(projects)
+		for _, project := range s.Projects.getProjects() {
+			if s.Projects.shouldSkip(project.ID) {
+				s.Logger.Debugf("skipping project %q, it recently failed to serve GKE clusters", project.ID)
+				continue
+			}
+			select {
+			case projects <- project:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	// project names are not unique across organizations, but the kubeconfig path is built
+	// from the project name. Remember the paths handed out to fall back to the project ID
+	// for the duplicates instead of overwriting an already discovered cluster.
+	takenPaths := sync.Map{}
+
+	wg := sync.WaitGroup{}
+	for range s.maxConcurrentProjectRequests() {
+		wg.Go(func() {
+			for project := range projects {
+				s.searchProject(ctx, project, &takenPaths, channel)
+			}
+		})
+	}
+	wg.Wait()
+
+	if err := s.Projects.write(); err != nil {
+		s.Logger.Debugf("failed to persist the GCP project cache: %v", err)
+	}
+}
+
+// searchProject lists the GKE clusters of a single project and sends them to the channel.
+func (s *GKEStore) searchProject(ctx context.Context, project *gkeProject, takenPaths *sync.Map, channel chan storetypes.SearchResult) {
+	ctx, cancel := context.WithTimeout(ctx, projectSearchTimeout)
+	defer cancel()
+
+	resp, err := s.GkeClient.Projects.Zones.Clusters.List(project.ID, "-").Context(ctx).Do()
+	if err != nil {
+		// projects without billing, without the Kubernetes Engine API or without permission
+		// return the same error on every search - remember them instead of paying for
+		// the round trip (and printing the error) again on the next search
+		if isPermanentProjectError(err) {
+			s.Projects.markUnusable(project.ID)
+			s.Logger.Debugf("skipping project %q in future searches: %v", project.ID, err)
+			return
+		}
+
+		channel <- storetypes.SearchResult{
+			Error: fmt.Errorf("failed to list GKE clusters for project with ID %q: %w", project.ID, err),
+		}
+		return
+	}
+
+	s.Projects.markUsable(project.ID)
+
+	// for every GKE cluster in the project
+	for _, f := range resp.Clusters {
+		// kubeconfig path used to uniquely identify this cluster
+		// gke_<project-name>--<zone>--<gke-cluster-name>
+
+		kubeconfigPath := fmt.Sprintf("gke_%s--%s--%s", project.Name, f.Location, f.Name)
+		if _, taken := takenPaths.LoadOrStore(kubeconfigPath, struct{}{}); taken {
+			// another project with the same name already claimed this path
+			kubeconfigPath = fmt.Sprintf("gke_%s--%s--%s", project.ID, f.Location, f.Name)
+			if _, taken := takenPaths.LoadOrStore(kubeconfigPath, struct{}{}); taken {
+				continue
+			}
+		}
+
+		// cache for when getting the kubeconfig for the unique path later
+		s.DiscoveredClusters.Set(kubeconfigPath, f)
+
+		channel <- storetypes.SearchResult{
+			KubeconfigPath: kubeconfigPath,
+			Error:          nil,
+		}
+	}
+}
+
+// maxConcurrentProjectRequests returns how many projects are queried in parallel.
+func (s *GKEStore) maxConcurrentProjectRequests() int {
+	if s.Config.MaxConcurrentProjectRequests != nil && *s.Config.MaxConcurrentProjectRequests > 0 {
+		return *s.Config.MaxConcurrentProjectRequests
+	}
+	return defaultMaxConcurrentProjectRequests
+}
+
+// matchesProjectPatterns matches a project ID against the configured glob patterns.
+// Patterns prefixed with "!" exclude a project. A project has to match at least one
+// include pattern (if any include pattern is configured) and must not match an exclude pattern.
+func matchesProjectPatterns(projectID string, patterns []string) bool {
+	if len(patterns) == 0 {
+		return true
+	}
+
+	hasInclude := false
+	included := false
+	for _, pattern := range patterns {
+		if exclude, found := strings.CutPrefix(pattern, "!"); found {
+			if matched, err := path.Match(exclude, projectID); err == nil && matched {
+				return false
 			}
 			continue
 		}
 
-		// for every GKE cluster in the project
-		for _, f := range resp.Clusters {
-			// kubeconfig path used to uniquely identify this cluster
-			// gke_<project-name>--<zone>--<gke-cluster-name>
-
-			kubeconfigPath := fmt.Sprintf("gke_%s--%s--%s", projectName, f.Location, f.Name)
-
-			// cache for when getting the kubeconfig for the unique path later
-			s.DiscoveredClusters.Set(kubeconfigPath, f)
-
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: kubeconfigPath,
-				Error:          nil,
-			}
+		hasInclude = true
+		if matched, err := path.Match(pattern, projectID); err == nil && matched {
+			included = true
 		}
 	}
+
+	return included || !hasInclude
 }
 
 func (s *GKEStore) GetContextPrefix(path string) string {
@@ -389,6 +563,12 @@ func parseIdentifier(path string) (string, string, string, error) {
 
 // isAccountActive checks if the given GCP account is active
 func isAccountActive(targetAccount string) (bool, error) {
+	// invoking gcloud costs seconds, so read the account from the gcloud configuration
+	// directly and only shell out when it cannot be determined that way
+	if account, ok := activeAccountFromGcloudConfig(); ok {
+		return account == targetAccount, nil
+	}
+
 	// gcloud auth application-default login
 	result, err := exec.Command(gcloudBinaryPath, "auth", "list", "--format", " json").Output()
 	if err != nil {
@@ -426,4 +606,67 @@ func isAccountActive(targetAccount string) (bool, error) {
 type gcloudAccount struct {
 	Account string `json:"account"`
 	Status  string `json:"status"`
+}
+
+// activeAccountFromGcloudConfig reads the currently activated account from the gcloud
+// configuration on disk, which is what `gcloud auth list` reports as ACTIVE.
+// Returns false when the account cannot be determined, so that the caller can fall
+// back to invoking gcloud.
+func activeAccountFromGcloudConfig() (string, bool) {
+	// the environment variable takes precedence over the configuration file
+	if account := os.Getenv("CLOUDSDK_CORE_ACCOUNT"); len(account) > 0 {
+		return account, true
+	}
+
+	configDir := os.Getenv("CLOUDSDK_CONFIG")
+	if len(configDir) == 0 {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", false
+		}
+		configDir = filepath.Join(home, ".config", "gcloud")
+	}
+
+	// configName is read off disk and joined into a path, and CLOUDSDK_CONFIG lets the
+	// whole gcloud config directory be pointed anywhere. Read both files through an
+	// os.Root, which refuses any name resolving outside configDir, symlinks included.
+	root, err := os.OpenRoot(configDir)
+	if err != nil {
+		return "", false
+	}
+	defer func() { _ = root.Close() }()
+
+	activeConfig, err := root.ReadFile("active_config")
+	if err != nil {
+		return "", false
+	}
+
+	configName := strings.TrimSpace(string(activeConfig))
+	if len(configName) == 0 {
+		return "", false
+	}
+
+	content, err := root.ReadFile(filepath.Join("configurations", fmt.Sprintf("config_%s", configName)))
+	if err != nil {
+		return "", false
+	}
+
+	// the configuration is an INI file, the account lives in the [core] section
+	inCoreSection := false
+	for line := range strings.Lines(string(content)) {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "[") {
+			inCoreSection = line == "[core]"
+			continue
+		}
+		if !inCoreSection {
+			continue
+		}
+		if key, value, found := strings.Cut(line, "="); found && strings.TrimSpace(key) == "account" {
+			account := strings.TrimSpace(value)
+			return account, len(account) > 0
+		}
+	}
+
+	return "", false
 }

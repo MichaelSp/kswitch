@@ -74,3 +74,16 @@ type KubeconfigStore interface {
 type Previewer interface {
 	GetSearchPreview(path string, optionalTags map[string]string) (string, error)
 }
+
+// ContextNamer is implemented by stores that already know which context names a
+// discovered path will yield. The search otherwise downloads the kubeconfig of every
+// discovered path only to read the context names out of it, which for the cloud
+// providers is a remote call per cluster taking seconds. A store implementing this
+// interface lets the search skip that download; the kubeconfig is then only fetched
+// for the context the user actually selects.
+//
+// The names returned must be the context names as they appear inside the kubeconfig,
+// without the store prefix, which the search adds itself.
+type ContextNamer interface {
+	ContextNamesForPath(path string, tags map[string]string) []string
+}
