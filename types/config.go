@@ -137,6 +137,11 @@ type KubeconfigStore struct {
 	// Please check the documentation for each backing provider to see what configuration is
 	// possible here
 	Config any `yaml:"config"`
+	// MaxConcurrentKubeconfigRequests limits how many kubeconfigs of this store are retrieved
+	// in parallel during the search. Defaults to 16. Lower this when the backing store rate
+	// limits the requests.
+	// + optional
+	MaxConcurrentKubeconfigRequests *int `yaml:"maxConcurrentKubeconfigRequests"`
 	// Cache allows to cache the kubeconfigs in the backing store
 	// + optional
 	Cache *Cache `yaml:"cache"`

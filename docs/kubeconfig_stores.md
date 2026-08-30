@@ -117,6 +117,24 @@ kubeconfigStores:
 Please also note, that the kubeconfig files added with the CLI flag `--kubeconfig-path` as well as via Environment variable
 `KUBECONFIG` never have a prefix.
 
+### Tune the search concurrency
+
+During the search, the kubeconfig of every discovered cluster is retrieved to read its context names.
+For most stores this is a remote call per cluster, so they are performed in parallel (16 at a time).
+Lower the limit for stores that rate limit the requests, raise it for stores that answer slowly.
+
+```
+kind: SwitchConfig
+version: "v1alpha1"
+kubeconfigStores:
+- kind: ovh
+  maxConcurrentKubeconfigRequests: 4
+```
+
+Stores that generate a kubeconfig on demand (such as OVH) benefit even more from a
+[kubeconfig cache](kubeconfig_cache.md), which keeps the search from requesting the same kubeconfig
+on every invocation.
+
 ## Advanced  Configurations
 
 ### Combined search over multiple stores

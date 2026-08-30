@@ -154,7 +154,18 @@ func Switcher(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 		selectedContext = strings.TrimPrefix(selectedContext, fmt.Sprintf("%s/", store.GetContextPrefix(kubeconfigPath)))
 	}
 
-	if err := kubeconfig.SetContext(selectedContext, aliasutil.GetContextForAlias(selectedContext, aliasToContext), store.GetContextPrefix(kubeconfigPath)); err != nil {
+	originalContextBeforeAlias := aliasutil.GetContextForAlias(selectedContext, aliasToContext)
+	if originalContextBeforeAlias == "" {
+		// this is a context name the store handed us, and the store may have predicted
+		// it without downloading the kubeconfig (see storetypes.ContextNamer), so
+		// reconcile it with the contexts the fetched kubeconfig actually holds.
+		// An alias is deliberately left alone: it is a name the user invented and it is
+		// never expected to appear in the kubeconfig, SetContext renames the context to
+		// it below.
+		selectedContext = kubeconfig.ResolveContextName(selectedContext)
+	}
+
+	if err := kubeconfig.SetContext(selectedContext, originalContextBeforeAlias, store.GetContextPrefix(kubeconfigPath)); err != nil {
 		return nil, nil, err
 	}
 

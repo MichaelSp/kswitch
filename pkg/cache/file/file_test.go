@@ -296,3 +296,73 @@ func TestPassthroughs(t *testing.T) {
 	ch := make(chan storetypes.SearchResult, 1)
 	store.StartSearch(ch)
 }
+
+// mockStoreContextNamer is an upstream that can name its contexts without downloading
+// the kubeconfig, like the OVH store does.
+type mockStoreContextNamer struct {
+	mockStore
+	names     []string
+	lastPath  string
+	lastTags  map[string]string
+	nameCalls int
+}
+
+func (m *mockStoreContextNamer) ContextNamesForPath(path string, tags map[string]string) []string {
+	m.nameCalls++
+	m.lastPath = path
+	m.lastTags = tags
+	return m.names
+}
+
+// TestContextNamesForPath covers that the cache does not hide the optional
+// storetypes.ContextNamer interface of the store it wraps: the search type asserts on
+// the wrapper, so without this forwarding every cached store loses the ability to name
+// its contexts without downloading the kubeconfig.
+func TestContextNamesForPath(t *testing.T) {
+	newFileCache := func(t *testing.T, upstream storetypes.KubeconfigStore) storetypes.KubeconfigStore {
+		t.Helper()
+
+		store, err := New(upstream, &types.Cache{Kind: "filesystem", Config: map[string]any{"path": t.TempDir()}})
+		if err != nil {
+			t.Fatalf("New failed: %v", err)
+		}
+		return store
+	}
+
+	t.Run("forwarded when the upstream is a ContextNamer", func(t *testing.T) {
+		upstream := &mockStoreContextNamer{names: []string{"kubernetes-admin@production"}}
+		store := newFileCache(t, upstream)
+
+		namer, ok := store.(storetypes.ContextNamer)
+		if !ok {
+			t.Fatalf("expected the cache to implement storetypes.ContextNamer, got %T", store)
+		}
+
+		tags := map[string]string{"clusterID": "id-1"}
+		got := namer.ContextNamesForPath("production", tags)
+		if len(got) != 1 || got[0] != "kubernetes-admin@production" {
+			t.Errorf("ContextNamesForPath = %v, want [kubernetes-admin@production]", got)
+		}
+		if upstream.nameCalls != 1 {
+			t.Errorf("expected 1 upstream call, got %d", upstream.nameCalls)
+		}
+		if upstream.lastPath != "production" {
+			t.Errorf("upstream received path %q, want %q", upstream.lastPath, "production")
+		}
+		if upstream.lastTags["clusterID"] != "id-1" {
+			t.Errorf("upstream received tags %v", upstream.lastTags)
+		}
+	})
+
+	t.Run("nil when the upstream is not a ContextNamer", func(t *testing.T) {
+		store := newFileCache(t, &mockStore{})
+
+		namer, ok := store.(storetypes.ContextNamer)
+		if !ok {
+			t.Fatalf("expected the cache to implement storetypes.ContextNamer, got %T", store)
+		}
+		if got := namer.ContextNamesForPath("production", nil); got != nil {
+			t.Errorf("ContextNamesForPath = %v, want nil", got)
+		}
+	})
+}

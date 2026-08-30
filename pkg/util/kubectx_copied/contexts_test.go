@@ -102,3 +102,83 @@ contexts: admin@production
 		})
 	}
 }
+
+func TestKubeconfig_ResolveContextName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		kubeconfig string
+		wanted     string
+		want       string
+	}{
+		{
+			name: "the wanted context exists",
+			kubeconfig: `apiVersion: v1
+kind: Config
+contexts:
+- name: kubernetes-admin@production
+- name: kubernetes-admin@staging
+`,
+			wanted: "kubernetes-admin@production",
+			want:   "kubernetes-admin@production",
+		},
+		{
+			// a store predicted the name and got it wrong; a single context is
+			// unambiguous, so the switch must still work
+			name: "an unknown name falls back to the only context",
+			kubeconfig: `apiVersion: v1
+kind: Config
+contexts:
+- name: admin@production
+`,
+			wanted: "kubernetes-admin@production",
+			want:   "admin@production",
+		},
+		{
+			// nothing to fall back to without guessing, leave the name alone and let
+			// the caller fail with a clear "context not found"
+			name: "an unknown name stays unchanged when several contexts exist",
+			kubeconfig: `apiVersion: v1
+kind: Config
+contexts:
+- name: admin@production
+- name: admin@staging
+`,
+			wanted: "kubernetes-admin@production",
+			want:   "kubernetes-admin@production",
+		},
+		{
+			name: "an empty context list leaves the name unchanged",
+			kubeconfig: `apiVersion: v1
+kind: Config
+contexts: []
+`,
+			wanted: "kubernetes-admin@production",
+			want:   "kubernetes-admin@production",
+		},
+		{
+			name: "unreadable contexts leave the name unchanged",
+			kubeconfig: `apiVersion: v1
+kind: Config
+`,
+			wanted: "kubernetes-admin@production",
+			want:   "kubernetes-admin@production",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			kubeconfig, err := New([]byte(tt.kubeconfig), "kubeconfig", false)
+			if err != nil {
+				t.Fatalf("failed to parse the kubeconfig: %v", err)
+			}
+
+			if got := kubeconfig.ResolveContextName(tt.wanted); got != tt.want {
+				t.Errorf("ResolveContextName(%q) = %q, want %q", tt.wanted, got, tt.want)
+			}
+		})
+	}
+}

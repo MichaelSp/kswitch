@@ -115,3 +115,13 @@ func (c *memoryCache) GetShootLabelKeys() []string {
 	}
 	return nil
 }
+
+// ContextNamesForPath forwards to the upstream store so that a store which can name
+// its contexts without downloading the kubeconfig keeps that ability when cached.
+func (c *memoryCache) ContextNamesForPath(path string, tags map[string]string) []string {
+	namer, ok := c.upstream.(storetypes.ContextNamer)
+	if !ok {
+		return nil
+	}
+	return namer.ContextNamesForPath(path, tags)
+}

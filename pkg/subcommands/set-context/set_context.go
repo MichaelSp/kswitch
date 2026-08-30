@@ -69,6 +69,11 @@ func SetContext(desiredContext string, stores []storetypes.KubeconfigStore, conf
 				return nil, nil, fmt.Errorf("failed to parse kubeconfig: %w", err)
 			}
 
+			// the store may have named this context without downloading the kubeconfig,
+			// see storetypes.ContextNamer. Reconcile the name with what the kubeconfig
+			// actually contains before pointing current-context at it.
+			contextWithoutPrefix = kubeconfig.ResolveContextName(contextWithoutPrefix)
+
 			originalContextBeforeAlias := ""
 			if len(discoveredContext.Alias) > 0 {
 				originalContextBeforeAlias = contextWithoutPrefix

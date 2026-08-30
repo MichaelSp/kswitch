@@ -211,3 +211,12 @@ func (c *fileCache) GetShootLabelKeys() []string {
 	}
 	return nil
 }
+
+// ContextNamesForPath forwards to the upstream store, see the memory cache.
+func (c *fileCache) ContextNamesForPath(path string, tags map[string]string) []string {
+	namer, ok := c.upstream.(storetypes.ContextNamer)
+	if !ok {
+		return nil
+	}
+	return namer.ContextNamesForPath(path, tags)
+}
