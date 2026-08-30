@@ -29,6 +29,7 @@ import (
 
 	"github.com/scaleway/scaleway-sdk-go/scw"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/goleak"
 
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
@@ -74,6 +75,12 @@ func (a *scalewayFakeAPI) leave() {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	a.inFlight--
+}
+
+func (a *scalewayFakeAPI) concurrency() int {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	return a.maxInFlight
 }
 
 func (a *scalewayFakeAPI) requestedPages(path string) []int {
@@ -458,6 +465,93 @@ func TestScalewayStore_StartSearch_ReadsEveryPage(t *testing.T) {
 	// 5 projects at 2 per page is 3 pages
 	if got := api.requestedPages("projects"); len(got) != 3 {
 		t.Errorf("requested the project pages %v, want 3 pages", got)
+	}
+}
+
+// TestScalewayStore_StartSearch_IsParallel covers that the projects are queried
+// concurrently: listing the clusters costs one round trip per project.
+func TestScalewayStore_StartSearch_IsParallel(t *testing.T) {
+	t.Parallel()
+
+	const (
+		projects = 12
+		delay    = 50 * time.Millisecond
+	)
+
+	api := &scalewayFakeAPI{clusters: map[string]map[string]string{}, delay: delay}
+	for p := range projects {
+		project := fmt.Sprintf("project-%d", p)
+		api.clusters[project] = map[string]string{fmt.Sprintf("id-%d", p): fmt.Sprintf("cluster-%d", p)}
+	}
+
+	start := time.Now()
+	found, errs := drainSearch(newTestScalewayStore(t, api))
+	elapsed := time.Since(start)
+
+	if len(errs) > 0 {
+		t.Fatalf("got errors: %v", errs)
+	}
+	if len(found) != projects {
+		t.Fatalf("got %d clusters, want %d", len(found), projects)
+	}
+	if serial := projects * delay; elapsed > serial/2 {
+		t.Errorf("search took %v, want well below the serial %v", elapsed, serial)
+	}
+	if got := api.concurrency(); got < 2 {
+		t.Errorf("saw at most %d requests in flight, want concurrent requests", got)
+	}
+}
+
+// TestScalewayStore_StartSearch_ConcurrencyIsBounded covers that the search does not
+// open an unbounded number of connections against the Scaleway API.
+func TestScalewayStore_StartSearch_ConcurrencyIsBounded(t *testing.T) {
+	t.Parallel()
+
+	const projects = 4 * maxConcurrentListRequests
+
+	api := &scalewayFakeAPI{clusters: map[string]map[string]string{}, delay: 10 * time.Millisecond}
+	for p := range projects {
+		api.clusters[fmt.Sprintf("project-%d", p)] = map[string]string{
+			fmt.Sprintf("id-%d", p): fmt.Sprintf("cluster-%d", p),
+		}
+	}
+
+	found, errs := drainSearch(newTestScalewayStore(t, api))
+
+	if len(errs) > 0 {
+		t.Fatalf("got errors: %v", errs)
+	}
+	if len(found) != projects {
+		t.Fatalf("got %d clusters, want %d", len(found), projects)
+	}
+	if got := api.concurrency(); got > maxConcurrentListRequests {
+		t.Errorf("saw %d requests in flight, want at most %d", got, maxConcurrentListRequests)
+	}
+}
+
+// TestScalewayStore_StartSearch_DoesNotLeakGoroutines covers that the worker pool of the
+// search always drains, including when a project fails half way through. It is
+// deliberately not parallel: goleak inspects every goroutine of the process.
+func TestScalewayStore_StartSearch_DoesNotLeakGoroutines(t *testing.T) {
+	// registered first so that it runs last: t.Cleanup is LIFO and the test server has
+	// to be shut down before the goroutines are counted
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
+	api := &scalewayFakeAPI{
+		clusters: map[string]map[string]string{
+			"project-a": {"id-1": "alpha"},
+			"forbidden": {"id-2": "beta"},
+		},
+		failProjects: map[string]bool{"forbidden": true},
+	}
+
+	found, errs := drainSearch(newTestScalewayStore(t, api))
+
+	if len(errs) != 1 {
+		t.Fatalf("got %d errors, want 1: %v", len(errs), errs)
+	}
+	if len(found) != 1 {
+		t.Fatalf("got %d clusters %v, want 1", len(found), slices.Sorted(maps.Keys(found)))
 	}
 }
 

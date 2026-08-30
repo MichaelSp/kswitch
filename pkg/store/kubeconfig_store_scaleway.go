@@ -16,6 +16,7 @@ package store
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/scaleway/scaleway-sdk-go/api/account/v3"
 	"github.com/scaleway/scaleway-sdk-go/api/k8s/v1"
@@ -134,38 +135,53 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 		return
 	}
 
+	// listing the clusters costs one round trip per project. Query the projects in
+	// parallel and keep going when a single project fails, so that one project the
+	// credentials cannot read does not hide the clusters of all the others.
+	var (
+		wg        sync.WaitGroup
+		semaphore = make(chan struct{}, maxConcurrentListRequests)
+	)
 	for _, project := range pres.Projects {
-		cres, err := kapi.ListClusters(
-			&k8s.ListClustersRequest{ProjectID: &project.ID},
-			scw.WithAllPages(),
-		)
-		if err != nil {
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: "",
-				Error:          fmt.Errorf("failed to retrieve Kubernetes cluster for project %v: %w", project.Name, err),
-			}
-			// report the project and carry on: a project the credentials cannot read
-			// must not hide the clusters of every project after it.
-			continue
+		semaphore <- struct{}{}
+		wg.Go(func() {
+			defer func() { <-semaphore }()
+			s.searchProject(kapi, project, channel)
+		})
+	}
+	wg.Wait()
+}
+
+// searchProject reports the Kubernetes clusters of a single Scaleway project.
+func (s *ScalewayStore) searchProject(kapi *k8s.API, project *account.Project, channel chan storetypes.SearchResult) {
+	cres, err := kapi.ListClusters(
+		&k8s.ListClustersRequest{ProjectID: &project.ID},
+		scw.WithAllPages(),
+	)
+	if err != nil {
+		channel <- storetypes.SearchResult{
+			KubeconfigPath: "",
+			Error:          fmt.Errorf("failed to retrieve Kubernetes cluster for project %v: %w", project.Name, err),
 		}
-		if cres.TotalCount == 0 {
-			s.Logger.Debug("No k8s clusters in project", project.Name)
-			continue
-		}
-		for _, cluster := range cres.Clusters {
-			s.DiscoveredClusters.Set(cluster.ID, ScalewayKube{ID: cluster.ID, Name: cluster.Name, Project: project.ID})
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: cluster.Name,
-				// the cluster ID uniquely identifies the cluster in the Scaleway
-				// API. It is carried in the tags so the kubeconfig can be fetched
-				// without relying on the in-memory cache (e.g. when a search index
-				// is used) and without colliding on duplicate cluster names.
-				Tags: map[string]string{
-					tagScalewayClusterID: cluster.ID,
-					tagScalewayProjectID: project.ID,
-				},
-				Error: nil,
-			}
+		return
+	}
+	if cres.TotalCount == 0 {
+		s.Logger.Debug("No k8s clusters in project", project.Name)
+		return
+	}
+	for _, cluster := range cres.Clusters {
+		s.DiscoveredClusters.Set(cluster.ID, ScalewayKube{ID: cluster.ID, Name: cluster.Name, Project: project.ID})
+		channel <- storetypes.SearchResult{
+			KubeconfigPath: cluster.Name,
+			// the cluster ID uniquely identifies the cluster in the Scaleway
+			// API. It is carried in the tags so the kubeconfig can be fetched
+			// without relying on the in-memory cache (e.g. when a search index
+			// is used) and without colliding on duplicate cluster names.
+			Tags: map[string]string{
+				tagScalewayClusterID: cluster.ID,
+				tagScalewayProjectID: project.ID,
+			},
+			Error: nil,
 		}
 	}
 }
