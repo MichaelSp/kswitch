@@ -66,7 +66,13 @@ func (k *Kubeconfig) GetContextNames() ([]string, error) {
 
 	var contextNames []string
 	for _, contextNode := range contexts.Content {
+		// a hand-edited or provider-generated kubeconfig may hold a context entry that
+		// is not a mapping, or a mapping without a "name" key. valueOf returns nil for
+		// both, so skip the entry rather than dereferencing it.
 		contextName := valueOf(contextNode, "name")
+		if contextName == nil {
+			continue
+		}
 		contextNames = append(contextNames, contextName.Value)
 	}
 
