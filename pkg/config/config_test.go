@@ -1,3 +1,17 @@
+// Copyright 2026 The Kswitch authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package config
 
 import (
@@ -35,6 +49,7 @@ func TestLoadConfigFromFile_EmptyFile(t *testing.T) {
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil empty config")
+		return
 	}
 	if cfg.Version != "" || cfg.Kind != "" || len(cfg.KubeconfigStores) != 0 {
 		t.Fatalf("expected zero-value config, got %#v", cfg)
@@ -60,6 +75,7 @@ kubeconfigStores:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil config")
+		return
 	}
 	if cfg.Kind != "SwitchConfig" {
 		t.Fatalf("Kind: got %q", cfg.Kind)
@@ -100,6 +116,7 @@ kubeconfigPaths:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil migrated config")
+		return
 	}
 	if cfg.Version != "v1alpha1" {
 		t.Fatalf("expected migrated version v1alpha1, got %q", cfg.Version)
@@ -172,6 +189,7 @@ kubeconfigPaths:
 	}
 	if cfg == nil {
 		t.Fatalf("expected non-nil config")
+		return
 	}
 	if cfg.Version != "v1alpha1" {
 		t.Fatalf("expected v1alpha1, got %q", cfg.Version)

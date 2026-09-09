@@ -13,7 +13,7 @@ Using the search index is especially useful when
 - dealing with large amounts of Kubeconfigs and querying the Kubeconfig store is slow (e.g. searching a large directory)
 - to save request when using a kubeconfig store that queries an API (Vault & Gardener).
 
-Compared to the example in the [hot reload feature](../README.md#hot-reload), see that all the Kubeconfig contexts are available almost instantly.
+See that all the Kubeconfig contexts are available almost instantly.
 
 ![demo GIF](https://raw.githubusercontent.com/MichaelSp/kswitch/main/resources/gifs/index-demo.gif)
 

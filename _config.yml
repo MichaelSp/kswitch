@@ -1,0 +1,8 @@
+exclude:
+  - website/
+  - flake.nix
+  - flake.lock
+  - go.mod
+  - go.sum
+  - Makefile
+  - renovate.json

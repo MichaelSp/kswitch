@@ -27,6 +27,7 @@ import (
 	"github.com/MichaelSp/kswitch/pkg"
 
 	"github.com/MichaelSp/kswitch/pkg/cache"
+	merge_to_default "github.com/MichaelSp/kswitch/pkg/subcommands/merge-to-default"
 	"github.com/MichaelSp/kswitch/pkg/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -47,12 +48,13 @@ const (
 
 var (
 	// root command
-	kubeconfigPath string
-	kubeconfigName string
-	showPreview    bool
-	deleteContext  bool
-	unsetContext   bool
-	currentContext bool
+	kubeconfigPath    string
+	kubeconfigName    string
+	showPreview       bool
+	deleteContext     bool
+	unsetContext      bool
+	currentContext    bool
+	writeToKubeconfig bool
 
 	// vault store
 	storageBackend          string
@@ -76,6 +78,22 @@ var (
 		Short:   "Launch the switch binary",
 		Long:    `The kubectx for operators.`,
 		Version: version,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Commands that make sense without the shell wrapper (bootstrap/introspection)
+			exempt := map[string]bool{"init": true, "version": true, "merge-to-default-kubeconfig": true, "__complete": true, "__completeNoDesc": true}
+			if !exempt[cmd.Name()] && os.Getenv("KSWITCH_SHELL_WRAPPER") != "1" {
+				fmt.Fprintln(os.Stderr, "kswitch must be invoked via the kswitch shell function, not directly.")
+				fmt.Fprintln(os.Stderr, "")
+				fmt.Fprintln(os.Stderr, "To set up the shell function, add this to your shell rc file:")
+				fmt.Fprintln(os.Stderr, "  bash/zsh:   source <(kswitch init bash)")
+				fmt.Fprintln(os.Stderr, "  fish:       kswitch init fish | source")
+				fmt.Fprintln(os.Stderr, "  powershell: kswitch init powershell >> $PROFILE")
+				fmt.Fprintln(os.Stderr, "")
+				fmt.Fprintln(os.Stderr, "Then open a new shell or re-source your rc file and run: kswitch")
+				os.Exit(1)
+			}
+			return nil
+		},
 		Args: func(cmd *cobra.Command, args []string) error {
 			switch {
 			case deleteContext:
@@ -120,9 +138,29 @@ var (
 				showPreview = false
 			}
 
+			// config file can enable write-to-kubeconfig by default; CLI flag overrides
+			if !writeToKubeconfig && config.WriteToKubeconfig != nil && *config.WriteToKubeconfig {
+				writeToKubeconfig = true
+			}
+
 			kubeconfigPath, contextName, err := pkg.Switcher(stores, config, stateDirectory, noIndex, showPreview)
+			if err != nil {
+				return err
+			}
+			if writeToKubeconfig && kubeconfigPath != nil && contextName != nil {
+				kubeconfigData, readErr := os.ReadFile(*kubeconfigPath)
+				if readErr != nil {
+					return fmt.Errorf("failed to read temporary kubeconfig: %w", readErr)
+				}
+				result, mergeErr := merge_to_default.MergeDataToTarget(kubeconfigData, merge_to_default.ResolveWriteTarget())
+				if mergeErr != nil {
+					return mergeErr
+				}
+				reportNewContext(&result.Destination, contextName)
+				return nil
+			}
 			reportNewContext(kubeconfigPath, contextName)
-			return err
+			return nil
 		},
 		SilenceUsage: true,
 	}
@@ -133,6 +171,7 @@ func init() {
 	rootCommand.Flags().BoolVarP(&deleteContext, "d", "d", false, "delete desired context. Context name is required")
 	rootCommand.Flags().BoolVarP(&unsetContext, "unset", "u", false, "unset current context")
 	rootCommand.Flags().BoolVarP(&currentContext, "current", "c", false, "show current context")
+	rootCommand.Flags().BoolVarP(&writeToKubeconfig, "write", "w", false, "merge selected context into the real KUBECONFIG (or ~/.kube/config) and set current-context")
 }
 
 func NewCommandStartKswitch() *cobra.Command {

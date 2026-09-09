@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"os"
 
+	tea "charm.land/bubbletea/v2"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // ErrAbort is returned when the user exits the TUI without selecting a context.
@@ -38,25 +38,29 @@ type ContextItem struct {
 	Path      string
 	Tags      map[string]string
 	StoreID   string
+	// LabelDisplayKeys lists tag keys whose values should appear in the display suffix.
+	// Values are shown in the order given and become part of the fuzzy-search string.
+	LabelDisplayKeys []string
 }
 
 // Run launches the interactive bubbletea TUI and blocks until the user selects
 // a context or aborts. itemCh must be closed by the caller when discovery ends.
 // Returns the path and display name of the selected item, or ErrAbort if the
-// user cancelled.
+// user cancelled. dynamicStore is non-nil when the selection is a k0smotron
+// sub-cluster whose kubeconfig lives in an in-memory store.
 func Run(
 	itemCh <-chan ContextItem,
 	storeIDToStore map[string]storetypes.KubeconfigStore,
 	showPreview bool,
-) (kubeconfigPath string, selectedContext string, err error) {
+) (kubeconfigPath string, selectedContext string, dynamicStore storetypes.KubeconfigStore, err error) {
 	model := NewModel(storeIDToStore, showPreview)
 
-	p := tea.NewProgram(model, tea.WithAltScreen(), tea.WithOutput(os.Stderr))
+	p := tea.NewProgram(model, tea.WithOutput(os.Stderr))
 
 	go func() {
 		var batch []item
 		for ci := range itemCh {
-			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias)
+			primary, suffix := FormatDisplayName(types.StoreKind(ci.StoreKind), ci.Path, ci.ContextName, ci.Alias, ci.Tags, ci.LabelDisplayKeys)
 			batch = append(batch, item{
 				displayName: primary,
 				dimSuffix:   suffix,
@@ -76,19 +80,24 @@ func Run(
 		p.Send(discoveryDoneMsg{})
 	}()
 
-	finalModel, err := p.Run()
-	if err != nil {
-		return "", "", fmt.Errorf("tui error: %w", err)
+	finalModel, runErr := p.Run()
+	if runErr != nil {
+		return "", "", nil, fmt.Errorf("tui error: %w", runErr)
 	}
 
 	m, ok := finalModel.(Model)
 	if !ok {
-		return "", "", fmt.Errorf("unexpected model type")
+		return "", "", nil, fmt.Errorf("unexpected model type")
 	}
 
 	if m.Aborted || m.Selected == nil {
-		return "", "", ErrAbort
+		return "", "", nil, ErrAbort
 	}
 
-	return m.Selected.path, m.Selected.contextName, nil
+	var dynStore storetypes.KubeconfigStore
+	if ds, ok := m.dynamicStores[m.Selected.storeID]; ok {
+		dynStore = ds
+	}
+
+	return m.Selected.path, m.Selected.contextName, dynStore, nil
 }

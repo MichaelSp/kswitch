@@ -18,25 +18,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // noopStyle renders the string without any escape codes, making test assertions
 // independent of the concrete style colours/attributes.
 var noopStyle = lipgloss.NewStyle()
 
-// TestStderrRendererUsed guards against the regression where package-level
-// styles were created with lipgloss.NewStyle() (default renderer, probes
-// os.Stdout) instead of stderrRenderer. When the shell wrapper captures stdout
-// the default renderer sees NoColor and strips all ANSI — the TUI loses its
-// yellow fuzzy-match highlights.
+// TestStderrRendererUsed is a no-op in lipgloss v2 — the Renderer type was
+// removed and styles are plain values with no renderer attachment.
 func TestStderrRendererUsed(t *testing.T) {
-	// stderrRenderer must not be the same object as the lipgloss default renderer.
-	// lipgloss.DefaultRenderer() returns the package-level default; our renderer
-	// is bound to os.Stderr so it must be a distinct instance.
-	if stderrRenderer == lipgloss.DefaultRenderer() {
-		t.Error("stderrRenderer must be a renderer bound to os.Stderr, not the lipgloss default renderer")
-	}
+	t.Skip("lipgloss v2: Renderer type removed, test no longer applicable")
 }
 
 // ---- highlightMatches -------------------------------------------------------
@@ -234,5 +226,53 @@ func TestFilterStringItems_QueryNoMatch_ReturnsEmpty(t *testing.T) {
 	got := filterStringItems("zzz", strs)
 	if len(got) != 0 {
 		t.Errorf("expected empty result, got %d entries", len(got))
+	}
+}
+
+// TestFilterItems_SuffixLabelHighlighted reproduces the bug where searching for
+// a label value that appears verbatim in the dim suffix (e.g. "my-mcp") matched
+// via scattered fuzzy positions in the primary name instead of the contiguous
+// run in the suffix — making the highlight look wrong and confusing users.
+func TestFilterItems_SuffixLabelHighlighted(t *testing.T) {
+	items := []item{
+		{
+			displayName: "gardener/canary/garden-mcpds/s-rns5ayty",
+			dimSuffix:   "(canary-shoot-mcpds-s-rns5ayty/garden-mcpds--s-rns5ayty-external, mcp-worker-gk3y76mb, my-mcp, 0-demo-d067570)",
+		},
+	}
+	got := filterItems("my-mcp", items)
+	if len(got) == 0 {
+		t.Fatal("expected a match for 'my-mcp' in suffix")
+	}
+
+	// The search string passed to fuzzy is "primary suffix".
+	// Contiguous "my-mcp" starts at position len("primary ") + offset-of-"my-mcp"-in-suffix.
+	primary := items[0].displayName
+	suffix := items[0].dimSuffix
+	searchStr := primary + " " + suffix
+	runes := []rune(strings.ToLower(searchStr))
+	query := "my-mcp"
+	contiguousStart := -1
+	for i := 0; i <= len(runes)-len(query); i++ {
+		if string(runes[i:i+len(query)]) == query {
+			contiguousStart = i
+			break
+		}
+	}
+	if contiguousStart < 0 {
+		t.Fatal("'my-mcp' not found in search string — test data wrong")
+	}
+	want := make([]int, len(query))
+	for i := range want {
+		want[i] = contiguousStart + i
+	}
+
+	if len(got[0].matchedIndexes) != len(want) {
+		t.Fatalf("matchedIndexes length: got %d want %d (%v)", len(got[0].matchedIndexes), len(want), got[0].matchedIndexes)
+	}
+	for i, idx := range got[0].matchedIndexes {
+		if idx != want[i] {
+			t.Errorf("matchedIndexes[%d] = %d, want %d", i, idx, want[i])
+		}
 	}
 }

@@ -27,7 +27,17 @@ var (
 		DisableFlagsInUseLine: true,
 		Aliases:               []string{"e"},
 		Short:                 "Execute any command towards the matching contexts from the wildcard search",
-		Long:                  `Execute any command to all the matching cluster contexts given by the search parameter. Eg: switch exec "*-dev-?" -- kubectl get namespaces"`,
+		Long: `Execute any command against all cluster contexts matched by the wildcard search pattern.
+
+Agent workflow — discover context names first, then exec:
+  # Step 1: find the exact names/aliases you want to target
+  kswitch list-contexts -r 'prod.*eu'
+
+  # Step 2: run a command against all matching contexts
+  kswitch exec 'prod*eu*' -- kubectl get nodes
+
+  # Or target a single known context/alias
+  kswitch exec 'my-alias' -- kubectl get namespaces`,
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			var comps []string
 			if len(args) == 0 {

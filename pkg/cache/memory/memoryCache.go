@@ -91,3 +91,12 @@ func (c *memoryCache) GetSearchPreview(path string, optionalTags map[string]stri
 
 	return previewer.GetSearchPreview(path, optionalTags)
 }
+
+// GetShootLabelKeys delegates to the upstream store if it supports the method.
+func (c *memoryCache) GetShootLabelKeys() []string {
+	type lkp interface{ GetShootLabelKeys() []string }
+	if p, ok := c.upstream.(lkp); ok {
+		return p.GetShootLabelKeys()
+	}
+	return nil
+}

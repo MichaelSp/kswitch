@@ -30,7 +30,7 @@ import (
 	apiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice"
+	armcontainerservice "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9"
 	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
 	"github.com/MichaelSp/kswitch/types"
 )
@@ -145,11 +145,10 @@ func (s *AzureStore) StartSearch(channel chan storetypes.SearchResult) {
 
 func handleAzureError(channel chan storetypes.SearchResult, err error) {
 	if err != nil {
-		var respErr *azcore.ResponseError
-		if errors.As(err, &respErr) {
+		if respErr, ok := errors.AsType[*azcore.ResponseError](err); ok {
 			// TODO: if 401 is returned, execute `az cli` to re-authenticate
 			channel <- storetypes.SearchResult{
-				Error: fmt.Errorf("AKS returned an error listing AKS clusters: %w", err),
+				Error: fmt.Errorf("AKS returned an error listing AKS clusters: %w", respErr),
 			}
 			return
 		}

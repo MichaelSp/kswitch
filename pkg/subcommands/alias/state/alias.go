@@ -17,84 +17,131 @@ package state
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/MichaelSp/kswitch/types"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	// aliasFileName is the filename of the state file that contains all created aliases
-	aliasFileName = "alias"
+	legacyAliasFileName = "alias"   // legacy single-file format
+	aliasDirName        = "aliases" // per-alias directory
 )
 
 type Alias struct {
-	aliasFilepath string
-	Content       types.ContextAlias
+	aliasDir string
+	Content  types.ContextAlias
 }
 
-// GetDefaultAlias get the default alias with the path to the state file set
+// GetDefaultAlias returns the alias state, loading from the per-alias directory.
+// Automatically migrates from the legacy single YAML file on first use.
 func GetDefaultAlias(stateDir string) (*Alias, error) {
 	a := Alias{
-		aliasFilepath: fmt.Sprintf("%s/switch.%s", stateDir, aliasFileName),
+		aliasDir: filepath.Join(stateDir, aliasDirName),
 	}
 
-	if err := a.loadFromFile(); err != nil {
+	if err := a.load(stateDir); err != nil {
 		return nil, err
 	}
 
 	return &a, nil
 }
 
-// loadFromFile loads the existing alias record from the state file
-func (a *Alias) loadFromFile() error {
-	// an alias file is not required. Its ok if it does not exist.
-	if _, err := os.Stat(a.aliasFilepath); err != nil {
+func (a *Alias) load(stateDir string) error {
+	if _, err := os.Stat(a.aliasDir); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		return a.migrateFromLegacy(stateDir)
+	}
+	return a.loadFromDir()
+}
+
+func (a *Alias) loadFromDir() error {
+	entries, err := os.ReadDir(a.aliasDir)
+	if err != nil {
+		return fmt.Errorf("failed to read alias directory %q: %w", a.aliasDir, err)
+	}
+
+	a.Content.ContextToAliasMapping = make(map[string]string, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+		aliasName := entry.Name()
+		data, err := os.ReadFile(filepath.Join(a.aliasDir, aliasName))
+		if err != nil {
+			return fmt.Errorf("failed to read alias file %q: %w", aliasName, err)
+		}
+		if ctx := strings.TrimSpace(string(data)); ctx != "" {
+			a.Content.ContextToAliasMapping[ctx] = aliasName
+		}
+	}
+	return nil
+}
+
+// migrateFromLegacy reads the old switch.alias YAML and writes it into the
+// per-alias directory, then removes the old file.
+func (a *Alias) migrateFromLegacy(stateDir string) error {
+	legacyPath := filepath.Join(stateDir, "switch."+legacyAliasFileName)
+	if _, err := os.Stat(legacyPath); err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 		return err
 	}
 
-	bytes, err := os.ReadFile(a.aliasFilepath)
+	data, err := os.ReadFile(legacyPath)
 	if err != nil {
-		return fmt.Errorf("failed to read alias file from %q. File corrupt?: %w", a.aliasFilepath, err)
+		return fmt.Errorf("failed to read legacy alias file: %w", err)
 	}
 
-	existingAliases := types.ContextAlias{}
-	if len(bytes) == 0 {
-		return nil
+	if len(data) > 0 {
+		if err := yaml.Unmarshal(data, &a.Content); err != nil {
+			return fmt.Errorf("failed to parse legacy alias file: %w", err)
+		}
 	}
 
-	err = yaml.Unmarshal(bytes, &existingAliases)
-	if err != nil {
-		return fmt.Errorf("could not unmarshal index file with path '%s': %w", a.aliasFilepath, err)
+	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
-	a.Content = existingAliases
+
+	if err := a.WriteAllAliases(); err != nil {
+		return err
+	}
+
+	_ = os.Remove(legacyPath)
 	return nil
 }
 
-// WriteAlias write the alias state file with new Content
-// returns the name of the overwritten context name in case there already exited a mapping context -> alias
-// or returns nil
+// WriteAlias persists a single alias→context mapping atomically.
+// Returns the previously mapped context name if the alias was already in use.
 func (a *Alias) WriteAlias(aliasName, contextName string) (*string, error) {
 	if a.Content.ContextToAliasMapping == nil {
 		a.Content.ContextToAliasMapping = make(map[string]string, 1)
 	}
 
-	contextAlreadyMappedToAlias := a.ContainsAlias(aliasName)
-	if contextAlreadyMappedToAlias != nil {
-		// Remove contextAlreadyMappedToAlias that is already mapped to the alias form the map
-		delete(a.Content.ContextToAliasMapping, *contextAlreadyMappedToAlias)
+	replaced := a.ContainsAlias(aliasName)
+	if replaced != nil {
+		delete(a.Content.ContextToAliasMapping, *replaced)
 	}
 
-	// add new context -> alias mapping
 	a.Content.ContextToAliasMapping[contextName] = aliasName
 
-	return contextAlreadyMappedToAlias, a.WriteAllAliases()
+	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create alias directory: %w", err)
+	}
+
+	if err := writeAliasFile(a.aliasDir, aliasName, contextName); err != nil {
+		return nil, err
+	}
+
+	return replaced, nil
 }
 
-// ContainsAlias checks if the given alias already exists
-// if yes, returns the context name that is currently mapped to the alias
+// ContainsAlias checks if the given alias already exists.
+// Returns the context name currently mapped to it, or nil.
 func (a *Alias) ContainsAlias(alias string) *string {
 	for context, a := range a.Content.ContextToAliasMapping {
 		if alias == a {
@@ -104,24 +151,55 @@ func (a *Alias) ContainsAlias(alias string) *string {
 	return nil
 }
 
-// WriteAllAliases overwrites the alias state file with new Content
+// WriteAllAliases writes every in-memory alias as an individual file and
+// removes any on-disk files that are no longer in the mapping.
 func (a *Alias) WriteAllAliases() error {
-	// overwrite the existing state file (only state is last execution anyways atm.)
-	file, err := os.Create(a.aliasFilepath)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
-
-	output, err := yaml.Marshal(a.Content)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
-	_, err = file.Write(output)
+	desired := make(map[string]struct{}, len(a.Content.ContextToAliasMapping))
+	for contextName, aliasName := range a.Content.ContextToAliasMapping {
+		desired[aliasName] = struct{}{}
+		if err := writeAliasFile(a.aliasDir, aliasName, contextName); err != nil {
+			return err
+		}
+	}
+
+	entries, err := os.ReadDir(a.aliasDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read alias directory: %w", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+		if _, ok := desired[entry.Name()]; !ok {
+			_ = os.Remove(filepath.Join(a.aliasDir, entry.Name()))
+		}
 	}
 
 	return nil
+}
+
+// writeAliasFile atomically writes one alias file: filename=aliasName, content=contextName.
+func writeAliasFile(dir, aliasName, contextName string) error {
+	path := filepath.Join(dir, aliasName)
+	tmp, err := os.CreateTemp(dir, ".alias-tmp-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp alias file: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer func() {
+		_ = tmp.Close()
+		_ = os.Remove(tmpName)
+	}()
+
+	if _, err := tmp.WriteString(contextName); err != nil {
+		return fmt.Errorf("failed to write alias file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("failed to close temp alias file: %w", err)
+	}
+	return os.Rename(tmpName, path)
 }

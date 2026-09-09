@@ -29,6 +29,9 @@ import (
 )
 
 var (
+	listVerbose = false
+	listRegexp  = false
+
 	previousContextCmd = &cobra.Command{
 		Use:     "set-previous-context",
 		Aliases: []string{"spc"},
@@ -70,10 +73,22 @@ var (
 	}
 
 	listContextsCmd = &cobra.Command{
-		Use:     "list-contexts [wildcard-search]",
+		Use:     "list-contexts [search]",
 		Aliases: []string{"ls"},
 		Short:   "List all available contexts",
-		Long:    `List all available contexts - give a second parameter to do a wildcard search. Eg: switch list-contexts "*-dev*"`,
+		Long: `List all available contexts. Optionally filter by name or alias.
+
+By default the argument is a wildcard pattern (e.g. "*-dev*").
+With --regexp / -r the argument is a Go regular expression.
+Both modes match against the context name AND any alias set for the context,
+so agents can discover the correct name to pass to exec by grepping aliases.
+
+Agent workflow example:
+  # 1. Find the exact context name (or alias) matching a regexp
+  kswitch list-contexts -r 'prod.*eu'
+
+  # 2. Run a command against all matching contexts
+  kswitch exec 'prod*eu*' -- kubectl get nodes`,
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			var comps []string
 			if len(args) != 0 {
@@ -92,7 +107,21 @@ var (
 			if len(args) == 1 && len(args[0]) > 0 {
 				pattern = args[0]
 			}
-			contexts, err := list_contexts.ListContexts(pattern, stores, config, stateDirectory, noIndex)
+			if listVerbose {
+				entries, err := list_contexts.ListContextsVerbose(pattern, listRegexp, stores, config, stateDirectory, noIndex)
+				if err != nil {
+					return err
+				}
+				for _, e := range entries {
+					if e.Suffix != "" {
+						fmt.Printf("%s %s\n", e.Display, e.Suffix)
+					} else {
+						fmt.Println(e.Display)
+					}
+				}
+				return nil
+			}
+			contexts, err := list_contexts.ListContextsFiltered(pattern, listRegexp, stores, config, stateDirectory, noIndex)
 			if err != nil {
 				return err
 			}
@@ -197,6 +226,8 @@ func init() {
 
 	setFlagsForContextCommands(setContextCmd)
 	setFlagsForContextCommands(listContextsCmd)
+	listContextsCmd.Flags().BoolVarP(&listVerbose, "verbose", "v", false, "show formatted display name and label values")
+	listContextsCmd.Flags().BoolVarP(&listRegexp, "regexp", "r", false, "treat the search argument as a Go regular expression (matches name and alias)")
 	// need to add flags as the namespace history allows switching to any {context: namespace} combination
 	setFlagsForContextCommands(previousContextCmd)
 	setFlagsForContextCommands(lastContextCmd)

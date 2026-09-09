@@ -194,6 +194,11 @@ func (k *Kubeconfig) GetBytes() ([]byte, error) {
 	return yaml.Marshal(k.rootNode)
 }
 
+// Path returns the filesystem path of this kubeconfig file.
+func (k *Kubeconfig) Path() string {
+	return k.path
+}
+
 func kubeconfigPath() (string, error) {
 	// KUBECONFIG env var
 	if v := os.Getenv("KUBECONFIG"); v != "" {

@@ -85,7 +85,7 @@ In this example:
 
 ![garden](search_garden.png)
 
-However, you can always define an [alias](../../../README.md#alias) for a context name to customize the search.
+However, you can always define an alias for a context name to customize the search.
 For instance, if you are more used to calling your Gardener cluster "virtual-garden", define an alias like so:
 
 ```

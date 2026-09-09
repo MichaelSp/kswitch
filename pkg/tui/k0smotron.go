@@ -1,0 +1,75 @@
+// Copyright 2026 The Kswitch authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package tui
+
+import (
+	tea "charm.land/bubbletea/v2"
+	kstore "github.com/MichaelSp/kswitch/pkg/store"
+	storetypes "github.com/MichaelSp/kswitch/pkg/store/types"
+)
+
+// expandK0smotronCmd fires a background command that fetches the kubeconfig for
+// the selected item then discovers k0smotron sub-clusters inside it.
+func expandK0smotronCmd(
+	stores map[string]storetypes.KubeconfigStore,
+	dynamicStores map[string]storetypes.KubeconfigStore,
+	parent item,
+) tea.Cmd {
+	return func() tea.Msg {
+		store := dynamicStores[parent.storeID]
+		if store == nil {
+			store = stores[parent.storeID]
+		}
+		if store == nil {
+			return expandResultMsg{parentPath: parent.path}
+		}
+
+		kubeconfigData, err := store.GetKubeconfigForPath(parent.path, parent.tags)
+		if err != nil {
+			return expandResultMsg{parentPath: parent.path, err: err}
+		}
+
+		memStore, entries, err := kstore.DiscoverK0smotronClusters(parent.path, kubeconfigData)
+		if err != nil {
+			return expandResultMsg{parentPath: parent.path, err: err}
+		}
+		if len(entries) == 0 {
+			return expandResultMsg{parentPath: parent.path}
+		}
+
+		children := make([]item, 0, len(entries))
+		for _, e := range entries {
+			children = append(children, item{
+				displayName: e.DisplayName,
+				dimSuffix:   "(k0smotron)",
+				contextName: e.ContextName,
+				path:        e.Path,
+				tags: map[string]string{
+					"namespace": e.Namespace,
+					"name":      e.Name,
+				},
+				storeID:    e.StoreID,
+				depth:      parent.depth + 1,
+				parentPath: parent.path,
+			})
+		}
+
+		return expandResultMsg{
+			parentPath: parent.path,
+			children:   children,
+			store:      memStore,
+		}
+	}
+}

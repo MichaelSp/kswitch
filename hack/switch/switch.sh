@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# PLEASE KEEP IN SYNC WITH THE COMMAND `switch init zsh/bash`
+# PLEASE KEEP IN SYNC WITH THE COMMAND `kubectl-switch init zsh/bash`
 # REQUIRED FOR THE DEFAULT HOMEBREW INSTALLATION for zsh and bash
 
 has_prefix() { case $2 in "$1"*) true;; *) false;; esac; }
 
-function switch(){
-#  if the executable path is not set, the kswitch binary has to be on the path
+function kswitch(){
+#  if the executable path is not set, the kubectl-switch binary has to be on the path
 # this is the case when installing it via homebrew
 
   local DEFAULT_EXECUTABLE_PATH="kswitch"
@@ -14,10 +14,8 @@ function switch(){
   while test $# -gt 0; do
     case "$1" in
     --executable-path)
-        EXECUTABLE_PATH="$1"
-        ;;
-    completion)
-        opts+=("$1" --cmd switch)
+        EXECUTABLE_PATH="$2"
+        shift
         ;;
     *)
         opts+=( "$1" )
@@ -30,13 +28,13 @@ function switch(){
     EXECUTABLE_PATH="$DEFAULT_EXECUTABLE_PATH"
   fi
 
-  RESPONSE="$($EXECUTABLE_PATH "${opts[@]}")"
+  RESPONSE="$(KSWITCH_SHELL_WRAPPER=1 $EXECUTABLE_PATH "${opts[@]}")"
   if [ $? -ne 0 -o -z "$RESPONSE" ]; then
     printf "%s\n" "$RESPONSE"
     return $?
   fi
 
-  # kswitch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
+  # kubectl-switch returns a response that contains a kubeconfig path with a prefix "__ " to be able to
   # distinguish it from other responses which just need to write to STDOUT
   prefix="__ "
   if ! has_prefix "$prefix" "$RESPONSE" ; then
@@ -47,7 +45,7 @@ function switch(){
   # remove prefix
   RESPONSE=${RESPONSE#"$prefix"}
 
-  #the response form the kswitch binary is "kubeconfig_path,selected_context"
+  #the response from the kubectl-switch binary is "kubeconfig_path,selected_context"
   remainder="$RESPONSE"
   KUBECONFIG_PATH="${remainder%%,*}"; remainder="${remainder#*,}"
   SELECTED_CONTEXT="${remainder%%,*}"; remainder="${remainder#*,}"
@@ -71,6 +69,18 @@ function switch(){
     \rm -f "$KUBECONFIG"
   fi
 
-  export KUBECONFIG="$KUBECONFIG_PATH"
+  local _new_kc="$KUBECONFIG_PATH"
+  if [[ -n "$KUBECONFIG" ]]; then
+    local _part
+    IFS=':' read -ra _kc_parts <<< "$KUBECONFIG"
+    for _part in "${_kc_parts[@]}"; do
+      if [[ -n "$_part" && "$_part" != *"$switchTmpDirectory"* ]]; then
+        _new_kc="$_new_kc:$_part"
+      fi
+    done
+    unset _kc_parts _part
+  fi
+  export KUBECONFIG="$_new_kc"
+  unset _new_kc
   printf "switched to context %s\n" "$SELECTED_CONTEXT"
 }

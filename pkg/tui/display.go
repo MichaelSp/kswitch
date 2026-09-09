@@ -28,13 +28,13 @@ import (
 // For Gardener contexts the format is:
 //
 //	primary: gardener/<landscape>/<namespace>/<shoot-name>
-//	suffix:  (alias-or-context)
+//	suffix:  (alias-or-context, label-value, …)
 //
 // For all other store kinds the raw contextName is returned (with the alias
 // appended in parentheses when it differs).
-func FormatDisplayName(storeKind types.StoreKind, path, contextName, alias string) (primary, suffix string) {
+func FormatDisplayName(storeKind types.StoreKind, path, contextName, alias string, tags map[string]string, labelKeys []string) (primary, suffix string) {
 	if storeKind == types.StoreKindGardener {
-		if p, s, ok := formatGardener(path, contextName, alias); ok {
+		if p, s, ok := formatGardener(path, contextName, alias, tags, labelKeys); ok {
 			return p, s
 		}
 	}
@@ -49,7 +49,7 @@ func FormatDisplayName(storeKind types.StoreKind, path, contextName, alias strin
 
 // formatGardener parses a Gardener identifier and returns the pretty display.
 // Returns (primary, suffix, true) on success or ("", "", false) if unparseable.
-func formatGardener(path, contextName, alias string) (primary, suffix string, ok bool) {
+func formatGardener(path, contextName, alias string, tags map[string]string, labelKeys []string) (primary, suffix string, ok bool) {
 	landscape, resource, name, namespace, _, err := gardenerstore.ParseIdentifier(path)
 	if err != nil {
 		return "", "", false
@@ -66,7 +66,7 @@ func formatGardener(path, contextName, alias string) (primary, suffix string, ok
 	}
 
 	// Collect all "other names" the user might know this cluster by.
-	others := collectOtherNames(name, contextName, alias)
+	others := collectOtherNames(name, contextName, alias, tags, labelKeys)
 	if len(others) > 0 {
 		return primary_, fmt.Sprintf("(%s)", strings.Join(others, ", ")), true
 	}
@@ -74,11 +74,18 @@ func formatGardener(path, contextName, alias string) (primary, suffix string, ok
 }
 
 // collectOtherNames returns the names that differ from the primary display name
-// (the shoot/seed name) so users can also search by alias or context name.
-func collectOtherNames(primaryName, contextName, alias string) []string {
+// (the shoot/seed name) so users can also search by alias, context name, or
+// configured label values.
+func collectOtherNames(primaryName, contextName, alias string, tags map[string]string, labelKeys []string) []string {
 	seen := map[string]bool{primaryName: true}
 	var others []string
-	for _, n := range []string{alias, contextName} {
+	// alias and context name first, then label values in key order
+	candidates := make([]string, 0, 2+len(labelKeys))
+	candidates = append(candidates, alias, contextName)
+	for _, k := range labelKeys {
+		candidates = append(candidates, tags[k])
+	}
+	for _, n := range candidates {
 		if n != "" && !seen[n] {
 			seen[n] = true
 			others = append(others, n)

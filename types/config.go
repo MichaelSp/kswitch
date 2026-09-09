@@ -60,6 +60,8 @@ const (
 	StoreKindPlugin StoreKind = "plugin"
 	// StoreKindKind is an identifier for the kind (Kubernetes IN Docker) store
 	StoreKindKind StoreKind = "kind"
+	// StoreKindK0smotron is an identifier for k0smotron sub-clusters discovered dynamically
+	StoreKindK0smotron StoreKind = "k0smotron"
 )
 
 type Config struct {
@@ -78,6 +80,13 @@ type Config struct {
 	// default: true
 	// + optional
 	ShowPreview *bool `yaml:"showPreview"`
+	// WriteToKubeconfig configures if the selected context is merged into the real KUBECONFIG
+	// (or ~/.kube/config if KUBECONFIG points to a kswitch temp file) instead of only being
+	// active in the current shell via a temporary file.
+	// Can be overridden via command line flag --write / -w
+	// default: false
+	// + optional
+	WriteToKubeconfig *bool `yaml:"writeToKubeconfig"`
 	// ExecShell configures the shell to be used for switch exec -- "command"
 	// If a shell (bash, zsh, sh) is provided, the command is executed like so
 	// --> bash -c "your_command"
@@ -157,6 +166,10 @@ type StoreConfigGardener struct {
 	// also used as the store ID if the kubeconfig store ID is not specified
 	// + optional
 	LandscapeName *string `yaml:"landscapeName"`
+	// ShootLabelKeys is an optional list of shoot label keys whose values are included in the
+	// display suffix and the search index. Example entry:
+	//   "gardener.clusters.openmcp.cloud/cluster-name"
+	ShootLabelKeys []string `yaml:"shootLabelKeys"`
 }
 
 type StoreConfigGKE struct {
