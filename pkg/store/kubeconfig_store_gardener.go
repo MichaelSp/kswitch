@@ -98,7 +98,12 @@ func init() {
 var (
 	_ storetypes.KubeconfigStore = (*GardenerStore)(nil)
 	_ storetypes.Previewer       = (*GardenerStore)(nil)
+	_ ShootLabelKeysProvider     = (*GardenerStore)(nil)
 )
+
+type ShootLabelKeysProvider interface {
+	GetShootLabelKeys() []string
+}
 
 func NewGardenerStore(store types.KubeconfigStore, stateDir string) (*GardenerStore, error) {
 	config, err := gardenerstore.GetStoreConfig(store)

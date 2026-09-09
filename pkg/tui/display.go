@@ -28,7 +28,7 @@ import (
 // For Gardener contexts the format is:
 //
 //	primary: gardener/<landscape>/<namespace>/<shoot-name>
-//	suffix:  (alias-or-context, label-value, …)
+//	suffix:  (label-value, …, alias-or-context)
 //
 // For all other store kinds the raw contextName is returned (with the alias
 // appended in parentheses when it differs).
@@ -66,7 +66,7 @@ func formatGardener(path, contextName, alias string, tags map[string]string, lab
 	}
 
 	// Collect all "other names" the user might know this cluster by.
-	others := collectOtherNames(name, contextName, alias, tags, labelKeys)
+	others := collectOtherNames(name, shortGardenerContextName(contextName, namespace, name), alias, tags, labelKeys)
 	if len(others) > 0 {
 		return primary_, fmt.Sprintf("(%s)", strings.Join(others, ", ")), true
 	}
@@ -74,17 +74,17 @@ func formatGardener(path, contextName, alias string, tags map[string]string, lab
 }
 
 // collectOtherNames returns the names that differ from the primary display name
-// (the shoot/seed name) so users can also search by alias, context name, or
-// configured label values.
+// (the shoot/seed name) so users can also search by configured label values,
+// alias, or context name.
 func collectOtherNames(primaryName, contextName, alias string, tags map[string]string, labelKeys []string) []string {
 	seen := map[string]bool{primaryName: true}
 	var others []string
-	// alias and context name first, then label values in key order
-	candidates := make([]string, 0, 2+len(labelKeys))
-	candidates = append(candidates, alias, contextName)
+	// label values first, then alias and context name
+	candidates := make([]string, 0, len(labelKeys)+2)
 	for _, k := range labelKeys {
 		candidates = append(candidates, tags[k])
 	}
+	candidates = append(candidates, alias, contextName)
 	for _, n := range candidates {
 		if n != "" && !seen[n] {
 			seen[n] = true
@@ -92,4 +92,11 @@ func collectOtherNames(primaryName, contextName, alias string, tags map[string]s
 		}
 	}
 	return others
+}
+
+func shortGardenerContextName(contextName, namespace, shootName string) string {
+	if _, after, ok := strings.Cut(contextName, "/"); ok {
+		contextName = after
+	}
+	return strings.TrimPrefix(contextName, fmt.Sprintf("%s--%s-", namespace, shootName))
 }
