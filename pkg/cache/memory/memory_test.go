@@ -10,6 +10,8 @@ package memory
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -170,3 +172,61 @@ func TestPassthroughMethods(t *testing.T) {
 		t.Errorf("expected VerifyKubeconfigPaths upstream call, got %d", upstream.verifyCalls)
 	}
 }
+
+// concurrentMockStore is a goroutine safe upstream, so that a race reported by
+// TestGetKubeconfigForPath_Concurrent can only come from the cache itself.
+type concurrentMockStore struct {
+	mockStore
+	mutex sync.Mutex
+	calls int
+}
+
+func (m *concurrentMockStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
+	m.mutex.Lock()
+	m.calls++
+	m.mutex.Unlock()
+	return []byte(path), nil
+}
+
+// TestGetKubeconfigForPath_Concurrent covers that the cache can be used from several
+// goroutines: the search retrieves the kubeconfigs of a store in parallel.
+func TestGetKubeconfigForPath_Concurrent(t *testing.T) {
+	upstream := &concurrentMockStore{}
+	store, err := New(upstream, nil)
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	const paths = 64
+	wg := sync.WaitGroup{}
+	for i := range paths {
+		path := fmt.Sprintf("cluster-%d", i)
+		// fetch every path twice to exercise the cached and the uncached branch
+		for range 2 {
+			wg.Go(func() {
+				got, err := store.GetKubeconfigForPath(path, nil)
+				if err != nil {
+					t.Errorf("GetKubeconfigForPath(%q) failed: %v", path, err)
+					return
+				}
+				if string(got) != path {
+					t.Errorf("GetKubeconfigForPath(%q) = %q", path, got)
+				}
+			})
+		}
+	}
+	wg.Wait()
+
+	for i := range paths {
+		path := fmt.Sprintf("cluster-%d", i)
+		if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+			t.Fatalf("GetKubeconfigForPath(%q) after the concurrent run failed: %v", path, err)
+		}
+	}
+	if upstream.calls > 2*paths {
+		t.Fatalf("expected at most %d upstream calls, got %d", 2*paths, upstream.calls)
+	}
+}
+
+// mockStoreContextNamer is an upstream that can name its contexts without downloading
+// the kubeconfig, like the OVH store does.

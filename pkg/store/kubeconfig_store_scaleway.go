@@ -110,8 +110,11 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 		}
 		return
 	}
+	// without scw.WithAllPages the SDK requests a single page, so projects beyond the
+	// server-side default page size would silently be left out of the search.
 	pres, err := papi.ListProjects(
 		&account.ProjectAPIListProjectsRequest{},
+		scw.WithAllPages(),
 	)
 	if err != nil {
 		channel <- storetypes.SearchResult{
@@ -126,19 +129,24 @@ func (s *ScalewayStore) StartSearch(channel chan storetypes.SearchResult) {
 	if kapi == nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
-			Error:          fmt.Errorf("failed to create Kubernetes API instance for scaleway: %w", err),
+			Error:          fmt.Errorf("failed to create Kubernetes API instance for scaleway"),
 		}
 		return
 	}
 
 	for _, project := range pres.Projects {
-		cres, err := kapi.ListClusters(&k8s.ListClustersRequest{ProjectID: &project.ID})
+		cres, err := kapi.ListClusters(
+			&k8s.ListClustersRequest{ProjectID: &project.ID},
+			scw.WithAllPages(),
+		)
 		if err != nil {
 			channel <- storetypes.SearchResult{
 				KubeconfigPath: "",
 				Error:          fmt.Errorf("failed to retrieve Kubernetes cluster for project %v: %w", project.Name, err),
 			}
-			return
+			// report the project and carry on: a project the credentials cannot read
+			// must not hide the clusters of every project after it.
+			continue
 		}
 		if cres.TotalCount == 0 {
 			s.Logger.Debug("No k8s clusters in project", project.Name)
