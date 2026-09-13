@@ -137,6 +137,11 @@ type KubeconfigStore struct {
 	// Please check the documentation for each backing provider to see what configuration is
 	// possible here
 	Config any `yaml:"config"`
+	// MaxConcurrentKubeconfigRequests limits how many kubeconfigs of this store are retrieved
+	// in parallel during the search. Defaults to 16. Lower this when the backing store rate
+	// limits the requests.
+	// + optional
+	MaxConcurrentKubeconfigRequests *int `yaml:"maxConcurrentKubeconfigRequests"`
 	// Cache allows to cache the kubeconfigs in the backing store
 	// + optional
 	Cache *Cache `yaml:"cache"`
@@ -185,6 +190,34 @@ type StoreConfigGKE struct {
 	// ProjectID contains an optional list of projects that will be considered in the search for existing GKE clusters.
 	// If no projects are given, will discover clusters from every found project.
 	ProjectIDs []string `yaml:"projectIDs"`
+	// ProjectFilter is an optional server-side filter handed to the Cloud Resource Manager
+	// Projects.List API. Unlike ProjectIDs it keeps matching projects that are added to the
+	// account later on, which avoids maintaining a static allow list.
+	// Examples: "parent.type:organization parent.id:1234567890", "labels.team:platform".
+	// See https://cloud.google.com/resource-manager/reference/rest/v1/projects/list
+	// + optional
+	ProjectFilter *string `yaml:"projectFilter"`
+	// ProjectPatterns contains an optional list of glob patterns matched against the project ID.
+	// A pattern prefixed with "!" excludes matching projects. A project has to match at least one
+	// include pattern (if any is given) and must not match any exclude pattern.
+	// Example: ["acme-*", "!acme-sandbox-*"]
+	// + optional
+	ProjectPatterns []string `yaml:"projectPatterns"`
+	// RefreshProjectsAfter defines for how long the discovered GCP projects are reused before
+	// they are listed from the Cloud Resource Manager API again. Listing the projects of an
+	// account that is a member of many organizations takes seconds. Defaults to 24h.
+	// Set to 0 to list the projects on every search.
+	// + optional
+	RefreshProjectsAfter *time.Duration `yaml:"refreshProjectsAfter"`
+	// MaxConcurrentProjectRequests limits how many projects are queried for GKE clusters in
+	// parallel. Defaults to 32. Lower this when running into GCP API rate limits.
+	// + optional
+	MaxConcurrentProjectRequests *int `yaml:"maxConcurrentProjectRequests"`
+	// SkipUnusableProjectsFor defines for how long projects that cannot serve GKE clusters
+	// (billing disabled, Kubernetes Engine API not enabled, no permission) are remembered and
+	// skipped during the search. Defaults to 24h. Set to 0 to disable the skip list.
+	// + optional
+	SkipUnusableProjectsFor *time.Duration `yaml:"skipUnusableProjectsFor"`
 	// PreferredEndpoint is the preferred endpoint to use for the GKE API.
 	PreferredEndpoint *GKEPreferredEndpoint `yaml:"preferredEndpoint"`
 }

@@ -16,6 +16,7 @@ package store
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/ovh/go-ovh/ovh"
 
@@ -29,7 +30,10 @@ func init() {
 	})
 }
 
-var _ storetypes.KubeconfigStore = (*OVHStore)(nil)
+var (
+	_ storetypes.KubeconfigStore = (*OVHStore)(nil)
+	_ storetypes.ContextNamer    = (*OVHStore)(nil)
+)
 
 func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 	ovhStoreConfig, err := ParseStoreConfig[types.StoreConfigOVH](store)
@@ -54,14 +58,22 @@ func NewOVHStore(store types.KubeconfigStore) (*OVHStore, error) {
 		ovhEndpoint = "ovh-eu"
 	}
 
-	ovhClient, err := ovh.NewClient(ovhEndpoint, ovhApplicationKey, ovhApplicationSecret, ovhConsumerKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize OVH client: %w", err)
+	newClient := func() (*ovh.Client, error) {
+		client, err := ovh.NewClient(ovhEndpoint, ovhApplicationKey, ovhApplicationSecret, ovhConsumerKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize OVH client: %w", err)
+		}
+		return client, nil
+	}
+
+	// fail early on a malformed endpoint or credentials rather than on the first request
+	if _, err := newClient(); err != nil {
+		return nil, err
 	}
 
 	return &OVHStore{
 		BaseStore:    NewBaseStore(types.StoreKindOVH, store),
-		Client:       ovhClient,
+		Clients:      newOVHClientPool(newClient),
 		OVHKubeCache: newClusterCache[string, OVHKube](),
 	}, nil
 }
@@ -96,7 +108,7 @@ func (r *OVHStore) StartSearch(channel chan storetypes.SearchResult) {
 
 	projects := []string{}
 	// list OVH projects
-	err := r.Client.Get("/cloud/project", &projects)
+	err := r.Clients.get("/cloud/project", &projects)
 	if err != nil {
 		channel <- storetypes.SearchResult{
 			KubeconfigPath: "",
@@ -105,45 +117,92 @@ func (r *OVHStore) StartSearch(channel chan storetypes.SearchResult) {
 		return
 	}
 
-	// for each project, list Kubernetes cluster
-	for _, project := range projects {
-		clustersID := []string{}
-		err := r.Client.Get(fmt.Sprintf("/cloud/project/%v/kube", project), &clustersID)
-		if err != nil {
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: "",
-				Error:          err,
-			}
-			return
-		}
+	// the OVH API only answers for one project resp. one cluster per request and each
+	// round trip takes seconds. The clusters of a project are described as soon as that
+	// project has been listed, so both levels are queried in parallel. A project or a
+	// cluster that fails no longer aborts the search either: one inaccessible project
+	// must not hide the clusters of all the others.
+	clusters := make(chan ovhClusterRef)
+	go func() {
+		defer close(clusters)
+		r.listClusters(projects, clusters, channel)
+	}()
+	r.describeClusters(clusters, channel)
+}
 
-		for _, id := range clustersID {
-			var kube OVHKube
-			err := r.Client.Get(fmt.Sprintf("/cloud/project/%v/kube/%v", project, id), &kube)
-			if err != nil {
+// ovhClusterRef identifies a Kubernetes cluster in the OVH API.
+type ovhClusterRef struct {
+	project string
+	id      string
+}
+
+// listClusters lists the Kubernetes clusters of every project in parallel and hands
+// their references to the describers.
+func (r *OVHStore) listClusters(projects []string, clusters chan<- ovhClusterRef, channel chan storetypes.SearchResult) {
+	var (
+		wg        sync.WaitGroup
+		semaphore = make(chan struct{}, maxConcurrentListRequests)
+	)
+
+	for _, project := range projects {
+		semaphore <- struct{}{}
+		wg.Go(func() {
+			defer func() { <-semaphore }()
+
+			clusterIDs := []string{}
+			if err := r.Clients.get(fmt.Sprintf("/cloud/project/%v/kube", project), &clusterIDs); err != nil {
 				channel <- storetypes.SearchResult{
-					KubeconfigPath: "",
-					Error:          err,
+					Error: fmt.Errorf("failed to list the Kubernetes clusters of OVH project %q: %w", project, err),
 				}
 				return
 			}
-			kube.Project = project
-			r.OVHKubeCache.Set(kube.ID, kube)
 
-			channel <- storetypes.SearchResult{
-				KubeconfigPath: kube.Name,
-				// the cluster ID and project uniquely identify the cluster in the
-				// OVH API. Carrying them in the tags lets the kubeconfig be fetched
-				// without the in-memory cache (e.g. when a search index is used)
-				// and without colliding on duplicate cluster names.
-				Tags: map[string]string{
-					tagOVHClusterID: kube.ID,
-					tagOVHProjectID: project,
-				},
-				Error: nil,
+			for _, id := range clusterIDs {
+				clusters <- ovhClusterRef{project: project, id: id}
 			}
-		}
+		})
+	}
+	wg.Wait()
+}
 
+// describeClusters fetches the details of the discovered clusters in parallel and
+// reports them on the search channel.
+func (r *OVHStore) describeClusters(clusters <-chan ovhClusterRef, channel chan storetypes.SearchResult) {
+	wg := sync.WaitGroup{}
+
+	for range maxConcurrentListRequests {
+		wg.Go(func() {
+			for cluster := range clusters {
+				r.describeCluster(cluster, channel)
+			}
+		})
+	}
+	wg.Wait()
+}
+
+// describeCluster reports a single Kubernetes cluster on the search channel.
+func (r *OVHStore) describeCluster(cluster ovhClusterRef, channel chan storetypes.SearchResult) {
+	var kube OVHKube
+	if err := r.Clients.get(fmt.Sprintf("/cloud/project/%v/kube/%v", cluster.project, cluster.id), &kube); err != nil {
+		channel <- storetypes.SearchResult{
+			Error: fmt.Errorf("failed to get the OVH Kubernetes cluster %q of project %q: %w", cluster.id, cluster.project, err),
+		}
+		return
+	}
+	kube.Project = cluster.project
+	r.OVHKubeCache.Set(kube.ID, kube)
+
+	channel <- storetypes.SearchResult{
+		KubeconfigPath: kube.Name,
+		// the cluster ID and project uniquely identify the cluster in the
+		// OVH API. Carrying them in the tags lets the kubeconfig be fetched
+		// without the in-memory cache (e.g. when a search index is used)
+		// and without colliding on duplicate cluster names.
+		Tags: map[string]string{
+			tagOVHClusterID: kube.ID,
+			tagOVHProjectID: cluster.project,
+		},
+		Error: nil,
 	}
 }
 
@@ -171,9 +230,16 @@ func (r *OVHStore) GetKubeconfigForPath(path string, tags map[string]string) ([]
 	response := struct {
 		Content string `json:"content"`
 	}{}
-	err := r.Client.Post(fmt.Sprintf("/cloud/project/%v/kube/%v/kubeconfig", project, clusterID), nil, &response)
+	err := r.Clients.post(fmt.Sprintf("/cloud/project/%v/kube/%v/kubeconfig", project, clusterID), nil, &response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kubeconfig for cluster '%s': %w", path, err)
 	}
 	return []byte(response.Content), nil
+}
+
+// ContextNamesForPath returns the context name OVH puts in the kubeconfig of a
+// cluster, so that the search does not have to generate the kubeconfig (a POST
+// taking seconds per cluster) only to read that name back out of it.
+func (r *OVHStore) ContextNamesForPath(path string, _ map[string]string) []string {
+	return []string{fmt.Sprintf("kubernetes-admin@%s", path)}
 }

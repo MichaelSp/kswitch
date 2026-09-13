@@ -29,7 +29,6 @@ import (
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/linode/linodego/v2"
-	"github.com/ovh/go-ovh/ovh"
 	"github.com/rancher/norman/clientbase"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 	"github.com/scaleway/scaleway-sdk-go/scw"
@@ -92,7 +91,10 @@ type GKEStore struct {
 	// ProjectNameToID contains a mapping projectName -> project ID
 	// used to construct the kubeconfig path containing the project name instead of a technical project id
 	ProjectNameToID map[string]string
-	StateDirectory  string
+	// Projects caches the GCP projects of the account together with the projects that
+	// are known to not serve GKE clusters
+	Projects       *projectCache
+	StateDirectory string
 }
 
 type AzureStore struct {
@@ -121,7 +123,9 @@ type RancherStore struct {
 
 type OVHStore struct {
 	BaseStore
-	Client       *ovh.Client
+	// Clients hands out one OVH API client per concurrent request: a single client
+	// cannot be shared between goroutines, see ovhClientPool
+	Clients      *ovhClientPool
 	OVHKubeCache *clusterCache[string, OVHKube] // keyed by clusterID
 }
 

@@ -10,6 +10,8 @@ package memory
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -169,4 +171,119 @@ func TestPassthroughMethods(t *testing.T) {
 	if upstream.verifyCalls != 1 {
 		t.Errorf("expected VerifyKubeconfigPaths upstream call, got %d", upstream.verifyCalls)
 	}
+}
+
+// concurrentMockStore is a goroutine safe upstream, so that a race reported by
+// TestGetKubeconfigForPath_Concurrent can only come from the cache itself.
+type concurrentMockStore struct {
+	mockStore
+	mutex sync.Mutex
+	calls int
+}
+
+func (m *concurrentMockStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byte, error) {
+	m.mutex.Lock()
+	m.calls++
+	m.mutex.Unlock()
+	return []byte(path), nil
+}
+
+// TestGetKubeconfigForPath_Concurrent covers that the cache can be used from several
+// goroutines: the search retrieves the kubeconfigs of a store in parallel.
+func TestGetKubeconfigForPath_Concurrent(t *testing.T) {
+	upstream := &concurrentMockStore{}
+	store, err := New(upstream, nil)
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+
+	const paths = 64
+	wg := sync.WaitGroup{}
+	for i := range paths {
+		path := fmt.Sprintf("cluster-%d", i)
+		// fetch every path twice to exercise the cached and the uncached branch
+		for range 2 {
+			wg.Go(func() {
+				got, err := store.GetKubeconfigForPath(path, nil)
+				if err != nil {
+					t.Errorf("GetKubeconfigForPath(%q) failed: %v", path, err)
+					return
+				}
+				if string(got) != path {
+					t.Errorf("GetKubeconfigForPath(%q) = %q", path, got)
+				}
+			})
+		}
+	}
+	wg.Wait()
+
+	for i := range paths {
+		path := fmt.Sprintf("cluster-%d", i)
+		if _, err := store.GetKubeconfigForPath(path, nil); err != nil {
+			t.Fatalf("GetKubeconfigForPath(%q) after the concurrent run failed: %v", path, err)
+		}
+	}
+	if upstream.calls > 2*paths {
+		t.Fatalf("expected at most %d upstream calls, got %d", 2*paths, upstream.calls)
+	}
+}
+
+// mockStoreContextNamer is an upstream that can name its contexts without downloading
+// the kubeconfig, like the OVH store does.
+type mockStoreContextNamer struct {
+	mockStore
+	names     []string
+	lastPath  string
+	lastTags  map[string]string
+	nameCalls int
+}
+
+func (m *mockStoreContextNamer) ContextNamesForPath(path string, tags map[string]string) []string {
+	m.nameCalls++
+	m.lastPath = path
+	m.lastTags = tags
+	return m.names
+}
+
+// TestContextNamesForPath covers that the cache does not hide the optional
+// storetypes.ContextNamer interface of the store it wraps: the search type asserts on
+// the wrapper, so without this forwarding every cached store loses the ability to name
+// its contexts without downloading the kubeconfig.
+func TestContextNamesForPath(t *testing.T) {
+	t.Run("forwarded when the upstream is a ContextNamer", func(t *testing.T) {
+		upstream := &mockStoreContextNamer{names: []string{"kubernetes-admin@production"}}
+		c := newCache(t, upstream)
+
+		namer, ok := c.(storetypes.ContextNamer)
+		if !ok {
+			t.Fatalf("expected the cache to implement storetypes.ContextNamer, got %T", c)
+		}
+
+		tags := map[string]string{"clusterID": "id-1"}
+		got := namer.ContextNamesForPath("production", tags)
+		if len(got) != 1 || got[0] != "kubernetes-admin@production" {
+			t.Errorf("ContextNamesForPath = %v, want [kubernetes-admin@production]", got)
+		}
+		if upstream.nameCalls != 1 {
+			t.Errorf("expected 1 upstream call, got %d", upstream.nameCalls)
+		}
+		if upstream.lastPath != "production" {
+			t.Errorf("upstream received path %q, want %q", upstream.lastPath, "production")
+		}
+		if upstream.lastTags["clusterID"] != "id-1" {
+			t.Errorf("upstream received tags %v", upstream.lastTags)
+		}
+	})
+
+	t.Run("nil when the upstream is not a ContextNamer", func(t *testing.T) {
+		c := newCache(t, &mockStore{})
+
+		namer, ok := c.(storetypes.ContextNamer)
+		if !ok {
+			t.Fatalf("expected the cache to implement storetypes.ContextNamer, got %T", c)
+		}
+		if got := namer.ContextNamesForPath("production", nil); got != nil {
+			t.Errorf("ContextNamesForPath = %v, want nil", got)
+		}
+	})
 }

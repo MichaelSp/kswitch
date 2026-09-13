@@ -164,6 +164,14 @@ func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 			// remember additional metadata tags that a store wants to associate with a discovered context name
 			// also written to the index file
 			localContextToTagsMapping := make(map[string]map[string]string)
+			// guards the two local maps, the results are processed concurrently
+			localMappingMutex := sync.Mutex{}
+
+			// retrieving the kubeconfig of a discovered path is a remote call for most
+			// stores and can take seconds each. Process the discovered paths concurrently
+			// so that a slow store does not add up its latencies one path at a time.
+			wgStore := sync.WaitGroup{}
+			semaphore := make(chan struct{}, maxConcurrentKubeconfigRequests(store))
 
 			for channelResult := range storeSearchChannel {
 				if channelResult.Error != nil {
@@ -178,57 +186,72 @@ func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 					continue
 				}
 
-				bytes, err := store.GetKubeconfigForPath(channelResult.KubeconfigPath, channelResult.Tags)
-				if err != nil {
-					// do not throw Error, try to parse the other files
-					// this will happen a lot when using vault as storage because the secrets key value needs to match the desired kubeconfig name
-					// this however cannot be checked without retrieving the actual secret (path discovery is only list operation)
-					continue
-				}
+				semaphore <- struct{}{}
+				wgStore.Go(func() {
+					defer func() { <-semaphore }()
 
-				// get the context names from the parsed kubeconfig
-				contexts, err := util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
-				if err != nil {
-					store.GetLogger().Debugf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err)
-					resultChannel <- DiscoveredContext{
-						Error: fmt.Errorf("failed to get kubeconfig context names for kubeconfig with path %q: %w", channelResult.KubeconfigPath, err),
+					// a store that already knows the context names of a path spares us
+					// the kubeconfig download, which is a remote call per cluster
+					contexts, declared := declaredContextNames(store, channelResult)
+					if !declared {
+						bytes, err := store.GetKubeconfigForPath(channelResult.KubeconfigPath, channelResult.Tags)
+						if err != nil {
+							// do not throw Error, try to parse the other files
+							// this will happen a lot when using vault as storage because the secrets key value needs to match the desired kubeconfig name
+							// this however cannot be checked without retrieving the actual secret (path discovery is only list operation)
+							return
+						}
+
+						// get the context names from the parsed kubeconfig
+						contexts, err = util.GetContextsNamesFromKubeconfig(bytes, store.GetContextPrefix(channelResult.KubeconfigPath))
+						if err != nil {
+							store.GetLogger().Debugf("failed to get kubeconfig context names for kubeconfig with path %q: %v", channelResult.KubeconfigPath, err)
+							resultChannel <- DiscoveredContext{
+								Error: fmt.Errorf("failed to get kubeconfig context names for kubeconfig with path %q: %w", channelResult.KubeconfigPath, err),
+							}
+							// do not throw Error, try to parse the other files
+							return
+						}
 					}
-					// do not throw Error, try to parse the other files
-					continue
-				}
 
-				// if the store tagged this path with a cluster-name label, persist it as an alias now
-				// that we know the actual context name(s)
-				if clusterName, ok := channelResult.Tags[gardenerstore.LabelKeyClusterName]; ok && clusterName != "" {
-					a, err := aliasstate.GetDefaultAlias(stateDir)
-					if err != nil {
-						store.GetLogger().Warnf("failed to load alias state for auto-alias from label %q: %v", gardenerstore.LabelKeyClusterName, err)
-					} else if a != nil {
-						for _, contextName := range contexts {
-							if _, err := a.WriteAlias(clusterName, contextName); err != nil {
-								store.GetLogger().Warnf("failed to write auto-alias %q -> %q from label %q: %v", clusterName, contextName, gardenerstore.LabelKeyClusterName, err)
+					// if the store tagged this path with a cluster-name label, persist it as an alias now
+					// that we know the actual context name(s)
+					if clusterName, ok := channelResult.Tags[gardenerstore.LabelKeyClusterName]; ok && clusterName != "" {
+						a, err := aliasstate.GetDefaultAlias(stateDir)
+						if err != nil {
+							store.GetLogger().Warnf("failed to load alias state for auto-alias from label %q: %v", gardenerstore.LabelKeyClusterName, err)
+						} else if a != nil {
+							for _, contextName := range contexts {
+								if _, err := a.WriteAlias(clusterName, contextName); err != nil {
+									store.GetLogger().Warnf("failed to write auto-alias %q -> %q from label %q: %v", clusterName, contextName, gardenerstore.LabelKeyClusterName, err)
+								}
 							}
 						}
 					}
-				}
 
-				for _, contextName := range contexts {
-					// write to result channel
-					resultChannel <- DiscoveredContext{
-						Path:  channelResult.KubeconfigPath,
-						Name:  contextName,
-						Tags:  channelResult.Tags,
-						Alias: aliasutil.GetContextForAlias(contextName, contextToAliasMapping),
-						Store: &store,
-						Error: nil,
+					for _, contextName := range contexts {
+						// write to result channel
+						resultChannel <- DiscoveredContext{
+							Path:  channelResult.KubeconfigPath,
+							Name:  contextName,
+							Tags:  channelResult.Tags,
+							Alias: aliasutil.GetContextForAlias(contextName, contextToAliasMapping),
+							Store: &store,
+							Error: nil,
+						}
+						// add to local contextToPath map to write the index for this store only
+						localMappingMutex.Lock()
+						localContextToPathMapping[contextName] = channelResult.KubeconfigPath
+						if len(channelResult.Tags) > 0 {
+							localContextToTagsMapping[contextName] = channelResult.Tags
+						}
+						localMappingMutex.Unlock()
 					}
-					// add to local contextToPath map to write the index for this store only
-					localContextToPathMapping[contextName] = channelResult.KubeconfigPath
-					if len(channelResult.Tags) > 0 {
-						localContextToTagsMapping[contextName] = channelResult.Tags
-					}
-				}
+				})
 			}
+
+			// wait until the kubeconfigs of all discovered paths have been retrieved
+			wgStore.Wait()
 
 			// write store index file now that the path discovery is complete
 			if len(localContextToPathMapping) > 0 {
@@ -264,4 +287,51 @@ func shouldReadFromIndex(searchIndex *index.SearchIndex, kubeconfigStore storety
 		return shouldReadFromIndex, nil
 	}
 	return false, nil
+}
+
+// defaultMaxConcurrentKubeconfigRequests is how many kubeconfigs of a single store are
+// retrieved at the same time. Most stores answer with a remote call per discovered path.
+const defaultMaxConcurrentKubeconfigRequests = 16
+
+// maxConcurrentKubeconfigRequests returns how many kubeconfigs of the given store are
+// retrieved concurrently during the search.
+func maxConcurrentKubeconfigRequests(store storetypes.KubeconfigStore) int {
+	if configured := store.GetStoreConfig().MaxConcurrentKubeconfigRequests; configured != nil && *configured > 0 {
+		return *configured
+	}
+	return defaultMaxConcurrentKubeconfigRequests
+}
+
+// declaredContextNames returns the context names the store can name without downloading
+// the kubeconfig of the discovered path, and whether it could name them at all.
+//
+// The kubeconfig download is a remote call per discovered path and for the cloud
+// providers it takes seconds, yet the search only ever wanted the context names out of
+// it. A store implementing storetypes.ContextNamer knows those names up front, so the
+// kubeconfig is then only fetched for the context the user actually selects.
+//
+// The names carry the store prefix, exactly like the ones read out of a downloaded
+// kubeconfig, so that both paths of the search yield identical names.
+func declaredContextNames(store storetypes.KubeconfigStore, result storetypes.SearchResult) ([]string, bool) {
+	namer, ok := store.(storetypes.ContextNamer)
+	if !ok {
+		return nil, false
+	}
+
+	declared := namer.ContextNamesForPath(result.KubeconfigPath, result.Tags)
+	if len(declared) == 0 {
+		// the store cannot name this particular path, fall back to the download
+		return nil, false
+	}
+
+	prefix := store.GetContextPrefix(result.KubeconfigPath)
+	if prefix == "" {
+		return declared, true
+	}
+
+	names := make([]string, 0, len(declared))
+	for _, name := range declared {
+		names = append(names, fmt.Sprintf("%s/%s", prefix, name))
+	}
+	return names, true
 }
