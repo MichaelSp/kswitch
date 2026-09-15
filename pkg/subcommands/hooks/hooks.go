@@ -181,6 +181,12 @@ func executeHook(log *logrus.Entry, hook types.Hook) error {
 
 	var cmd *exec.Cmd
 	if hook.Type == types.HookTypeInlineCommand {
+		// an inline hook is a shell snippet the user wrote in their own config, so
+		// handing it to a shell is the feature rather than a flaw. Bash takes the
+		// first argument as the script and any further ones as $0, $1, ...
+		if len(hook.Arguments) == 0 {
+			return fmt.Errorf("cannot execute hook %q - inline command has no arguments", hook.Name)
+		}
 		arguments := []string{"-c"}
 		arguments = append(arguments, hook.Arguments...)
 		cmd = exec.Command("bash", arguments...)

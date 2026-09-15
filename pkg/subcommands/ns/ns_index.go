@@ -36,7 +36,7 @@ type NamespaceCache struct {
 func NewNamespaceCache(stateDirectory string, contextName string) (*NamespaceCache, error) {
 	namespaceStateDirectory := fmt.Sprintf("%s/%s", stateDirectory, namespaceSubdirectory)
 	if _, err := os.Stat(namespaceStateDirectory); os.IsNotExist(err) {
-		if err := os.Mkdir(namespaceStateDirectory, 0755); err != nil {
+		if err := os.Mkdir(namespaceStateDirectory, 0700); err != nil {
 			return nil, err
 		}
 	}

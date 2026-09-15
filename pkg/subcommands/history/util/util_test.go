@@ -17,6 +17,7 @@ package util
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -106,6 +107,31 @@ func TestAppendToHistory_DeduplicatesIdenticalConsecutive(t *testing.T) {
 	}
 	if len(lines) != 1 {
 		t.Errorf("expected 1 line (dedup), got %d: %v", len(lines), lines)
+	}
+}
+
+func TestAppendToHistory_CreatesOwnerOnlyFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("file mode bits are not enforced on windows")
+	}
+	homeDir := t.TempDir()
+	t.Setenv("HOME", homeDir)
+	if err := os.MkdirAll(filepath.Join(homeDir, ".kube"), 0700); err != nil {
+		t.Fatalf("failed to create .kube dir: %v", err)
+	}
+
+	// the history names every cluster and namespace the user works with, which other
+	// users on the host have no business enumerating
+	if err := AppendToHistory("ctx1", "ns1"); err != nil {
+		t.Fatalf("AppendToHistory error: %v", err)
+	}
+
+	info, err := os.Stat(filepath.Join(homeDir, ".kube", ".switch_history"))
+	if err != nil {
+		t.Fatalf("stat history file: %v", err)
+	}
+	if got := info.Mode().Perm(); got != 0600 {
+		t.Errorf("history file has mode %04o, want 0600", got)
 	}
 }
 

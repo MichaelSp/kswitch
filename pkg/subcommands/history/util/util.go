@@ -49,8 +49,10 @@ func ReadHistory() ([]string, error) {
 // AppendToHistory appends the given context: namespace to the history file
 func AppendToHistory(context, namespace string) error {
 	filepath := os.ExpandEnv(historyFilePath)
+	// the history records every cluster and namespace the user works with, so it is
+	// owner-only. The mode is ignored when the file already exists.
 	f, err := os.OpenFile(filepath,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

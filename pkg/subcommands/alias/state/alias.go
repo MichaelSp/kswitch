@@ -103,7 +103,7 @@ func (a *Alias) migrateFromLegacy(stateDir string) error {
 		}
 	}
 
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
@@ -118,6 +118,10 @@ func (a *Alias) migrateFromLegacy(stateDir string) error {
 // WriteAlias persists a single alias→context mapping atomically.
 // Returns the previously mapped context name if the alias was already in use.
 func (a *Alias) WriteAlias(aliasName, contextName string) (*string, error) {
+	if err := validateAliasName(aliasName); err != nil {
+		return nil, err
+	}
+
 	if a.Content.ContextToAliasMapping == nil {
 		a.Content.ContextToAliasMapping = make(map[string]string, 1)
 	}
@@ -129,7 +133,7 @@ func (a *Alias) WriteAlias(aliasName, contextName string) (*string, error) {
 
 	a.Content.ContextToAliasMapping[contextName] = aliasName
 
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
@@ -154,12 +158,18 @@ func (a *Alias) ContainsAlias(alias string) *string {
 // WriteAllAliases writes every in-memory alias as an individual file and
 // removes any on-disk files that are no longer in the mapping.
 func (a *Alias) WriteAllAliases() error {
-	if err := os.MkdirAll(a.aliasDir, 0755); err != nil {
+	if err := os.MkdirAll(a.aliasDir, 0700); err != nil {
 		return fmt.Errorf("failed to create alias directory: %w", err)
 	}
 
 	desired := make(map[string]struct{}, len(a.Content.ContextToAliasMapping))
 	for contextName, aliasName := range a.Content.ContextToAliasMapping {
+		// a legacy alias file is the one source of names that never went through
+		// WriteAlias, so drop anything unusable rather than failing the migration
+		// and leaving the user with no aliases at all
+		if err := validateAliasName(aliasName); err != nil {
+			continue
+		}
 		desired[aliasName] = struct{}{}
 		if err := writeAliasFile(a.aliasDir, aliasName, contextName); err != nil {
 			return err
@@ -182,8 +192,31 @@ func (a *Alias) WriteAllAliases() error {
 	return nil
 }
 
+// validateAliasName rejects any alias that is not a single, plain filename. The
+// alias becomes a file inside the alias directory, so a name such as
+// "../../../.kube/config" would otherwise let the join escape that directory and
+// overwrite an unrelated file. Names starting with a dot are refused as well,
+// because loadFromDir skips dotfiles and such an alias could never be read back.
+func validateAliasName(aliasName string) error {
+	switch {
+	case aliasName == "":
+		return fmt.Errorf("alias name must not be empty")
+	case aliasName == "." || aliasName == "..":
+		return fmt.Errorf("alias name %q is reserved", aliasName)
+	case strings.HasPrefix(aliasName, "."):
+		return fmt.Errorf("alias name %q must not start with a dot", aliasName)
+	case strings.ContainsAny(aliasName, `/\`):
+		return fmt.Errorf("alias name %q must not contain a path separator", aliasName)
+	}
+	return nil
+}
+
 // writeAliasFile atomically writes one alias file: filename=aliasName, content=contextName.
 func writeAliasFile(dir, aliasName, contextName string) error {
+	if err := validateAliasName(aliasName); err != nil {
+		return err
+	}
+
 	path := filepath.Join(dir, aliasName)
 	tmp, err := os.CreateTemp(dir, ".alias-tmp-*")
 	if err != nil {

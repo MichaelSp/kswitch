@@ -51,6 +51,36 @@ func (f *simpleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return []byte(output), nil
 }
 
+// shellCommand renders the argv given after "--" as a single script for
+// "<shell> -c". A single argument is passed through untouched, so the documented
+// form
+//
+//	kswitch exec <pattern> -- "kubectl get pods | grep foo"
+//
+// keeps its pipes, redirections and expansions. Several arguments carry word
+// boundaries that only quoting preserves: joining them raw let any argument
+// holding a space, a quote or a semicolon be re-parsed by the shell, which both
+// corrupted ordinary arguments such as -o jsonpath='{.items[*].metadata.name}'
+// and turned them into a way to run commands that were never passed.
+func shellCommand(command []string) string {
+	if len(command) < 2 {
+		return strings.Join(command, "")
+	}
+
+	quoted := make([]string, 0, len(command))
+	for _, s := range command {
+		quoted = append(quoted, shellQuote(s))
+	}
+	return strings.Join(quoted, " ")
+}
+
+// shellQuote renders s as a single POSIX shell word. Single quotes suppress every
+// form of expansion, so the only character needing care is the single quote itself:
+// it is closed, escaped and reopened.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
 func ExecuteCommand(pattern string, command []string, stores []storetypes.KubeconfigStore, config *types.Config, stateDir string, noIndex bool, showDebugLogs bool) error {
 	contexts, err := list_contexts.ListContexts(pattern, stores, config, stateDir, noIndex)
 	if err != nil {
@@ -93,11 +123,8 @@ func ExecuteCommand(pattern string, command []string, stores []storetypes.Kubeco
 
 		// Create Cmd with options
 		if config != nil && config.ExecShell != nil {
-			cmdArgument := ""
-			for _, s := range command {
-				cmdArgument = fmt.Sprintf("%s %s", cmdArgument, s)
-			}
-			args := append([]string{"-c"}, cmdArgument)
+			cmdArgument := shellCommand(command)
+			args := []string{"-c", cmdArgument}
 
 			envCmd = cmd.NewCmdOptions(cmdOptions, *config.ExecShell, args...)
 			standardLogger.Debugf("Executing: \"%s -c %s\" \n", *config.ExecShell, cmdArgument)
