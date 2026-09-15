@@ -35,20 +35,20 @@ func TestFormatDisplayName_GardenerWithLabels(t *testing.T) {
 	if suffix == "" {
 		t.Fatal("expected a suffix")
 	}
-	// label value must appear in suffix
-	if suffix != "(ctx-external, onboarding)" {
+	// label value must appear first in suffix
+	if suffix != "(onboarding, ctx-external)" {
 		t.Errorf("unexpected suffix: %q", suffix)
 	}
 }
 
 func TestFormatDisplayName_GardenerNoLabels(t *testing.T) {
 	path := "canary--shoot--mcpd--crate"
-	primary, suffix := FormatDisplayName(types.StoreKindGardener, path, "ctx-external", "", nil, nil)
+	primary, suffix := FormatDisplayName(types.StoreKindGardener, path, "canary-shoot-mcpd-crate/garden-mcpd--crate-external", "", nil, nil)
 
 	if primary != "gardener/canary/garden-mcpd/crate" {
 		t.Errorf("unexpected primary: %q", primary)
 	}
-	if suffix != "(ctx-external)" {
+	if suffix != "(external)" {
 		t.Errorf("unexpected suffix: %q", suffix)
 	}
 }
@@ -104,5 +104,16 @@ func TestCollectOtherNames_DeduplicatesLabelValue(t *testing.T) {
 	}
 	if count != 1 {
 		t.Errorf("expected 'my-alias' exactly once, got %d times in %v", count, others)
+	}
+}
+
+func TestShortGardenerContextName(t *testing.T) {
+	got := shortGardenerContextName(
+		"live-shoot-laascs-c37nifihj77yt7e/garden-laascs--c37nifihj77yt7e-external",
+		"garden-laascs",
+		"c37nifihj77yt7e",
+	)
+	if got != "external" {
+		t.Errorf("unexpected short context name: %q", got)
 	}
 }
