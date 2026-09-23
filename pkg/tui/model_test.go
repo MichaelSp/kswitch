@@ -35,7 +35,8 @@ func newTestModel(items ...string) Model {
 
 // sendKey is a convenience helper that feeds a synthetic KeyPressMsg into the
 // model and returns the updated model.
-func sendKey(m Model, keyStr string) Model {
+func sendKey(t *testing.T, m Model, keyStr string) Model {
+	t.Helper()
 	// Build a KeyPressMsg whose String() returns keyStr.
 	// For printable single-character keys we set Code + Text; for everything
 	// else (multi-rune names like "ctrl+v") String() looks at Code+Mod but
@@ -64,7 +65,11 @@ func sendKey(m Model, keyStr string) Model {
 		}
 	}
 	updated, _ := m.Update(msg)
-	return updated.(Model)
+	m2, ok := updated.(Model)
+	if !ok {
+		t.Fatalf("Update returned unexpected type %T", updated)
+	}
+	return m2
 }
 
 // ----- stray-"t" fix: placeholder must not appear in View output ------------
@@ -105,7 +110,7 @@ func TestHintTextAppended_EmptyQuery(t *testing.T) {
 // types something (to avoid cluttering the line with both typed text and the hint).
 func TestHintTextGone_NonEmptyQuery(t *testing.T) {
 	m := newTestModel("prod", "staging")
-	m = sendKey(m, "p")
+	m = sendKey(t, m, "p")
 	view := m.renderLeft(80)
 	if strings.Contains(stripANSI(view), "type to filter...") {
 		t.Error("hint 'type to filter...' should not appear after user has typed")
@@ -122,7 +127,11 @@ func TestPasteMsg_UpdatesQuery(t *testing.T) {
 
 	pasteText := "prod"
 	updated, _ := m.Update(tea.PasteMsg{Content: pasteText})
-	m = updated.(Model)
+	m2, ok := updated.(Model)
+	if !ok {
+		t.Fatalf("Update returned unexpected type %T", updated)
+	}
+	m = m2
 
 	if m.query != pasteText {
 		t.Errorf("query after paste: got %q, want %q", m.query, pasteText)
@@ -135,7 +144,11 @@ func TestPasteMsg_TriggersRefilter(t *testing.T) {
 	m := newTestModel("production", "staging", "dev")
 
 	updated, _ := m.Update(tea.PasteMsg{Content: "prod"})
-	m = updated.(Model)
+	m2, ok := updated.(Model)
+	if !ok {
+		t.Fatalf("Update returned unexpected type %T", updated)
+	}
+	m = m2
 
 	for _, it := range m.filtered {
 		if !strings.Contains(strings.ToLower(it.displayName), "prod") {
@@ -155,7 +168,11 @@ func TestPasteMsg_TriggersRefilter(t *testing.T) {
 func TestPasteMsg_EmptyContent(t *testing.T) {
 	m := newTestModel("prod")
 	updated, _ := m.Update(tea.PasteMsg{Content: ""})
-	m = updated.(Model)
+	m2, ok := updated.(Model)
+	if !ok {
+		t.Fatalf("Update returned unexpected type %T", updated)
+	}
+	m = m2
 	if m.query != "" {
 		t.Errorf("empty paste should not change query, got %q", m.query)
 	}
@@ -166,12 +183,16 @@ func TestPasteMsg_EmptyContent(t *testing.T) {
 func TestPasteMsg_AppendsToExistingQuery(t *testing.T) {
 	m := newTestModel("production", "staging")
 	// First type "pro" manually
-	m = sendKey(m, "p")
-	m = sendKey(m, "r")
-	m = sendKey(m, "o")
+	m = sendKey(t, m, "p")
+	m = sendKey(t, m, "r")
+	m = sendKey(t, m, "o")
 	// Then paste "d"
 	updated, _ := m.Update(tea.PasteMsg{Content: "d"})
-	m = updated.(Model)
+	m2, ok := updated.(Model)
+	if !ok {
+		t.Fatalf("Update returned unexpected type %T", updated)
+	}
+	m = m2
 
 	if !strings.HasPrefix(m.query, "pro") {
 		t.Errorf("expected query to start with 'pro' after typing then pasting, got %q", m.query)
