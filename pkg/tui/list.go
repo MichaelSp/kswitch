@@ -51,7 +51,7 @@ type listModel struct {
 
 func newListModel(items []string) listModel {
 	ti := textinput.New()
-	ti.Placeholder = "type to filter..."
+	ti.Placeholder = ""
 	ti.Focus()
 	ti.Prompt = "> "
 	s := ti.Styles()
@@ -115,6 +115,7 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	// Delegate all other messages to textinput (handles ctrl+v paste, bracketed paste, chars)
 	var cmd tea.Cmd
 	m.input, cmd = m.input.Update(msg)
 	if v := m.input.Value(); v != m.query {
@@ -152,7 +153,11 @@ func (m listModel) View() tea.View {
 
 	sep := styleBorder.Render(strings.Repeat("─", m.width))
 	countStr := styleCount.Render(fmt.Sprintf("%d/%d", len(m.filtered), len(m.items)))
-	inputLine := m.input.View() + "  " + countStr
+	inputView := m.input.View()
+	if m.query == "" {
+		inputView += styleDim.Render("type to filter...")
+	}
+	inputLine := inputView + "  " + countStr
 
 	content := strings.Join(rows, "\n") + "\n" + sep + "\n" + inputLine
 	v := tea.NewView(content)

@@ -114,7 +114,7 @@ var (
 // NewModel creates an initial TUI model.
 func NewModel(stores map[string]storetypes.KubeconfigStore, showPreview bool) Model {
 	ti := textinput.New()
-	ti.Placeholder = "type to filter..."
+	ti.Placeholder = ""
 	ti.Focus()
 	ti.Prompt = "> "
 	s := ti.Styles()
@@ -164,6 +164,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case expandResultMsg:
 		m = m.applyExpandResult(msg)
 		return m, m.fetchPreviewCmd()
+
+	case tea.PasteMsg:
+		var cmd tea.Cmd
+		m.input, cmd = m.input.Update(msg)
+		newQuery := m.input.Value()
+		if newQuery != m.query {
+			m.query = newQuery
+			m.refilter()
+			return m, tea.Batch(cmd, m.fetchPreviewCmd())
+		}
+		return m, cmd
 
 	case tea.KeyPressMsg:
 		// Navigation keys take priority over textinput
@@ -365,7 +376,11 @@ func (m Model) renderLeft(width int) string {
 	if m.loading {
 		loadStr = styleLoading.Render(" …")
 	}
-	inputLine := m.input.View() + "  " + countStr + loadStr
+	inputView := m.input.View()
+	if m.query == "" {
+		inputView += styleDim.Render("type to filter...")
+	}
+	inputLine := inputView + "  " + countStr + loadStr
 
 	return strings.Join(rows, "\n") + "\n" + sep + "\n" + inputLine
 }
