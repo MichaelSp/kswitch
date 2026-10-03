@@ -37,6 +37,23 @@ func GetContextsNamesFromKubeconfig(kubeconfigBytes []byte, contextPrefix string
 	return getContextNames(config, contextPrefix), nil
 }
 
+// redactedValue replaces credential material in a sanitized kubeconfig.
+const redactedValue = "REDACTED"
+
+// authProviderSafeKeys lists the auth-provider config keys that carry no credential
+// material and help tell contexts apart in a preview. Provider-specific keys are an
+// open-ended set, so this is an allow-list: anything unrecognized gets redacted.
+var authProviderSafeKeys = map[string]struct{}{
+	"client-id":                      {},
+	"idp-issuer-url":                 {},
+	"idp-certificate-authority":      {},
+	"idp-certificate-authority-data": {},
+	"cmd-path":                       {},
+	"expiry-key":                     {},
+	"token-key":                      {},
+	"scopes":                         {},
+}
+
 // ParseSanitizedKubeconfig parses the kubeconfig bytes into a kubeconfig struct without credentials
 func ParseSanitizedKubeconfig(data []byte) (*types.KubeConfig, error) {
 	config := types.KubeConfig{}
@@ -46,7 +63,39 @@ func ParseSanitizedKubeconfig(data []byte) (*types.KubeConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal kubeconfig: %w", err)
 	}
+
+	redactUserCredentials(&config)
 	return &config, nil
+}
+
+// redactUserCredentials removes credential material from the fields that the
+// kubeconfig struct does parse. Dropping unknown fields on unmarshal is enough for
+// static credentials such as "token" or "client-key-data", but auth-provider config
+// and exec-provider args/env are parsed (the stores build them to produce working
+// kubeconfigs) and routinely hold tokens, refresh tokens and client secrets.
+func redactUserCredentials(config *types.KubeConfig) {
+	for i := range config.Users {
+		user := &config.Users[i].User
+
+		if authProvider := user.AuthProvider; authProvider != nil {
+			for key := range authProvider.Config {
+				if _, ok := authProviderSafeKeys[key]; !ok {
+					authProvider.Config[key] = redactedValue
+				}
+			}
+		}
+
+		if execProvider := user.ExecProvider; execProvider != nil {
+			// e.g. "kubelogin get-token --client-secret <secret>"
+			for j := range execProvider.Args {
+				execProvider.Args[j] = redactedValue
+			}
+			// the name is useful (AWS_PROFILE, ...), the value is not previewable
+			for j := range execProvider.Env {
+				execProvider.Env[j].Value = redactedValue
+			}
+		}
+	}
 }
 
 // getContextNames gets all the context names from the kubeconfig file

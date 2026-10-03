@@ -33,7 +33,7 @@ var logger = logrus.New()
 // ensureStateDir creates the alias state directory if it does not yet exist.
 func ensureStateDir(dir string) error {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return os.Mkdir(dir, 0755)
+		return os.Mkdir(dir, 0700)
 	}
 	return nil
 }

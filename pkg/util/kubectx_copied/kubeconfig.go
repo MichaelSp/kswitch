@@ -174,7 +174,10 @@ func (k *Kubeconfig) WriteKubeconfigFile() (string, error) {
 			return "", err
 		}
 	} else {
-		file, err = os.OpenFile(k.path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		// a kubeconfig holds credentials, so a file created here is owner-only.
+		// The mode is ignored when the file already exists, which is the common case
+		// on this branch (rewriting $KUBECONFIG), so this only affects new files.
+		file, err = os.OpenFile(k.path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 		if err != nil {
 			return "", fmt.Errorf("failed to open existing kubeconfig file: %w", err)
 		}

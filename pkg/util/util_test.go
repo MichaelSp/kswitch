@@ -12,6 +12,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 const validKubeconfig = `apiVersion: v1
@@ -33,6 +35,56 @@ kind: Config
 contexts: []
 current-context: ""
 `
+
+// credentialKubeconfig carries one of every credential shape a kubeconfig can hold.
+// Each secret value is prefixed with secretPrefix so a single scan of the rendered
+// preview also covers credentials added to the fixture later.
+const credentialKubeconfig = `apiVersion: v1
+kind: Config
+current-context: oidc-ctx
+clusters:
+- name: prod
+  cluster:
+    server: https://prod.example.com
+contexts:
+- name: oidc-ctx
+  context:
+    cluster: prod
+    user: oidc-user
+users:
+- name: oidc-user
+  user:
+    auth-provider:
+      name: oidc
+      config:
+        client-id: kubernetes
+        idp-issuer-url: https://issuer.example.com
+        client-secret: SECRET-client-secret
+        id-token: SECRET-id-token
+        refresh-token: SECRET-refresh-token
+        access-token: SECRET-access-token
+        some-future-key: SECRET-future-key
+- name: exec-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: kubelogin
+      args:
+      - get-token
+      - --client-secret
+      - SECRET-exec-arg
+      env:
+      - name: AWS_PROFILE
+        value: SECRET-env-value
+- name: static-user
+  user:
+    token: SECRET-bearer-token
+    client-key-data: SECRET-client-key-data
+    password: SECRET-password
+`
+
+// secretPrefix marks every credential value in credentialKubeconfig.
+const secretPrefix = "SECRET-"
 
 func TestParseSanitizedKubeconfig(t *testing.T) {
 	t.Run("valid kubeconfig", func(t *testing.T) {
@@ -73,6 +125,108 @@ func TestParseSanitizedKubeconfig(t *testing.T) {
 			t.Errorf("expected 0 contexts for empty kubeconfig")
 		}
 	})
+}
+
+// renderPreview returns the kubeconfig the way the TUI writes it into the preview
+// pane, which is what an onlooker, a scrollback buffer or a session recording sees.
+func renderPreview(t *testing.T, kubeconfig string) string {
+	t.Helper()
+
+	cfg, err := ParseSanitizedKubeconfig([]byte(kubeconfig))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	rendered, err := yaml.Marshal(cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	return string(rendered)
+}
+
+func TestParseSanitizedKubeconfig_RedactsCredentials(t *testing.T) {
+	rendered := renderPreview(t, credentialKubeconfig)
+
+	tests := []struct {
+		name   string
+		secret string
+	}{
+		{"auth-provider client secret", "SECRET-client-secret"},
+		{"auth-provider id token", "SECRET-id-token"},
+		{"auth-provider refresh token", "SECRET-refresh-token"},
+		{"auth-provider access token", "SECRET-access-token"},
+		{"unrecognized auth-provider key", "SECRET-future-key"},
+		{"exec provider argument", "SECRET-exec-arg"},
+		{"exec provider env value", "SECRET-env-value"},
+		{"static bearer token", "SECRET-bearer-token"},
+		{"static client key", "SECRET-client-key-data"},
+		{"static password", "SECRET-password"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if strings.Contains(rendered, tt.secret) {
+				t.Errorf("%s leaked into the preview:\n%s", tt.name, rendered)
+			}
+		})
+	}
+
+	// catches a credential added to the fixture without a case of its own above
+	t.Run("no unlisted credential survives", func(t *testing.T) {
+		if strings.Contains(rendered, secretPrefix) {
+			t.Errorf("a credential leaked into the preview:\n%s", rendered)
+		}
+	})
+}
+
+func TestParseSanitizedKubeconfig_KeepsNonSensitiveFields(t *testing.T) {
+	rendered := renderPreview(t, credentialKubeconfig)
+
+	// redaction must not empty out the preview: it still has to identify the context
+	tests := []struct {
+		name  string
+		value string
+	}{
+		{"api server", "https://prod.example.com"},
+		{"context name", "oidc-ctx"},
+		{"auth provider name", "oidc"},
+		{"auth provider client id", "kubernetes"},
+		{"auth provider issuer url", "https://issuer.example.com"},
+		{"exec command", "kubelogin"},
+		{"exec env name", "AWS_PROFILE"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if !strings.Contains(rendered, tt.value) {
+				t.Errorf("expected %s (%q) to survive sanitization:\n%s", tt.name, tt.value, rendered)
+			}
+		})
+	}
+}
+
+func TestParseSanitizedKubeconfig_UsersWithoutCredentials(t *testing.T) {
+	const kubeconfig = `apiVersion: v1
+kind: Config
+users:
+- name: bare-user
+  user: {}
+- name: auth-provider-without-config
+  user:
+    auth-provider:
+      name: oidc
+- name: exec-without-args
+  user:
+    exec:
+      command: aws
+`
+
+	cfg, err := ParseSanitizedKubeconfig([]byte(kubeconfig))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(cfg.Users) != 3 {
+		t.Fatalf("expected 3 users, got %d", len(cfg.Users))
+	}
 }
 
 func TestGetContextsNamesFromKubeconfig(t *testing.T) {
