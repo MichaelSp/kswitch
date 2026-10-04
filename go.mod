@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.40
 	github.com/aws/aws-sdk-go-v2/service/eks v1.94.0
 	github.com/aws/smithy-go v1.28.1
-	github.com/bombsimon/logrusr/v4 v4.1.0
+	github.com/bombsimon/logrusr/v4 v4.2.0
 	github.com/gardener/gardener-extension-provider-openstack v1.57.0
 	github.com/go-cmd/cmd v1.4.3
 	github.com/google/addlicense v1.2.0 // indirect
