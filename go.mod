@@ -42,7 +42,7 @@ require (
 	github.com/exoscale/egoscale/v3 v3.1.53
 	github.com/gardener/gardener/pkg/apis v1.150.1
 	github.com/hashicorp/go-plugin v1.8.0
-	github.com/linode/linodego/v2 v2.5.0
+	github.com/linode/linodego/v2 v2.8.0
 	github.com/ovh/go-ovh v1.9.0
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37
@@ -335,7 +335,7 @@ require (
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5 // indirect
