@@ -8,7 +8,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/aws/aws-sdk-go-v2/config v1.33.6
 	github.com/aws/aws-sdk-go-v2/service/eks v1.102.0
-	github.com/aws/smithy-go v1.28.1
+	github.com/aws/smithy-go v1.28.2
 	github.com/bombsimon/logrusr/v4 v4.2.0
 	github.com/gardener/gardener-extension-provider-openstack v1.57.0
 	github.com/go-cmd/cmd v1.4.3
@@ -16,30 +16,30 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/jedib0t/go-pretty/v6 v6.8.3
-	github.com/onsi/ginkgo/v2 v2.32.1
+	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
-	github.com/rancher/norman v0.10.0
+	github.com/rancher/norman v0.10.1
 	github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/api v0.294.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.37.0
-	k8s.io/apimachinery v0.37.0
-	k8s.io/client-go v0.37.0
+	k8s.io/api v0.37.1
+	k8s.io/apimachinery v0.37.1
+	k8s.io/client-go v0.37.1
 	k8s.io/klog/v2 v2.140.0
 	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
-	sigs.k8s.io/controller-runtime v0.24.1
+	sigs.k8s.io/controller-runtime v0.25.2
 )
 
 require (
 	charm.land/bubbles/v2 v2.2.1
-	charm.land/bubbletea/v2 v2.0.9
+	charm.land/bubbletea/v2 v2.0.10
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.6.0
 	github.com/digitalocean/godo v1.205.0
-	github.com/exoscale/egoscale/v3 v3.1.46
+	github.com/exoscale/egoscale/v3 v3.1.53
 	github.com/gardener/gardener/pkg/apis v1.149.3
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.5.0
@@ -47,10 +47,10 @@ require (
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37
 	go.uber.org/goleak v1.3.0
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.37.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
-	sigs.k8s.io/cluster-api v1.14.0
+	sigs.k8s.io/cluster-api v1.14.2
 	sigs.k8s.io/cluster-api/api v1.14.0
 )
 
@@ -278,7 +278,7 @@ require (
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/raeperd/recvcheck v0.3.0 // indirect
-	github.com/rancher/wrangler/v3 v3.7.1 // indirect
+	github.com/rancher/wrangler/v3 v3.8.0-rc.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/ryancurrah/gomodguard v1.4.1 // indirect
@@ -332,7 +332,7 @@ require (
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f // indirect
 	golang.org/x/mod v0.40.0 // indirect
@@ -351,9 +351,9 @@ require (
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.8.0 // indirect
-	k8s.io/apiextensions-apiserver v0.36.3 // indirect
+	k8s.io/apiextensions-apiserver v0.37.0 // indirect
 	k8s.io/cluster-bootstrap v0.36.3 // indirect
-	k8s.io/component-base v0.36.3 // indirect
+	k8s.io/component-base v0.37.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
 	mvdan.cc/gofumpt v0.11.0 // indirect
 	mvdan.cc/unparam v0.0.0-20260818115549-3f964bcb5673 // indirect
