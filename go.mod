@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.102.0
 	github.com/aws/smithy-go v1.28.2
 	github.com/bombsimon/logrusr/v4 v4.2.0
-	github.com/gardener/gardener-extension-provider-openstack v1.57.0
+	github.com/gardener/gardener-extension-provider-openstack v1.58.0
 	github.com/go-cmd/cmd v1.4.3
 	github.com/google/addlicense v1.2.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
@@ -40,7 +40,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.6.0
 	github.com/digitalocean/godo v1.217.0
 	github.com/exoscale/egoscale/v3 v3.1.53
-	github.com/gardener/gardener/pkg/apis v1.149.3
+	github.com/gardener/gardener/pkg/apis v1.150.1
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.5.0
 	github.com/ovh/go-ovh v1.9.0
@@ -324,9 +324,9 @@ require (
 	go.augendre.info/fatcontext v0.10.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect
-	go.opentelemetry.io/otel v1.45.0 // indirect
-	go.opentelemetry.io/otel/metric v1.45.0 // indirect
-	go.opentelemetry.io/otel/trace v1.45.0 // indirect
+	go.opentelemetry.io/otel v1.46.0 // indirect
+	go.opentelemetry.io/otel/metric v1.46.0 // indirect
+	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
