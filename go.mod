@@ -48,7 +48,7 @@ require (
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37
 	go.uber.org/goleak v1.3.0
 	golang.org/x/oauth2 v0.37.0
-	google.golang.org/grpc v1.85.0-dev.0.20260825072537-93e31b48545e
+	google.golang.org/grpc v1.86.0-dev
 	google.golang.org/protobuf v1.36.12
 	sigs.k8s.io/cluster-api v1.14.2
 	sigs.k8s.io/cluster-api/api v1.14.2
