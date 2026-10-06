@@ -22,7 +22,7 @@ require (
 	github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/api v0.300.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.37.1
@@ -40,7 +40,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.6.0
 	github.com/digitalocean/godo v1.217.0
 	github.com/exoscale/egoscale/v3 v3.1.56
-	github.com/gardener/gardener/pkg/apis v1.150.1
+	github.com/gardener/gardener/pkg/apis v1.152.0
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/linode/linodego/v2 v2.8.0
 	github.com/ovh/go-ovh v1.9.0
@@ -338,7 +338,7 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5 // indirect
+	golang.org/x/telemetry v0.0.0-20260908163034-4bcc4b2ee518 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
