@@ -16,6 +16,7 @@ package validation
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -58,6 +59,11 @@ func ValidateConfig(config *types.Config) field.ErrorList {
 
 		if !types.ValidStoreKinds.Has(string(kubeconfigStore.Kind)) {
 			errors = append(errors, field.Invalid(indexFieldPath.Child("kind"), kubeconfigStore.Kind, fmt.Sprintf("kind %q of kubeconfig store is unknown. Valid kinds are %q", kubeconfigStore.Kind, types.ValidStoreKinds)))
+		}
+
+		if kubeconfigStore.ID != nil && strings.Contains(*kubeconfigStore.ID, ".") {
+			errors = append(errors, field.Invalid(indexFieldPath.Child("id"), *kubeconfigStore.ID,
+				`store ID must not contain a dot ("."): the full store ID is "<kind>.<id>" and a dot in the user-supplied part makes it ambiguous`))
 		}
 
 		if len(kubeconfigStore.Paths) == 0 &&

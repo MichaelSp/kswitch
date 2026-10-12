@@ -190,6 +190,41 @@ var _ = Describe("ValidateConfig", func() {
 		Expect(errorList).To(BeEmpty())
 	})
 
+	It("should throw error - store ID contains a dot", func() {
+		config := &types.Config{
+			Version: "v1alpha1",
+			KubeconfigStores: []types.KubeconfigStore{
+				{
+					Kind:  types.StoreKindFilesystem,
+					Paths: []string{"path/abc"},
+					ID:    new("my.store"),
+				},
+			},
+		}
+		errorList := validation.ValidateConfig(config)
+		Expect(errorList).To(ConsistOf(
+			PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeInvalid),
+				"Field": Equal("kubeconfigStores[0].id"),
+			})),
+		))
+	})
+
+	It("should validate successfully - store ID without a dot", func() {
+		config := &types.Config{
+			Version: "v1alpha1",
+			KubeconfigStores: []types.KubeconfigStore{
+				{
+					Kind:  types.StoreKindFilesystem,
+					Paths: []string{"path/abc"},
+					ID:    new("my-store"),
+				},
+			},
+		}
+		errorList := validation.ValidateConfig(config)
+		Expect(errorList).To(BeEmpty())
+	})
+
 	Context("Gardener store", func() {
 		It("should successfully validate the Gardener store config", func() {
 			config := &types.Config{
