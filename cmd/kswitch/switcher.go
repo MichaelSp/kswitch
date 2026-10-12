@@ -340,6 +340,12 @@ func initialize() ([]storetypes.KubeconfigStore, *types.Config, error) {
 	log := logrusr.New(logrus.New())
 	logf.SetLogger(log)
 
+	// Wire up peer-store references for kubernetes stores that target a specific
+	// cluster via storeID (format: store://<store-id>/<context-path>).
+	if err := store.ResolvePeerStoresForAll(stores); err != nil {
+		return nil, nil, fmt.Errorf("failed to resolve peer stores: %w", err)
+	}
+
 	return stores, config, nil
 }
 

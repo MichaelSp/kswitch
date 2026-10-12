@@ -24,7 +24,7 @@ import (
 type StoreKind string
 
 // ValidStoreKinds contains all valid store kinds
-var ValidStoreKinds = sets.NewString(string(StoreKindVault), string(StoreKindFilesystem), string(StoreKindGardener), string(StoreKindGKE), string(StoreKindAzure), string(StoreKindEKS), string(StoreKindExoscale), string(StoreKindRancher), string(StoreKindOVH), string(StoreKindScaleway), string(StoreKindDigitalOcean), string(StoreKindAkamai), string(StoreKindCapi), string(StoreKindPlugin), string(StoreKindKind))
+var ValidStoreKinds = sets.NewString(string(StoreKindVault), string(StoreKindFilesystem), string(StoreKindGardener), string(StoreKindGKE), string(StoreKindAzure), string(StoreKindEKS), string(StoreKindExoscale), string(StoreKindRancher), string(StoreKindOVH), string(StoreKindScaleway), string(StoreKindDigitalOcean), string(StoreKindAkamai), string(StoreKindCapi), string(StoreKindPlugin), string(StoreKindKind), string(StoreKindKubernetes))
 
 // ValidConfigVersions contains all valid config versions
 var ValidConfigVersions = sets.NewString("v1alpha1")
@@ -62,6 +62,8 @@ const (
 	StoreKindKind StoreKind = "kind"
 	// StoreKindK0smotron is an identifier for k0smotron sub-clusters discovered dynamically
 	StoreKindK0smotron StoreKind = "k0smotron"
+	// StoreKindKubernetes is an identifier for the Kubernetes secret store
+	StoreKindKubernetes StoreKind = "kubernetes"
 )
 
 type Config struct {
@@ -105,8 +107,11 @@ type Config struct {
 
 type KubeconfigStore struct {
 	// ID is the ID of the kubeconfig store.
-	// Used to write distinct index files for each store
-	// Not required if only one store of a store kind is configured
+	// Used to write distinct index files for each store and as part of the
+	// store reference URI (store://<kind>.<id>/<context-path>).
+	// Must not contain a dot (".") because the full store ID is formed as
+	// "<kind>.<id>" and a dot in the user-supplied id would make it ambiguous.
+	// Not required if only one store of a store kind is configured.
 	// + optional
 	ID *string `yaml:"id"`
 	// Kind identifies a supported store kind - filesystem, vault, Gardener.
@@ -309,4 +314,42 @@ type StoreConfigKind struct {
 	// Defaults to "kind" (resolved from PATH).
 	// + optional
 	KindBinary string `yaml:"kindBinary"`
+}
+
+// StoreConfigKubernetes configures the Kubernetes secret store.
+// The store connects to a cluster via another configured store and reads
+// kubeconfig data (or a bearer token) from Kubernetes Secrets.
+type StoreConfigKubernetes struct {
+	// StoreID references a specific cluster in another configured store to
+	// connect to when reading secrets.  Format: store://<store-id>/<context-path>
+	// where store-id is the GetID() value of the peer store
+	// (e.g. "gke.eu-prod", "filesystem.default") and context-path is the opaque
+	// path that store emits during StartSearch
+	// (e.g. "europe-west1--my-cluster", "default/my-cluster-kubeconfig").
+	// Example: store://gke.eu-prod/europe-west1--my-cluster
+	// If empty, the ambient kubeconfig / current context is used.
+	// + optional
+	StoreID string `yaml:"storeID"`
+	// Namespace is the Kubernetes namespace to search for secrets.
+	// Defaults to "default".
+	// + optional
+	Namespace string `yaml:"namespace"`
+	// SecretName is the exact name of the secret to read.
+	// Mutually exclusive with SecretLabelSelector.
+	// + optional
+	SecretName string `yaml:"secretName"`
+	// SecretLabelSelector is a label-selector string (e.g. "app=myapp,env=prod")
+	// used to list matching secrets.
+	// Mutually exclusive with SecretName.
+	// + optional
+	SecretLabelSelector string `yaml:"secretLabelSelector"`
+	// Path is the key inside the secret whose value holds either a full
+	// kubeconfig YAML or a bearer token.
+	// Defaults to "kubeconfig".
+	// + optional
+	Path string `yaml:"path"`
+	// Aliases contains additional names under which every context discovered
+	// from this store will also appear in the selection list.
+	// + optional
+	Aliases []string `yaml:"aliases"`
 }

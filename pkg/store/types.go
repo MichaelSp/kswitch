@@ -35,6 +35,7 @@ import (
 	"github.com/scaleway/scaleway-sdk-go/scw"
 	gkev1 "google.golang.org/api/container/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -159,4 +160,14 @@ type PluginStore struct {
 type KindStore struct {
 	BaseStore
 	Config *types.StoreConfigKind
+}
+
+type KubernetesStore struct {
+	BaseStore
+	Config *types.StoreConfigKubernetes
+	// clientOverride injects a pre-built client; only used in tests.
+	clientOverride kubernetes.Interface
+	// peerKubeconfig holds the kubeconfig bytes for the cluster referenced by
+	// Config.StoreID; populated by ResolvePeerStores after all stores are built.
+	peerKubeconfig []byte
 }

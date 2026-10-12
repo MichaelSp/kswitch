@@ -115,3 +115,9 @@ func (c *memoryCache) GetShootLabelKeys() []string {
 	}
 	return nil
 }
+
+// Unwrap returns the underlying store so that callers can reach through the
+// cache layer when they need to access store-specific methods.
+func (c *memoryCache) Unwrap() storetypes.KubeconfigStore {
+	return c.upstream
+}
