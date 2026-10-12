@@ -1,0 +1,88 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Draft Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Only one draft-release job at a time; cancel superseded runs so the draft
+# always reflects the latest HEAD on main.
+concurrency:
+  group: draft-release
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  draft-release:
+    name: Prepare draft release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write   # create/update/delete draft releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0   # need full history + tags for commit inspection
+
+      - name: Determine next semver
+        id: semver
+        uses: ietf-tools/semver-action@c90370b2958652d71c06a3484129a4d423a6d8a8 # v1.11.0
+        with:
+          token: ${{ github.token }}
+          branch: main
+          fallbackTag: 0.0.0
+          skipInvalidTags: true
+          noNewCommitBehavior: silent
+          noVersionBumpBehavior: silent
+        # outputs used below:
+        #   steps.semver.outputs.nextStrict  → e.g. "0.9.4"
+        #   steps.semver.outputs.current     → e.g. "0.9.3"
+        #   steps.semver.outputs.bump        → major | minor | patch | none
+
+      - name: Delete existing draft for this version
+        if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_TAG: ${{ steps.semver.outputs.nextStrict }}
+        shell: bash
+        run: |
+          # Remove any previous draft with the same tag so we don't accumulate stale drafts.
+          DRAFT_ID=$(gh release list --json tagName,isDraft \
+            --jq ".[] | select(.isDraft==true and .tagName==\"${NEXT_TAG}\") | .tagName" \
+            2>/dev/null | head -1)
+          if [ -n "$DRAFT_ID" ]; then
+            echo "Deleting existing draft for ${NEXT_TAG}"
+            gh release delete "${NEXT_TAG}" --yes --cleanup-tag 2>/dev/null || true
+          fi
+
+      - name: Create draft release
+        if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_TAG: ${{ steps.semver.outputs.nextStrict }}
+          LAST_TAG: ${{ steps.semver.outputs.current }}
+        shell: bash
+        run: |
+          gh release create "${NEXT_TAG}" \
+            --draft \
+            --title "${NEXT_TAG}" \
+            --generate-notes \
+            --notes-start-tag "${LAST_TAG}" \
+            --target main
+          echo "Draft release ${NEXT_TAG} created."
