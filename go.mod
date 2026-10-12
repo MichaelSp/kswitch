@@ -38,7 +38,7 @@ require (
 	charm.land/bubbletea/v2 v2.1.0
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v9 v9.6.0
-	github.com/digitalocean/godo v1.217.0
+	github.com/digitalocean/godo v1.223.0
 	github.com/exoscale/egoscale/v3 v3.1.56
 	github.com/gardener/gardener/pkg/apis v1.153.0
 	github.com/hashicorp/go-plugin v1.8.0
