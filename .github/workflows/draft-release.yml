@@ -42,63 +42,24 @@ jobs:
 
       - name: Determine next semver
         id: semver
-        shell: bash
-        run: |
-          # ── Latest tag (default 0.0.0 if none) ──────────────────────────────
-          LAST_TAG=$(git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-          LAST_TAG="${LAST_TAG:-0.0.0}"
-          echo "last_tag=${LAST_TAG}" >> "$GITHUB_OUTPUT"
-
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_TAG"
-
-          # ── Commits since last tag ───────────────────────────────────────────
-          if [ "$LAST_TAG" = "0.0.0" ]; then
-            COMMITS=$(git log --format="%s" HEAD)
-          else
-            COMMITS=$(git log --format="%s" "${LAST_TAG}..HEAD")
-          fi
-
-          if [ -z "$COMMITS" ]; then
-            echo "No commits since ${LAST_TAG}; nothing to release." >&2
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # ── Bump logic (conventional commits) ───────────────────────────────
-          # BREAKING CHANGE in body: check full message
-          FULL_LOG=""
-          if [ "$LAST_TAG" = "0.0.0" ]; then
-            FULL_LOG=$(git log --format="%B" HEAD)
-          else
-            FULL_LOG=$(git log --format="%B" "${LAST_TAG}..HEAD")
-          fi
-
-          BUMP="patch"
-          if echo "$FULL_LOG" | grep -qE '(^|\n)BREAKING CHANGE'; then
-            BUMP="major"
-          elif echo "$COMMITS" | grep -qE '^(feat|fix|refactor|perf|build|ci|docs|style|test|chore|revert)(\(.+\))?!:'; then
-            BUMP="major"
-          elif echo "$COMMITS" | grep -qE '^feat(\(.+\))?:'; then
-            BUMP="minor"
-          fi
-
-          case "$BUMP" in
-            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-            patch) PATCH=$((PATCH + 1)) ;;
-          esac
-
-          NEXT="${MAJOR}.${MINOR}.${PATCH}"
-          echo "next_tag=${NEXT}" >> "$GITHUB_OUTPUT"
-          echo "bump=${BUMP}"     >> "$GITHUB_OUTPUT"
-          echo "skip=false"       >> "$GITHUB_OUTPUT"
-          echo "Next version: ${NEXT} (${BUMP} bump from ${LAST_TAG})"
+        uses: ietf-tools/semver-action@c90370b2958652d71c06a3484129a4d423a6d8a8 # v1.11.0
+        with:
+          token: ${{ github.token }}
+          branch: main
+          fallbackTag: 0.0.0
+          skipInvalidTags: true
+          noNewCommitBehavior: silent
+          noVersionBumpBehavior: silent
+        # outputs used below:
+        #   steps.semver.outputs.nextStrict  → e.g. "0.9.4"
+        #   steps.semver.outputs.current     → e.g. "0.9.3"
+        #   steps.semver.outputs.bump        → major | minor | patch | none
 
       - name: Delete existing draft for this version
-        if: steps.semver.outputs.skip == 'false'
+        if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_TAG: ${{ steps.semver.outputs.next_tag }}
+          NEXT_TAG: ${{ steps.semver.outputs.nextStrict }}
         shell: bash
         run: |
           # Remove any previous draft with the same tag so we don't accumulate stale drafts.
@@ -111,11 +72,11 @@ jobs:
           fi
 
       - name: Create draft release
-        if: steps.semver.outputs.skip == 'false'
+        if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_TAG: ${{ steps.semver.outputs.next_tag }}
-          LAST_TAG: ${{ steps.semver.outputs.last_tag }}
+          NEXT_TAG: ${{ steps.semver.outputs.nextStrict }}
+          LAST_TAG: ${{ steps.semver.outputs.current }}
         shell: bash
         run: |
           gh release create "${NEXT_TAG}" \
