@@ -58,6 +58,7 @@ export default defineConfig({
 					label: 'Stores',
 					items: [
 						{ label: 'Filesystem', slug: 'stores/filesystem/filesystem' },
+						{ label: 'Kubernetes', slug: 'stores/kubernetes/kubernetes' },
 						{ label: 'Vault', slug: 'stores/vault/use_vault_store' },
 						{ label: 'Gardener', slug: 'stores/gardener/gardener' },
 						{ label: 'Amazon EKS', slug: 'stores/eks/eks' },
