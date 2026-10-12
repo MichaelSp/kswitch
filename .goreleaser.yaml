@@ -61,6 +61,25 @@ checksum:
   name_template: checksums.txt
   algorithm: sha256
 
+# Sign all release artifacts (binaries, archives, checksums) with cosign keyless
+# signing. The .sig and .pem certificate files are uploaded alongside the release
+# assets and can be verified by anyone with cosign:
+#   cosign verify-blob --certificate <file>.pem --signature <file>.sig \
+#     --certificate-identity-regexp 'https://github.com/MichaelSp/kswitch' \
+#     --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+#     <file>
+signs:
+  - cmd: cosign
+    certificate: "${artifact}.pem"
+    output: true
+    artifacts: all
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+
 release:
   # Upload switch.sh alongside the binaries
   extra_files:
