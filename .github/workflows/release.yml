@@ -36,6 +36,8 @@ jobs:
     permissions:
       # Required to upload release assets
       contents: write
+      # Required for keyless cosign signing via OIDC
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -48,6 +50,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
 
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7

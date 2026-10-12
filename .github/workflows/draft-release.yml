@@ -71,7 +71,7 @@ jobs:
             gh release delete "${NEXT_TAG}" --yes --cleanup-tag 2>/dev/null || true
           fi
 
-      - name: Create draft release
+      - name: Build release notes
         if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,10 +79,26 @@ jobs:
           LAST_TAG: ${{ steps.semver.outputs.current }}
         shell: bash
         run: |
+          # gh release create does not support --generate-notes together with
+          # --notes-file, so fetch generated notes via API then append a footer.
+          gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="${NEXT_TAG}" \
+            -f previous_tag_name="${LAST_TAG}" \
+            -f target_commitish=main \
+            --jq '.body' > /tmp/release-notes.md
+
+          cat .github/release-footer.md >> /tmp/release-notes.md
+
+      - name: Create draft release
+        if: steps.semver.outputs.bump != 'none' && steps.semver.outputs.bump != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_TAG: ${{ steps.semver.outputs.nextStrict }}
+        shell: bash
+        run: |
           gh release create "${NEXT_TAG}" \
             --draft \
             --title "${NEXT_TAG}" \
-            --generate-notes \
-            --notes-start-tag "${LAST_TAG}" \
+            --notes-file /tmp/release-notes.md \
             --target main
           echo "Draft release ${NEXT_TAG} created."
