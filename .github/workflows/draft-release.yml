@@ -1,0 +1,127 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Draft Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Only one draft-release job at a time; cancel superseded runs so the draft
+# always reflects the latest HEAD on main.
+concurrency:
+  group: draft-release
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  draft-release:
+    name: Prepare draft release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write   # create/update/delete draft releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0   # need full history + tags for commit inspection
+
+      - name: Determine next semver
+        id: semver
+        shell: bash
+        run: |
+          # ── Latest tag (default 0.0.0 if none) ──────────────────────────────
+          LAST_TAG=$(git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          LAST_TAG="${LAST_TAG:-0.0.0}"
+          echo "last_tag=${LAST_TAG}" >> "$GITHUB_OUTPUT"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_TAG"
+
+          # ── Commits since last tag ───────────────────────────────────────────
+          if [ "$LAST_TAG" = "0.0.0" ]; then
+            COMMITS=$(git log --format="%s" HEAD)
+          else
+            COMMITS=$(git log --format="%s" "${LAST_TAG}..HEAD")
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits since ${LAST_TAG}; nothing to release." >&2
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # ── Bump logic (conventional commits) ───────────────────────────────
+          # BREAKING CHANGE in body: check full message
+          FULL_LOG=""
+          if [ "$LAST_TAG" = "0.0.0" ]; then
+            FULL_LOG=$(git log --format="%B" HEAD)
+          else
+            FULL_LOG=$(git log --format="%B" "${LAST_TAG}..HEAD")
+          fi
+
+          BUMP="patch"
+          if echo "$FULL_LOG" | grep -qE '(^|\n)BREAKING CHANGE'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE '^(feat|fix|refactor|perf|build|ci|docs|style|test|chore|revert)(\(.+\))?!:'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE '^feat(\(.+\))?:'; then
+            BUMP="minor"
+          fi
+
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEXT="${MAJOR}.${MINOR}.${PATCH}"
+          echo "next_tag=${NEXT}" >> "$GITHUB_OUTPUT"
+          echo "bump=${BUMP}"     >> "$GITHUB_OUTPUT"
+          echo "skip=false"       >> "$GITHUB_OUTPUT"
+          echo "Next version: ${NEXT} (${BUMP} bump from ${LAST_TAG})"
+
+      - name: Delete existing draft for this version
+        if: steps.semver.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_TAG: ${{ steps.semver.outputs.next_tag }}
+        shell: bash
+        run: |
+          # Remove any previous draft with the same tag so we don't accumulate stale drafts.
+          DRAFT_ID=$(gh release list --json tagName,isDraft \
+            --jq ".[] | select(.isDraft==true and .tagName==\"${NEXT_TAG}\") | .tagName" \
+            2>/dev/null | head -1)
+          if [ -n "$DRAFT_ID" ]; then
+            echo "Deleting existing draft for ${NEXT_TAG}"
+            gh release delete "${NEXT_TAG}" --yes --cleanup-tag 2>/dev/null || true
+          fi
+
+      - name: Create draft release
+        if: steps.semver.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_TAG: ${{ steps.semver.outputs.next_tag }}
+          LAST_TAG: ${{ steps.semver.outputs.last_tag }}
+        shell: bash
+        run: |
+          gh release create "${NEXT_TAG}" \
+            --draft \
+            --title "${NEXT_TAG}" \
+            --generate-notes \
+            --notes-start-tag "${LAST_TAG}" \
+            --target main
+          echo "Draft release ${NEXT_TAG} created."
