@@ -78,6 +78,12 @@ homebrew_casks:
     homepage: "https://github.com/MichaelSp/kswitch"
     description: "A kubectl context switcher"
     license: "Apache-2.0"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/kubectl-switch"]
+          end
 
 snapshot:
   version_template: "{{ .Tag }}-next"
