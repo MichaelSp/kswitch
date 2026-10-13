@@ -62,21 +62,20 @@ checksum:
   algorithm: sha256
 
 # Sign all release artifacts (binaries, archives, checksums) with cosign keyless
-# signing. The .sig and .pem certificate files are uploaded alongside the release
-# assets and can be verified by anyone with cosign:
-#   cosign verify-blob --certificate <file>.pem --signature <file>.sig \
+# signing using the new bundle format. The .bundle file is uploaded alongside
+# the release assets and can be verified by anyone with cosign:
+#   cosign verify-blob \
+#     --bundle <file>.bundle \
 #     --certificate-identity-regexp 'https://github.com/MichaelSp/kswitch' \
 #     --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
 #     <file>
 signs:
   - cmd: cosign
-    certificate: "${artifact}.pem"
-    output: true
     artifacts: all
+    output: true
     args:
       - sign-blob
-      - "--output-certificate=${certificate}"
-      - "--output-signature=${signature}"
+      - "--bundle=${artifact}.bundle"
       - "${artifact}"
       - "--yes"
 
