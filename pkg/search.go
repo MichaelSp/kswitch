@@ -17,6 +17,7 @@ package pkg
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -127,19 +128,31 @@ func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 				// directly set from pre-computed index
 				content, tags := index.GetContent()
-				for contextName, path := range content {
+			for contextName, path := range content {
 					tagsForContextName := make(map[string]string)
 					if tagsForCtx, ok := tags[contextName]; ok {
 						tagsForContextName = tagsForCtx
 					}
 
-					resultChannel <- DiscoveredContext{
-						Path:  path,
-						Name:  contextName,
-						Tags:  tagsForContextName,
-						Alias: aliasutil.GetContextForAlias(contextName, contextToAliasMapping),
-						Store: &store,
-						Error: nil,
+					persistentAlias := aliasutil.GetContextForAlias(contextName, contextToAliasMapping)
+					storeAliases := storeAliasesFromTags(tagsForContextName)
+
+					displayAliases := []string{""}
+					if persistentAlias != "" {
+						displayAliases = []string{persistentAlias}
+					} else if len(storeAliases) > 0 {
+						displayAliases = storeAliases
+					}
+
+					for _, alias := range displayAliases {
+						resultChannel <- DiscoveredContext{
+							Path:  path,
+							Name:  contextName,
+							Tags:  tagsForContextName,
+							Alias: alias,
+							Store: &store,
+							Error: nil,
+						}
 					}
 				}
 			}(kubeconfigStore, *searchIndex)
@@ -213,14 +226,29 @@ func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 				}
 
 				for _, contextName := range contexts {
-					// write to result channel
-					resultChannel <- DiscoveredContext{
-						Path:  channelResult.KubeconfigPath,
-						Name:  contextName,
-						Tags:  channelResult.Tags,
-						Alias: aliasutil.GetContextForAlias(contextName, contextToAliasMapping),
-						Store: &store,
-						Error: nil,
+					persistentAlias := aliasutil.GetContextForAlias(contextName, contextToAliasMapping)
+					storeAliases := storeAliasesFromTags(channelResult.Tags)
+
+					// Determine the display aliases: prefer the persistent alias,
+					// fall back to the store-configured aliases list.
+					displayAliases := []string{""}
+					if persistentAlias != "" {
+						displayAliases = []string{persistentAlias}
+					} else if len(storeAliases) > 0 {
+						displayAliases = storeAliases
+					}
+
+					// Emit one DiscoveredContext per display alias so the user
+					// can reach this context by any configured alias name.
+					for _, alias := range displayAliases {
+						resultChannel <- DiscoveredContext{
+							Path:  channelResult.KubeconfigPath,
+							Name:  contextName,
+							Tags:  channelResult.Tags,
+							Alias: alias,
+							Store: &store,
+							Error: nil,
+						}
 					}
 					// add to local contextToPath map to write the index for this store only
 					localContextToPathMapping[contextName] = channelResult.KubeconfigPath
@@ -264,4 +292,21 @@ func shouldReadFromIndex(searchIndex *index.SearchIndex, kubeconfigStore storety
 		return shouldReadFromIndex, nil
 	}
 	return false, nil
+}
+
+// storeAliasesFromTags extracts the comma-separated alias list that a store
+// encodes in tags["aliases"].  Returns nil when the tag is absent or empty.
+func storeAliasesFromTags(tags map[string]string) []string {
+	raw := tags["aliases"]
+	if raw == "" {
+		return nil
+	}
+	parts := strings.Split(raw, ",")
+	out := parts[:0]
+	for _, p := range parts {
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
