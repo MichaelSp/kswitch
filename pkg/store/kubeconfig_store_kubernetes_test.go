@@ -209,7 +209,7 @@ func TestKubernetesStore_StartSearch_AliasesInTags(t *testing.T) {
 	s, fc := newKubernetesStoreForTest(t, types.StoreConfigKubernetes{
 		Namespace:  "default",
 		SecretName: "aliased-secret",
-		Aliases:    []string{"prod", "production"},
+		Alias:      types.KubernetesAliasConfig{List: []string{"prod", "production"}},
 	})
 
 	_, err := fc.CoreV1().Secrets("default").Create(context.Background(), &corev1.Secret{

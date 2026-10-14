@@ -17,6 +17,9 @@ package store
 import (
 	"context"
 	"fmt"
+	"os/user"
+	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -107,15 +110,88 @@ func (s *KubernetesStore) ResolvePeerStores(allStores map[string]storetypes.Kube
 			s.GetID(), peerID, availableStoreIDs(allStores))
 	}
 
-	kubeconfig, err := peer.GetKubeconfigForPath(contextPath, nil)
+	kubeconfig, resolvedPath, err := resolveContextPath(peer, contextPath)
 	if err != nil {
 		return fmt.Errorf("kubernetes store %q: fetch kubeconfig from peer store %q path %q: %w",
 			s.GetID(), peerID, contextPath, err)
 	}
 
 	s.peerKubeconfig = kubeconfig
-	s.Logger.Debugf("kubernetes: resolved peer store %q, path %q", peerID, contextPath)
+	s.Logger.Debugf("kubernetes: resolved peer store %q, path %q -> %q", peerID, contextPath, resolvedPath)
 	return nil
+}
+
+// resolveContextPath fetches the kubeconfig bytes for contextPath from the given store.
+// It first attempts a direct GetKubeconfigForPath call (works for API-backed stores
+// and absolute filesystem paths).  If that fails, it drives StartSearch on the
+// peer store and looks for a result whose full path or basename matches contextPath,
+// then retries GetKubeconfigForPath with the resolved absolute path.
+// This lets users write just a filename (e.g. "openmcp-live") in the storeID
+// instead of a full absolute path.
+func resolveContextPath(peer storetypes.KubeconfigStore, contextPath string) ([]byte, string, error) {
+	// Expand a leading "~/" so users can write paths the same way they do in
+	// the store's own `paths:` config (e.g. "~/.kube/my.yaml").
+	expandedPath := expandHomedir(contextPath)
+
+	// Fast path: direct hit (API-backed stores, or contextPath is already absolute).
+	data, err := peer.GetKubeconfigForPath(expandedPath, nil)
+	if err == nil {
+		return data, expandedPath, nil
+	}
+	directErr := err
+
+	// Slow path: search the peer store for a result matching by full path or
+	// basename.  VerifyKubeconfigPaths must run first so path-based stores
+	// (e.g. filesystem) populate their internal directory/file lists.
+	// Ignore the error: if verification fails the store emits nothing and we
+	// fall through to directErr.
+	_ = peer.VerifyKubeconfigPaths()
+
+	// Collect all paths so we can show them in the error if nothing matches.
+	ch := make(chan storetypes.SearchResult, 64)
+	go func() {
+		peer.StartSearch(ch)
+		close(ch)
+	}()
+
+	wantBase := filepath.Base(expandedPath)
+	var available []string
+	for result := range ch {
+		if result.Error != nil {
+			continue
+		}
+		p := result.KubeconfigPath
+		available = append(available, p)
+		if p == expandedPath || filepath.Base(p) == wantBase {
+			data, err := peer.GetKubeconfigForPath(p, result.Tags)
+			if err != nil {
+				return nil, "", err
+			}
+			return data, p, nil
+		}
+	}
+
+	// Nothing matched — report what is available.
+	if len(available) > 0 {
+		return nil, "", fmt.Errorf("no entry matching %q found in peer store (available: %s)",
+			contextPath, strings.Join(available, ", "))
+	}
+	return nil, "", directErr
+}
+
+// expandHomedir replaces a leading "~/" or bare "~" with the current user's
+// home directory, mirroring the expansion done in FilesystemStore.VerifyKubeconfigPaths.
+func expandHomedir(path string) string {
+	if path == "~" {
+		if usr, err := user.Current(); err == nil {
+			return usr.HomeDir
+		}
+	} else if strings.HasPrefix(path, "~/") {
+		if usr, err := user.Current(); err == nil {
+			return filepath.Join(usr.HomeDir, path[2:])
+		}
+	}
+	return path
 }
 
 // ResolvePeerStoresForAll calls ResolvePeerStores on every KubernetesStore in
@@ -185,10 +261,19 @@ func (s *KubernetesStore) StartSearch(channel chan storetypes.SearchResult) {
 			"secretName": secret.Name,
 		}
 
-		// Attach configured aliases as a comma-separated tag so search.go can
-		// recover them and present them in the TUI alongside the context name.
-		if len(s.Config.Aliases) > 0 {
-			tags["aliases"] = strings.Join(s.Config.Aliases, ",")
+		// Build the alias list from all configured sources:
+		//   1. static list from Alias.List (new field)
+		//   2. legacy Aliases field (back-compat)
+		//   3. value of each label named in Alias.FromLabels (per-secret)
+		var allAliases []string
+		allAliases = append(allAliases, s.Config.Alias.List...)
+		for _, labelKey := range s.Config.Alias.FromLabels {
+			if v := secret.Labels[labelKey]; v != "" {
+				allAliases = append(allAliases, v)
+			}
+		}
+		if len(allAliases) > 0 {
+			tags["aliases"] = strings.Join(allAliases, ",")
 		}
 
 		s.Logger.Debugf("kubernetes: found secret %s/%s", secret.Namespace, secret.Name)
@@ -225,12 +310,24 @@ func (s *KubernetesStore) GetKubeconfigForPath(path string, tags map[string]stri
 
 	secret, err := client.CoreV1().Secrets(ns).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
+		// List available secrets in the namespace to guide the user.
+		available := s.listSecretNames(ctx, client, ns)
+		if len(available) > 0 {
+			return nil, fmt.Errorf("kubernetes store: secret %s/%s not found (available secrets in %s: %s): %w",
+				ns, name, ns, strings.Join(available, ", "), err)
+		}
 		return nil, fmt.Errorf("kubernetes store: get secret %s/%s: %w", ns, name, err)
 	}
 
 	raw, ok := secret.Data[s.Config.Path]
 	if !ok {
-		return nil, fmt.Errorf("kubernetes store: secret %s/%s has no key %q", ns, name, s.Config.Path)
+		keys := make([]string, 0, len(secret.Data))
+		for k := range secret.Data {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		return nil, fmt.Errorf("kubernetes store: secret %s/%s has no key %q (available keys: %s)",
+			ns, name, s.Config.Path, strings.Join(keys, ", "))
 	}
 
 	// Full kubeconfig: pass through unchanged.
@@ -240,6 +337,21 @@ func (s *KubernetesStore) GetKubeconfigForPath(path string, tags map[string]stri
 
 	// Bearer token: synthesise a minimal kubeconfig.
 	return tokenToKubeconfig(string(raw), name), nil
+}
+
+// listSecretNames returns the names of all secrets in the given namespace,
+// used to enrich "secret not found" error messages.
+func (s *KubernetesStore) listSecretNames(ctx context.Context, client kubernetes.Interface, namespace string) []string {
+	list, err := client.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil
+	}
+	names := make([]string, 0, len(list.Items))
+	for _, sec := range list.Items {
+		names = append(names, sec.Name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // listSecrets returns secrets matched by name or label selector.
@@ -262,6 +374,21 @@ func (s *KubernetesStore) listSecrets(ctx context.Context) ([]corev1.Secret, err
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(list.Items) == 0 {
+		// List all secrets in the namespace so the user knows what is there.
+		all, _ := client.CoreV1().Secrets(s.Config.Namespace).List(ctx, metav1.ListOptions{})
+		var names []string
+		for _, sec := range all.Items {
+			names = append(names, sec.Name)
+		}
+		sort.Strings(names)
+		if len(names) > 0 {
+			return nil, fmt.Errorf("no secrets matched label selector %q in namespace %q (available secrets: %s)",
+				s.Config.SecretLabelSelector, s.Config.Namespace, strings.Join(names, ", "))
+		}
+		return nil, fmt.Errorf("no secrets matched label selector %q in namespace %q (namespace is empty)",
+			s.Config.SecretLabelSelector, s.Config.Namespace)
 	}
 	return list.Items, nil
 }

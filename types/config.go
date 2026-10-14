@@ -316,6 +316,20 @@ type StoreConfigKind struct {
 	KindBinary string `yaml:"kindBinary"`
 }
 
+// KubernetesAliasConfig controls how aliases are derived for each context
+// discovered from a kubernetes secret store.
+type KubernetesAliasConfig struct {
+	// FromLabels is a list of Kubernetes secret label names whose values are
+	// each added as an alias for the discovered context.
+	// Example: ["core.openmcp.cloud/mcp-name", "openmcp.cloud/mcp-workspace"]
+	// + optional
+	FromLabels []string `yaml:"fromLabels"`
+	// List contains static alias names that are always added regardless of
+	// secret labels.
+	// + optional
+	List []string `yaml:"list"`
+}
+
 // StoreConfigKubernetes configures the Kubernetes secret store.
 // The store connects to a cluster via another configured store and reads
 // kubeconfig data (or a bearer token) from Kubernetes Secrets.
@@ -348,8 +362,7 @@ type StoreConfigKubernetes struct {
 	// Defaults to "kubeconfig".
 	// + optional
 	Path string `yaml:"path"`
-	// Aliases contains additional names under which every context discovered
-	// from this store will also appear in the selection list.
+	// Alias configures how aliases are derived for discovered contexts.
 	// + optional
-	Aliases []string `yaml:"aliases"`
+	Alias KubernetesAliasConfig `yaml:"alias"`
 }
