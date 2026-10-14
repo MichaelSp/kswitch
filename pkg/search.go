@@ -128,7 +128,7 @@ func doSearch(stores []storetypes.KubeconfigStore, config *types.Config, stateDi
 
 				// directly set from pre-computed index
 				content, tags := index.GetContent()
-			for contextName, path := range content {
+				for contextName, path := range content {
 					tagsForContextName := make(map[string]string)
 					if tagsForCtx, ok := tags[contextName]; ok {
 						tagsForContextName = tagsForCtx
