@@ -721,6 +721,8 @@ github.com/sashamelentyev/usestdlibvars v1.29.0 h1:8J0MoRrw4/NAXtjQqTHrbW9NN+3iM
 github.com/sashamelentyev/usestdlibvars v1.29.0/go.mod h1:8PpnjHMk5VdeWlVb4wCdrB8PNbLqZ3wBZTZWkrpZZL8=
 github.com/scaleway/scaleway-sdk-go v1.38.0 h1:8ddHz9QKDjEgSvqWN0uthFkuz476gVwcGhCMc2JYJeY=
 github.com/scaleway/scaleway-sdk-go v1.38.0/go.mod h1:ly2TNjJyW0SouDBZcQb2aNgqJYqI5t3BZF/UzBKFZ8o=
+github.com/scaleway/scaleway-sdk-go v1.39.0 h1:HCoThqjNYqx+tFcI+JadoqdRN5UBHmC4Ee9lgqEqglw=
+github.com/scaleway/scaleway-sdk-go v1.39.0/go.mod h1:ly2TNjJyW0SouDBZcQb2aNgqJYqI5t3BZF/UzBKFZ8o=
 github.com/securego/gosec/v2 v2.29.0 h1:pF2HSLcnY5voqpxQumEe0O5YAAbvF4Syu4qeIewpLyc=
 github.com/securego/gosec/v2 v2.29.0/go.mod h1:47C7ej+L2bC1NOxteU2aCGnCi4cZaoKzRt5y9plIvuY=
 github.com/sergi/go-diff v1.2.0 h1:XU+rvMAioB0UC3q1MFrIQy4Vo5/4VsRDQQXHsEya6xQ=
