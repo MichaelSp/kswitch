@@ -23,7 +23,7 @@ require (
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.51.0 // indirect
-	google.golang.org/api v0.303.0
+	google.golang.org/api v0.304.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
