@@ -280,6 +280,8 @@ github.com/digitalocean/godo v1.226.0 h1:SHunjAvAyQO9QvtDsPEAYg2hwWW1s1Z160QPAJ9
 github.com/digitalocean/godo v1.226.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/digitalocean/godo v1.227.0 h1:BhZ7Z/D1WjOHt/RSS5gUIFU1CGwh2aD0CgvNHPVWdgs=
 github.com/digitalocean/godo v1.227.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
+github.com/digitalocean/godo v1.230.0 h1:xIDasShGwtGb6gjm0hJTNHgQBkVLg05+8WFWFf+64Ak=
+github.com/digitalocean/godo v1.230.0/go.mod h1:xQsWpVCCbkDrWisHA72hPzPlnC+4W5w/McZY5ij9uvU=
 github.com/dlclark/regexp2 v1.12.0 h1:0j4c5qQmnC6XOWNjP3PIXURXN2gWx76rd3KvgdPkCz8=
 github.com/dlclark/regexp2 v1.12.0/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
 github.com/dlclark/regexp2/v2 v2.2.1 h1:mf4KkFUj0gJuarK8P+LgiS+Lit7m9N1yAwEfPbee7R0=
