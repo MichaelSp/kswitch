@@ -11,7 +11,7 @@ require (
 	github.com/aws/smithy-go v1.28.7
 	github.com/bombsimon/logrusr/v4 v4.2.0
 	github.com/gardener/gardener-extension-provider-openstack v1.58.0
-	github.com/go-cmd/cmd v1.4.3
+	github.com/go-cmd/cmd v1.4.4
 	github.com/google/addlicense v1.2.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/vault/api v1.23.0
