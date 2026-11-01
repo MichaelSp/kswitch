@@ -24,7 +24,7 @@
           name = "kswitch-dev";
 
           packages = with pkgs; [
-            # Go toolchain. go.mod pins `go 1.26.4`; this provides 1.26.x and Go's
+            # Go toolchain. go.mod pins `go 1.26.10`; this provides 1.26.x and Go's
             # GOTOOLCHAIN=auto fetches the exact patch release on first build if needed.
             go_1_26
 
