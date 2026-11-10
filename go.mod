@@ -47,7 +47,7 @@ require (
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/scaleway/scaleway-sdk-go v1.39.0
 	go.uber.org/goleak v1.3.0
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.38.0
 	google.golang.org/grpc v1.86.0-dev
 	google.golang.org/protobuf v1.36.12
 	sigs.k8s.io/cluster-api v1.14.4
