@@ -604,12 +604,12 @@ github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 h1:M8mH9eK4OUR4l
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567/go.mod h1:DWNGW8A4Y+GyBgPuaQJuWiy0XYftx4Xm/y5Jqk9I6VQ=
 github.com/raeperd/recvcheck v0.3.1 h1:p7nZMxiCWkdUtY2i3o+pv1h4fJCR5gpvqAXr9326hEY=
 github.com/raeperd/recvcheck v0.3.1/go.mod h1:CbE7iRocQ4uc71JwpW/CPSh4BShnkre4A9Gb508RypU=
-github.com/rancher/norman v0.10.1 h1:GHLNikXHoZksFRG1IGbq4ZQcuUuztU2ENO921F0M5ek=
-github.com/rancher/norman v0.10.1/go.mod h1:iL9cTzRqCJFjxizVA6bcdrmurVUl/xIM5zbjq7ODGCI=
+github.com/rancher/norman v0.11.1 h1:Lm2nYtxqjEzDnv809ifhMXIWrjDC149/BuMqsVKSYds=
+github.com/rancher/norman v0.11.1/go.mod h1:dS+KvC0UuxuPaQ4jKaR/LXysO85YUW5mqtPt/GoYS0o=
 github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6 h1:lO5LqkH2oyuH/fmpLZRKRHgVFj91zrS8sulQ5xqeaMY=
 github.com/rancher/rancher/pkg/client v0.0.0-20260817061917-34138e9fd6a6/go.mod h1:ocyJVAF7RhHhpt00VnW5xexALpyscQj662BkaG52bFk=
-github.com/rancher/wrangler/v3 v3.8.0-rc.1 h1:2ywpeMnPZihu73UNDilPDITNXFesZfuvyLclbzn0z00=
-github.com/rancher/wrangler/v3 v3.8.0-rc.1/go.mod h1:IaBqAfzbG9qCwF9c3sCb17Z4TKiCEyO7JUx+4tMwrAo=
+github.com/rancher/wrangler/v3 v3.8.0 h1:t+tE6dquqD4VIc9PEm6SZMAt5VTuCqUyWWEWL2PzCO0=
+github.com/rancher/wrangler/v3 v3.8.0/go.mod h1:Q3uCyt5yvT99SeNbksrSwxlWn8P4lu4WHenWQDzUa9E=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
@@ -808,8 +808,8 @@ golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
-golang.org/x/sync v0.24.0 h1:iqiDrGoDgyuvAKrhLQthUEzU/R378N78gXbBjxed7oA=
-golang.org/x/sync v0.24.0/go.mod h1:sUUOizhqBxiL6pEWpqNLUiaJn1ShEbZ6BBqskPbjZm0=
+golang.org/x/sync v0.25.0 h1:dJnifr0nMV8/SBnBvdo4eSGGnrc3O4FFx6IqvtLcmRs=
+golang.org/x/sync v0.25.0/go.mod h1:sUUOizhqBxiL6pEWpqNLUiaJn1ShEbZ6BBqskPbjZm0=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200116001909-b77594299b42/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
